@@ -1,0 +1,41 @@
+# deps
+node_modules/
+.pnpm-store/
+
+# build
+dist/
+build/
+.next/
+out/
+*.tsbuildinfo
+
+# java
+.gradle/
+!gradle/wrapper/gradle-wrapper.jar
+
+# env & secrets
+.env
+.env.*
+!.env.example
+*.pem
+*.key
+
+# editor / os
+.DS_Store
+.idea/
+.vscode/*
+!.vscode/extensions.json
+*.swp
+
+# logs
+*.log
+npm-debug.log*
+pnpm-debug.log*
+
+# test
+coverage/
+playwright-report/
+test-results/
+
+# expo (ileride)
+.expo/

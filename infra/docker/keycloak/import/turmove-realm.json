@@ -1,0 +1,94 @@
+{
+  "realm": "turmove",
+  "enabled": true,
+  "displayName": "TurMove",
+  "defaultLocale": "tr",
+  "internationalizationEnabled": true,
+  "supportedLocales": ["tr", "en"],
+  "accessTokenLifespan": 900,
+  "ssoSessionIdleTimeout": 2592000,
+  "roles": {
+    "realm": [
+      { "name": "CUSTOMER",       "description": "Yük sahibi" },
+      { "name": "DRIVER",         "description": "Nakliyeci / sürücü" },
+      { "name": "FLEET_MANAGER",  "description": "Filo yöneticisi" },
+      { "name": "OPS_AGENT",      "description": "Operasyon ajanı" },
+      { "name": "ADMIN",          "description": "Sistem yöneticisi" }
+    ]
+  },
+  "clients": [
+    {
+      "clientId": "turmove-web",
+      "name": "TurMove Web",
+      "publicClient": true,
+      "standardFlowEnabled": true,
+      "directAccessGrantsEnabled": false,
+      "redirectUris": ["http://localhost:3000/*"],
+      "webOrigins": ["http://localhost:3000"],
+      "attributes": { "pkce.code.challenge.method": "S256" }
+    },
+    {
+      "clientId": "turmove-admin-web",
+      "name": "TurMove Admin",
+      "publicClient": true,
+      "standardFlowEnabled": true,
+      "redirectUris": ["http://localhost:3001/*"],
+      "webOrigins": ["http://localhost:3001"],
+      "attributes": { "pkce.code.challenge.method": "S256" }
+    },
+    {
+      "clientId": "turmove-customer-app",
+      "name": "TurMove Müşteri Uygulaması",
+      "publicClient": true,
+      "standardFlowEnabled": true,
+      "redirectUris": ["turmove://*"],
+      "attributes": { "pkce.code.challenge.method": "S256" }
+    },
+    {
+      "clientId": "turmove-driver-app",
+      "name": "TurMove Nakliyeci Uygulaması",
+      "publicClient": true,
+      "standardFlowEnabled": true,
+      "redirectUris": ["turmove-driver://*"],
+      "attributes": { "pkce.code.challenge.method": "S256" }
+    },
+    {
+      "clientId": "turmove-api",
+      "name": "TurMove API",
+      "bearerOnly": true,
+      "publicClient": false
+    }
+  ],
+  "users": [
+    {
+      "username": "musteri@turmove.local",
+      "email": "musteri@turmove.local",
+      "firstName": "Test",
+      "lastName": "Müşteri",
+      "enabled": true,
+      "emailVerified": true,
+      "credentials": [{ "type": "password", "value": "turmove", "temporary": false }],
+      "realmRoles": ["CUSTOMER"]
+    },
+    {
+      "username": "nakliyeci@turmove.local",
+      "email": "nakliyeci@turmove.local",
+      "firstName": "Test",
+      "lastName": "Nakliyeci",
+      "enabled": true,
+      "emailVerified": true,
+      "credentials": [{ "type": "password", "value": "turmove", "temporary": false }],
+      "realmRoles": ["DRIVER"]
+    },
+    {
+      "username": "operasyon@turmove.local",
+      "email": "operasyon@turmove.local",
+      "firstName": "Test",
+      "lastName": "Operasyon",
+      "enabled": true,
+      "emailVerified": true,
+      "credentials": [{ "type": "password", "value": "turmove", "temporary": false }],
+      "realmRoles": ["OPS_AGENT", "ADMIN"]
+    }
+  ]
+}

@@ -1,0 +1,25 @@
+spring:
+  jpa:
+    hibernate:
+      ddl-auto: validate
+    open-in-view: false
+  flyway:
+    enabled: true
+  security:
+    oauth2:
+      resourceserver:
+        jwt:
+          # Testte Keycloak ayağa kalkmıyor. jwk-set-uri ile JwtDecoder tembel kurulur —
+          # başlangıçta ağa çıkmaz, yalnızca gerçek bir token doğrulanırken kullanılır.
+          jwk-set-uri: http://localhost:59999/.well-known/jwks.json
+
+turmove:
+  maps:
+    api-key: test
+  commission:
+    default-percent: 0
+
+logging:
+  level:
+    org.testcontainers: INFO
+    com.turmove: DEBUG

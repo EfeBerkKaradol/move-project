@@ -1,0 +1,43 @@
+@import "tailwindcss";
+
+/*
+ * TurMove tasarım token'ları (docs/06 §6).
+ * Derin petrol = güven · canlı yeşil = hareket, ilerleme, "yolda"
+ * Karanlık mod ilk günden token seviyesinde destekleniyor.
+ */
+@theme {
+  --color-brand-50:  #eef7f8;
+  --color-brand-100: #d3ebee;
+  --color-brand-300: #7fc3cb;
+  --color-brand-500: #1c6f7d;
+  --color-brand-700: #0e3a42;
+  --color-brand-900: #062229;
+
+  --color-accent-300: #6fe0b6;
+  --color-accent-500: #0f8f68;
+  --color-accent-700: #0a6b4e;
+
+  --color-surface:    #ffffff;
+  --color-ground:     #f2f5f4;
+  --color-ink:        #0f1719;
+  --color-ink-muted:  #5c6b70;
+  --color-line:       #dbe3e1;
+
+  --radius-card: 1rem;
+  --font-sans: "Inter", ui-sans-serif, system-ui, sans-serif;
+}
+
+@media (prefers-color-scheme: dark) {
+  @theme {
+    --color-surface:   #111a1d;
+    --color-ground:    #0a1113;
+    --color-ink:       #e8efec;
+    --color-ink-muted: #7d9294;
+    --color-line:      #233135;
+  }
+}
+
+body {
+  background: var(--color-ground);
+  color: var(--color-ink);
+}
