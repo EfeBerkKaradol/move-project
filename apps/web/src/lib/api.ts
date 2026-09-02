@@ -1,6 +1,13 @@
-import type { CargoCategory, VehicleType } from '@turmove/contracts';
+import type {
+  CargoCategory,
+  CargoDeclarationRequest,
+  CargoItem,
+  CargoPreset,
+  VehicleRecommendation,
+  VehicleType,
+} from '@turmove/contracts';
 
-const API_URL = process.env.NEXT_PUBLIC_API_URL ?? 'http://localhost:8080';
+export const API_URL = process.env.NEXT_PUBLIC_API_URL ?? 'http://localhost:8080';
 
 /**
  * Katalog uçları kimlik gerektirmiyor — kullanıcı fiyat almadan ve kayıt olmadan
@@ -21,3 +28,22 @@ async function get<T>(path: string): Promise<T | null> {
 
 export const getVehicleTypes = () => get<VehicleType[]>('/vehicle-types');
 export const getCargoCategories = () => get<CargoCategory[]>('/cargo-categories');
+export const getCargoItems = () => get<CargoItem[]>('/cargo-items');
+export const getCargoPresets = () => get<CargoPreset[]>('/cargo-presets');
+
+/** Araç önerisi — tarayıcıdan çağrılır, her seçim değişikliğinde yenilenir. */
+export async function fetchRecommendation(
+  body: CargoDeclarationRequest,
+  signal?: AbortSignal,
+): Promise<VehicleRecommendation> {
+  const res = await fetch(`${API_URL}/api/v1/public/vehicle-recommendation`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(body),
+    signal,
+  });
+  if (!res.ok) {
+    throw new Error(`Öneri alınamadı (${res.status})`);
+  }
+  return (await res.json()) as VehicleRecommendation;
+}

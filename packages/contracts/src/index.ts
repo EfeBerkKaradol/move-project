@@ -58,3 +58,21 @@ export type RecommendationOption = {
   reason: string;
   whyNotSmaller: { vehicleTypeCode: string; reason: string } | null;
 };
+
+export type CargoPreset = {
+  code: string;
+  categoryCode: string;
+  displayName: string;
+  estimatedVolumeM3: number;
+  estimatedWeightKg: number;
+  sortOrder: number;
+};
+
+/** Öneri isteği — kategori paneli ve detay adımının çıktısı. */
+export type CargoDeclarationRequest = {
+  categoryCode: string;
+  items?: { cargoItemCode: string; quantity: number }[];
+  presetCode?: string | null;
+  packageCount?: number | null;
+  stops?: { floor?: number | null; hasElevator?: boolean | null }[];
+};

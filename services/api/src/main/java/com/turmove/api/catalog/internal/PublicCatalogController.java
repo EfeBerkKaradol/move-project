@@ -1,6 +1,7 @@
 package com.turmove.api.catalog.internal;
 
 import com.turmove.api.catalog.api.CargoDeclarationRequest;
+import com.turmove.api.catalog.api.CargoPresetView;
 import com.turmove.api.catalog.api.VehicleRecommendation;
 import com.turmove.api.catalog.api.VehicleRecommendationService;
 import com.turmove.api.catalog.domain.CargoCategory;
@@ -26,16 +27,19 @@ class PublicCatalogController {
     private final VehicleTypeRepository vehicleTypes;
     private final CargoCategoryRepository categories;
     private final CargoItemRepository cargoItems;
+    private final CargoPresetRepository presets;
     private final VehicleRecommendationService recommendationService;
 
     PublicCatalogController(
             VehicleTypeRepository vehicleTypes,
             CargoCategoryRepository categories,
             CargoItemRepository cargoItems,
+            CargoPresetRepository presets,
             VehicleRecommendationService recommendationService) {
         this.vehicleTypes = vehicleTypes;
         this.categories = categories;
         this.cargoItems = cargoItems;
+        this.presets = presets;
         this.recommendationService = recommendationService;
     }
 
@@ -57,6 +61,23 @@ class PublicCatalogController {
         return category == null
                 ? cargoItems.findByActiveTrueOrderBySortOrderAsc()
                 : cargoItems.findByCategoryCodeAndActiveTrueOrderBySortOrderAsc(category);
+    }
+
+    @GetMapping("/cargo-presets")
+    @Operation(summary = "Kategori bazlı hazır tahminler (2+1 orta, stüdyo az eşya…)")
+    List<CargoPresetView> cargoPresets(@RequestParam(required = false) String category) {
+        var rows = category == null
+                ? presets.findAllByOrderBySortOrderAsc()
+                : presets.findByCategoryCodeOrderBySortOrderAsc(category);
+        return rows.stream()
+                .map(p -> new CargoPresetView(
+                        p.getCode(),
+                        p.getCategoryCode(),
+                        p.getDisplayName(),
+                        p.getEstimatedVolumeM3(),
+                        p.getEstimatedWeightKg(),
+                        p.getSortOrder()))
+                .toList();
     }
 
     @PostMapping("/vehicle-recommendation")

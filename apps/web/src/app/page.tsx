@@ -1,3 +1,4 @@
+import Link from 'next/link';
 import { CITIES, formatVolume } from '@turmove/shared';
 import { getCargoCategories, getVehicleTypes } from '@/lib/api';
 
@@ -23,12 +24,18 @@ export default async function HomePage() {
       </p>
 
       <div className="mt-8 flex flex-wrap gap-3">
-        <button className="rounded-xl bg-primary px-6 py-3 font-medium text-primary-fg">
-          Anlık taşıma
-        </button>
-        <button className="rounded-xl border border-line px-6 py-3 font-medium">
-          Planlı taşıma
-        </button>
+        <Link
+          href="/fiyat-hesapla"
+          className="rounded-xl bg-primary px-6 py-3 font-medium text-primary-fg"
+        >
+          Fiyat hesapla
+        </Link>
+        <Link
+          href="/fiyat-hesapla"
+          className="rounded-xl border border-line px-6 py-3 font-medium"
+        >
+          Nasıl çalışır?
+        </Link>
       </div>
 
       {apiDown ? (
