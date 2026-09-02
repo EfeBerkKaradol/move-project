@@ -7,7 +7,7 @@ export default async function HomePage() {
 
   return (
     <main className="mx-auto max-w-5xl px-6 py-16">
-      <p className="text-xs font-medium uppercase tracking-[0.16em] text-[--color-ink-muted]">
+      <p className="text-xs font-medium uppercase tracking-[0.16em] text-ink-muted">
         Komisyonsuz dönem · 2027 ilk çeyreğine kadar
       </p>
 
@@ -17,22 +17,22 @@ export default async function HomePage() {
         aracı biz bulalım
       </h1>
 
-      <p className="mt-5 max-w-xl text-lg text-[--color-ink-muted]">
+      <p className="mt-5 max-w-xl text-lg text-ink-muted">
         Sipariş öncesi net fiyat, taşıma boyunca canlı takip, istersen nakliyeciyle pazarlık.
         Şu an {CITIES.map((c) => c.name).join(', ')}.
       </p>
 
       <div className="mt-8 flex flex-wrap gap-3">
-        <button className="rounded-xl bg-[--color-brand-700] px-6 py-3 font-medium text-white">
+        <button className="rounded-xl bg-primary px-6 py-3 font-medium text-primary-fg">
           Anlık taşıma
         </button>
-        <button className="rounded-xl border border-[--color-line] px-6 py-3 font-medium">
+        <button className="rounded-xl border border-line px-6 py-3 font-medium">
           Planlı taşıma
         </button>
       </div>
 
       {apiDown ? (
-        <p className="mt-16 rounded-xl border border-[--color-line] bg-[--color-surface] p-6 text-sm text-[--color-ink-muted]">
+        <p className="mt-16 rounded-xl border border-line bg-surface p-6 text-sm text-ink-muted">
           Katalog yüklenemedi. API çalışmıyor olabilir — <code>pnpm infra:up</code> ve{' '}
           <code>pnpm api</code> ile ayağa kaldırabilirsin.
         </p>
@@ -44,12 +44,12 @@ export default async function HomePage() {
               {categories.map((c) => (
                 <article
                   key={c.code}
-                  className="rounded-[--radius-card] border border-[--color-line] bg-[--color-surface] p-5"
+                  className="rounded-card border border-line bg-surface p-5"
                 >
                   <h3 className="font-semibold">{c.displayName}</h3>
-                  <p className="mt-1 text-sm text-[--color-ink-muted]">{c.scaleHint}</p>
+                  <p className="mt-1 text-sm text-ink-muted">{c.scaleHint}</p>
                   {c.typicalVolumeMaxM3 !== null && (
-                    <p className="mt-3 text-xs tabular-nums text-[--color-ink-muted]">
+                    <p className="mt-3 text-xs tabular-nums text-ink-muted">
                       {formatVolume(c.typicalVolumeMinM3 ?? 0)} –{' '}
                       {formatVolume(c.typicalVolumeMaxM3)}
                     </p>
@@ -61,10 +61,10 @@ export default async function HomePage() {
 
           <section className="mt-14">
             <h2 className="text-xl font-semibold">Araç filosu</h2>
-            <div className="mt-5 overflow-x-auto rounded-[--radius-card] border border-[--color-line] bg-[--color-surface]">
+            <div className="mt-5 overflow-x-auto rounded-card border border-line bg-surface">
               <table className="w-full min-w-[520px] text-sm">
-                <thead className="text-left text-xs uppercase tracking-wider text-[--color-ink-muted]">
-                  <tr className="border-b border-[--color-line]">
+                <thead className="text-left text-xs uppercase tracking-wider text-ink-muted">
+                  <tr className="border-b border-line">
                     <th className="px-5 py-3">Araç</th>
                     <th className="px-5 py-3">Hacim</th>
                     <th className="px-5 py-3">Kapasite</th>
@@ -73,13 +73,15 @@ export default async function HomePage() {
                 </thead>
                 <tbody>
                   {vehicles.map((v) => (
-                    <tr key={v.code} className="border-b border-[--color-line] last:border-0">
+                    <tr key={v.code} className="border-b border-line last:border-0">
                       <td className="px-5 py-3 font-medium">{v.displayName}</td>
                       <td className="px-5 py-3 tabular-nums">{formatVolume(v.volumeM3)}</td>
                       <td className="px-5 py-3 tabular-nums">
                         {v.payloadKg.toLocaleString('tr-TR')} kg
                       </td>
-                      <td className="px-5 py-3 tabular-nums">{v.innerLengthCm} cm</td>
+                      <td className="px-5 py-3 tabular-nums">
+                        {v.innerLengthCm.toLocaleString('tr-TR')} cm
+                      </td>
                     </tr>
                   ))}
                 </tbody>

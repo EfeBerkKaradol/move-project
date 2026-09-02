@@ -1,43 +1,64 @@
 @import "tailwindcss";
 
 /*
- * TurMove tasarım token'ları (docs/06 §6).
+ * TurMove tasarım token'ları (docs/06 §6)
  * Derin petrol = güven · canlı yeşil = hareket, ilerleme, "yolda"
- * Karanlık mod ilk günden token seviyesinde destekleniyor.
+ *
+ * Tailwind v4 kalıbı: ham değerler :root'ta ve karanlık tema media query'sinde
+ * tanımlanır; `@theme inline` bunları utility'lere bağlar. Böylece `bg-surface`
+ * gibi bir sınıf tema değişince kendiliğinden doğru rengi alır.
  */
-@theme {
-  --color-brand-50:  #eef7f8;
-  --color-brand-100: #d3ebee;
-  --color-brand-300: #7fc3cb;
-  --color-brand-500: #1c6f7d;
-  --color-brand-700: #0e3a42;
-  --color-brand-900: #062229;
 
-  --color-accent-300: #6fe0b6;
-  --color-accent-500: #0f8f68;
-  --color-accent-700: #0a6b4e;
+@theme inline {
+  --color-ground: var(--ground);
+  --color-surface: var(--surface);
+  --color-surface-2: var(--surface-2);
+  --color-ink: var(--ink);
+  --color-ink-muted: var(--ink-muted);
+  --color-line: var(--line);
 
-  --color-surface:    #ffffff;
-  --color-ground:     #f2f5f4;
-  --color-ink:        #0f1719;
-  --color-ink-muted:  #5c6b70;
-  --color-line:       #dbe3e1;
+  --color-primary: var(--primary);
+  --color-primary-fg: var(--primary-fg);
+  --color-accent: var(--accent);
+  --color-accent-soft: var(--accent-soft);
 
-  --radius-card: 1rem;
+  --radius-card: 0.875rem;
   --font-sans: "Inter", ui-sans-serif, system-ui, sans-serif;
 }
 
+:root {
+  --ground: #f2f5f4;
+  --surface: #ffffff;
+  --surface-2: #eaefed;
+  --ink: #0f1719;
+  --ink-muted: #5c6b70;
+  --line: #dbe3e1;
+
+  /* Birincil aksiyon: derin petrol zemin, beyaz yazı */
+  --primary: #0e3a42;
+  --primary-fg: #ffffff;
+  --accent: #0f8f68;
+  --accent-soft: #dcf0e7;
+}
+
 @media (prefers-color-scheme: dark) {
-  @theme {
-    --color-surface:   #111a1d;
-    --color-ground:    #0a1113;
-    --color-ink:       #e8efec;
-    --color-ink-muted: #7d9294;
-    --color-line:      #233135;
+  :root {
+    --ground: #0a1113;
+    --surface: #111a1d;
+    --surface-2: #172327;
+    --ink: #e8efec;
+    --ink-muted: #8ba1a3;
+    --line: #233135;
+
+    /* Karanlık zeminde derin petrol okunmuyor — açık petrol zemine koyu yazı */
+    --primary: #7fcbce;
+    --primary-fg: #06232a;
+    --accent: #3fcb99;
+    --accent-soft: #102c25;
   }
 }
 
 body {
-  background: var(--color-ground);
-  color: var(--color-ink);
+  background: var(--ground);
+  color: var(--ink);
 }
