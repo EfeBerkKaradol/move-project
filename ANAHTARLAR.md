@@ -9,10 +9,10 @@ Bir maddeyi hallettiğinde söyle, kutusunu işaretleyeyim.
 
 ## Durum özeti
 
-| | Faz 1 | Faz 3–4 | Faz 5 | Toplam |
-|---|---|---|---|---|
-| Bekleyen | 3 | 3 | 3 | 9 |
-| Tamamlanan | 0 | 0 | 0 | 0 |
+| | Faz 1 | Altyapı | Üretim | Faz 3–4 | Faz 5 | Toplam |
+|---|---|---|---|---|---|---|
+| Bekleyen | 3 | 2 | 3 | 3 | 3 | 14 |
+| Tamamlanan | 0 | 0 | 0 | 0 | 0 | 0 |
 
 ---
 
@@ -128,6 +128,30 @@ Süreç uzun — Faz 5'ten çok önce başlatılmalı. Söyle, planlayalım.
 ### [ ] 11. NVİ TC Kimlik Doğrulama servisi
 **Ne için:** Nakliyeci onboarding'inde kimlik doğrulama (Faz 3).
 **Not:** Kamu servisi, başvuru gerektiriyor.
+
+---
+
+## Üretime çıkarken ayarlanması zorunlu
+
+Bunlar dış servis değil, **bizim ürettiğimiz** değerler — ama local varsayılanlarıyla
+üretime çıkılırsa güvenlik açığı olur.
+
+### [ ] 13. Teklif imzalama anahtarı
+**Ne için:** Fiyat teklifi HMAC ile imzalanıyor; istemcinin fiyatı değiştirip sipariş
+oluşturmasını bu engelliyor. Local varsayılanı `local-development-secret` — üretimde
+kalırsa herkes kendi fiyatını imzalayabilir.
+
+**Nereye:** `services/api/.env` → `TURMOVE_QUOTE_SIGNING_SECRET=<rastgele 32+ karakter>`
+Üretmek için: `openssl rand -base64 48`
+
+### [ ] 14. CORS izinli origin listesi
+**Ne için:** API varsayılan olarak yalnızca `localhost:3000/3001`'e izin veriyor.
+Üretim alan adı eklenmezse web uygulaması API'ye hiç ulaşamaz.
+
+**Nereye:** `services/api/.env` → `TURMOVE_CORS_ALLOWED_ORIGINS=https://turmove.com,https://admin.turmove.com`
+
+### [ ] 15. Keycloak üretim yönetici parolası
+Local'de `admin/admin`. Üretimde değiştirilmeli ve realm ayarları gözden geçirilmeli.
 
 ---
 

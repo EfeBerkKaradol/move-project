@@ -6,6 +6,10 @@
  * böylece backend bir alanı değiştirdiğinde frontend derleme zamanında haberdar olur.
  */
 
+/**
+ * Para değeri. `amount` **string** — sayı olsaydı IEEE-754 float'a dönüşüp
+ * kuruş kaybı yaşanırdı. Gösterim için `formatPrice()` kullan.
+ */
 export type Money = { amount: string; currency: 'TRY' };
 
 export type Estimate = {

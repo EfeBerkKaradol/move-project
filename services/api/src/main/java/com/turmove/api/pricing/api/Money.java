@@ -1,10 +1,18 @@
 package com.turmove.api.pricing.api;
 
+import com.fasterxml.jackson.annotation.JsonFormat;
 import java.math.BigDecimal;
 import java.math.RoundingMode;
 
-/** Para değeri. Kuruş kaybı olmaması için {@link BigDecimal}, asla double. */
-public record Money(BigDecimal amount, String currency) {
+/**
+ * Para değeri.
+ *
+ * <p>{@link BigDecimal} kullanılır, asla {@code double}. JSON'a da <strong>string</strong>
+ * olarak yazılır: sayı olarak gönderilseydi JavaScript tarafında IEEE-754 float'a
+ * dönüşüp kuruş kaybı yaşanırdı. API sözleşmesi de string diyor (docs/05).
+ */
+public record Money(
+        @JsonFormat(shape = JsonFormat.Shape.STRING) BigDecimal amount, String currency) {
 
     public static final String TRY = "TRY";
 

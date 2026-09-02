@@ -163,6 +163,45 @@ class PricingServiceTest extends IntegrationTestBase {
         assertThat(quote.quoteId()).startsWith("qt_");
     }
 
+    /**
+     * Asansörsüz kat ücreti, kullanıcı hizmeti açıkça seçse de seçmese de aynı çıkmalı.
+     * Aksi hâlde isteğe "NO_ELEVATOR" eklemek ücreti kat sayısından bağımsız tek birime
+     * düşürüp eksik faturalamaya yol açıyordu.
+     */
+    @Test
+    void asansorsuzKatUcretiAcikcaSecilseDeAyniHesaplanir() {
+        var stops = List.of(
+                new QuoteRequest.Stop(districtId("34", "kadikoy"), 4, false),
+                new QuoteRequest.Stop(districtId("34", "besiktas"), 0, true));
+
+        var otomatik = pricing.quote(new QuoteRequest("INSTANT", "TRANSPORTER", stops, List.of(), null));
+        var acikca = pricing.quote(
+                new QuoteRequest("INSTANT", "TRANSPORTER", stops, List.of("NO_ELEVATOR"), null));
+
+        assertThat(acikca.totalAmount().amount())
+                .isEqualByComparingTo(otomatik.totalAmount().amount());
+
+        assertThat(acikca.breakdown())
+                .filteredOn(l -> l.code().equals("NO_ELEVATOR"))
+                .singleElement()
+                .satisfies(l -> assertThat(l.amount().amount()).isEqualByComparingTo("120.00"));
+    }
+
+    /** Bekleme süresi taşıma bitince belli olur; teklif anında ücretlendirilmemeli. */
+    @Test
+    void beklemeUcretiTeklifAsamasindaEklenmez() {
+        var quote = pricing.quote(new QuoteRequest(
+                "INSTANT",
+                "TRANSPORTER",
+                List.of(
+                        new QuoteRequest.Stop(districtId("34", "kadikoy"), 0, true),
+                        new QuoteRequest.Stop(districtId("34", "besiktas"), 0, true)),
+                List.of("WAITING"),
+                null));
+
+        assertThat(quote.breakdown()).noneMatch(l -> l.code().equals("WAITING"));
+    }
+
     @Test
     void ekHizmetDokumeSatirOlarakEklenir() {
         var quote = pricing.quote(new QuoteRequest(

@@ -1,5 +1,7 @@
 # 05 — API Sözleşmesi
 
+> ✅ işaretli uçlar kurulu ve çalışıyor; işaretsizler sonraki fazlarda gelecek.
+>
 > Bu doküman API'nin **şeklini** tanımlar. Tek doğruluk kaynağı `springdoc-openapi` ile
 > koddan üretilen `openapi.json`'dır; TypeScript tipleri oradan otomatik üretilir.
 
@@ -49,13 +51,15 @@ kullanıcıya gösterilebilir Türkçe metindir.
 ## 3. Public uçlar (kimlik gerektirmez)
 
 ```
-GET  /api/v1/public/vehicle-types                 araç tipleri + kapasiteler
-GET  /api/v1/public/cargo-categories              8 kategori + ölçek ipuçları
-GET  /api/v1/public/cargo-items?category=         eşya kataloğu
-POST /api/v1/public/vehicle-recommendation        yük beyanı → araç önerisi
-GET  /api/v1/public/service-areas                 hizmet verilen iller/ilçeler
-POST /api/v1/public/quotes                        fiyat hesapla (giriş gerekmez)
-GET  /api/v1/public/quotes/{id}                   teklifi getir
+GET  /api/v1/public/vehicle-types                 araç tipleri + kapasiteler  ✅ kuruldu
+GET  /api/v1/public/cargo-categories              8 kategori + ölçek ipuçları  ✅ kuruldu
+GET  /api/v1/public/cargo-items?category=         eşya kataloğu  ✅ kuruldu
+GET  /api/v1/public/cargo-presets?category=       kategori bazlı hazır tahminler  ✅ kuruldu
+POST /api/v1/public/vehicle-recommendation        yük beyanı → araç önerisi  ✅ kuruldu
+GET  /api/v1/public/districts                     hizmet verilen ilçeler  ✅ kuruldu
+GET  /api/v1/public/extra-services                ek hizmetler ve ücretleri  ✅ kuruldu
+POST /api/v1/public/quotes                        fiyat hesapla (giriş gerekmez)  ✅ kuruldu
+GET  /api/v1/public/quotes/{id}                   teklifi getir  ⏳ Faz 1 kalanı
 GET  /api/v1/public/track/{trackingToken}         alıcı takip verisi (imzalı token)
 WS   /ws/track/{trackingToken}                    alıcı canlı konum akışı
 GET  /api/v1/public/content/cities/{slug}         SEO landing içeriği

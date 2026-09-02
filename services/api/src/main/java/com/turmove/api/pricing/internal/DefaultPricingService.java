@@ -91,22 +91,27 @@ class DefaultPricingService implements PricingService {
         var subtotal = sum(lines);
 
         // 4) Ek hizmetler
+        //
+        // Asansörsüz kat, kullanıcı açıkça seçmese de duraklardan türetilir. İki yol
+        // aynı hesaba çıkmalı: aksi hâlde isteğe "NO_ELEVATOR" eklemek ücreti kat
+        // sayısından bağımsız tek birime düşürüp eksik faturalamaya yol açar.
         var catalog = extraServices.findByActiveTrueOrderBySortOrderAsc();
-        for (var code : request.extraServicesOrEmpty()) {
-            var svc = catalog.stream().filter(s -> s.getCode().equals(code)).findFirst()
-                    .orElseThrow(() -> new IllegalArgumentException("Bilinmeyen ek hizmet: " + code));
-            lines.add(line(svc.getCode(), svc.getDisplayName(), extraCost(svc, subtotal, request), null));
+        var noElevatorFloors = noElevatorFloors(request);
+
+        var requestedCodes = new java.util.LinkedHashSet<>(request.extraServicesOrEmpty());
+        if (noElevatorFloors > 0) {
+            requestedCodes.add("NO_ELEVATOR");
         }
 
-        // 5) Asansörsüz kat — ek hizmet olarak seçilmese de otomatik uygulanır
-        var noElevatorFloors = request.stops().stream()
-                .filter(s -> Boolean.FALSE.equals(s.hasElevator()) && s.floor() != null && s.floor() > 1)
-                .mapToInt(QuoteRequest.Stop::floor)
-                .sum();
-        if (noElevatorFloors > 0 && !request.extraServicesOrEmpty().contains("NO_ELEVATOR")) {
-            var svc = catalog.stream().filter(s -> s.getCode().equals("NO_ELEVATOR")).findFirst().orElseThrow();
-            lines.add(line("NO_ELEVATOR", "Asansörsüz kat (%d kat)".formatted(noElevatorFloors),
-                    svc.getRate().multiply(BigDecimal.valueOf(noElevatorFloors)), null));
+        for (var code : requestedCodes) {
+            var svc = catalog.stream().filter(s -> s.getCode().equals(code)).findFirst()
+                    .orElseThrow(() -> new IllegalArgumentException("Bilinmeyen ek hizmet: " + code));
+            var units = units(svc, request, noElevatorFloors);
+            if (units == 0) continue;
+            var label = "NO_ELEVATOR".equals(code)
+                    ? "Asansörsüz kat (%d kat)".formatted(noElevatorFloors)
+                    : svc.getDisplayName();
+            lines.add(line(code, label, extraCost(svc, subtotal, units), null));
         }
 
         // 6) Minimum ücret kontrolü
@@ -117,7 +122,7 @@ class DefaultPricingService implements PricingService {
         }
 
         // 7) Platform komisyonu — %0 olsa bile satır olarak görünür (FR-5.8)
-        var commissionPercent = commissions.findFirstByCityCodeIsNullOrderByVersionDesc()
+        var commissionPercent = commissions.findActive(Instant.now())
                 .map(c -> c.getPercent())
                 .orElse(BigDecimal.ZERO);
         var total = sum(lines);
@@ -184,16 +189,33 @@ class DefaultPricingService implements PricingService {
         return cost;
     }
 
-    private BigDecimal extraCost(ExtraService svc, BigDecimal subtotal, QuoteRequest request) {
+    private BigDecimal extraCost(ExtraService svc, BigDecimal subtotal, int units) {
         return switch (svc.getPricingType()) {
             case "FIXED" -> svc.getRate();
             case "PERCENT" -> subtotal.multiply(svc.getRate()).divide(BigDecimal.valueOf(100), 2, RoundingMode.HALF_UP);
-            case "PER_UNIT" -> switch (svc.getCode()) {
-                case "EXTRA_STOP" -> svc.getRate().multiply(BigDecimal.valueOf(Math.max(0, request.stops().size() - 2)));
-                default -> svc.getRate();
-            };
+            case "PER_UNIT" -> svc.getRate().multiply(BigDecimal.valueOf(units));
             default -> throw new IllegalStateException("Bilinmeyen ücret tipi: " + svc.getPricingType());
         };
+    }
+
+    /** PER_UNIT hizmetlerin birim sayısı. Sabit fiyatlılarda anlamsız olduğu için 1. */
+    private int units(ExtraService svc, QuoteRequest request, int noElevatorFloors) {
+        if (!"PER_UNIT".equals(svc.getPricingType())) return 1;
+        return switch (svc.getCode()) {
+            case "NO_ELEVATOR" -> noElevatorFloors;
+            case "EXTRA_STOP" -> Math.max(0, request.stops().size() - 2);
+            // Bekleme süresi taşıma bitince belli olur; teklif anında ücretlendirilmez
+            case "WAITING" -> 0;
+            default -> 1;
+        };
+    }
+
+    /** Asansörsüz üst katlarda taşınacak toplam kat sayısı. */
+    private static int noElevatorFloors(QuoteRequest request) {
+        return request.stops().stream()
+                .filter(s -> Boolean.FALSE.equals(s.hasElevator()) && s.floor() != null && s.floor() > 1)
+                .mapToInt(QuoteRequest.Stop::floor)
+                .sum();
     }
 
     private static Quote.BreakdownLine line(String code, String label, BigDecimal amount, String note) {

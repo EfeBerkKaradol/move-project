@@ -1,5 +1,6 @@
 package com.turmove.api.shared.config;
 
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.http.HttpMethod;
@@ -16,6 +17,13 @@ import java.util.List;
 @Configuration
 @EnableWebSecurity
 class SecurityConfig {
+
+    /**
+     * İzinli origin'ler ortamdan gelir. Local geliştirme varsayılanı sabit kodlansaydı
+     * üretimde web uygulaması API'ye hiç ulaşamazdı.
+     */
+    @Value("${turmove.cors.allowed-origins:http://localhost:3000,http://localhost:3001}")
+    private List<String> allowedOrigins;
 
     @Bean
     SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
@@ -42,7 +50,7 @@ class SecurityConfig {
     @Bean
     CorsConfigurationSource corsConfigurationSource() {
         var config = new CorsConfiguration();
-        config.setAllowedOrigins(List.of("http://localhost:3000", "http://localhost:3001"));
+        config.setAllowedOrigins(allowedOrigins);
         config.setAllowedMethods(List.of("GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"));
         config.setAllowedHeaders(List.of("*"));
         config.setAllowCredentials(true);
