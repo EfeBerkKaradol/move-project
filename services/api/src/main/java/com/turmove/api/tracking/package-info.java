@@ -3,6 +3,6 @@
  */
 @org.springframework.modulith.ApplicationModule(
         displayName = "Takip",
-        allowedDependencies = { "geo" }
+        allowedDependencies = { "geo::api" }
 )
 package com.turmove.api.tracking;

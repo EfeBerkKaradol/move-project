@@ -27,6 +27,10 @@ dependencies {
     // veri
     implementation("org.springframework.boot:spring-boot-starter-data-jpa")
     implementation("org.springframework.boot:spring-boot-starter-data-redis")
+
+    // Katalog ve ilçe verisi: çok okunan, az değişen referans veri.
+    // Redis turu yerine pod-yerel önbellek — öneri motorunun <100 ms hedefi buna dayanıyor.
+    implementation("com.github.ben-manes.caffeine:caffeine")
     implementation("org.flywaydb:flyway-core")
     implementation("org.flywaydb:flyway-database-postgresql")
     runtimeOnly("org.postgresql:postgresql")

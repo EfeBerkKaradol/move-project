@@ -3,6 +3,6 @@
  */
 @org.springframework.modulith.ApplicationModule(
         displayName = "Fiyatlandırma",
-        allowedDependencies = { "catalog", "geo" }
+        allowedDependencies = { "catalog::api", "geo::api" }
 )
 package com.turmove.api.pricing;

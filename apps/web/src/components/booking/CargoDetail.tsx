@@ -9,8 +9,6 @@ export type CargoSelection = {
   itemQuantities: Record<string, number>;
   presetCode: string | null;
   packageCount: number;
-  pickupFloor: number;
-  pickupHasElevator: boolean;
 };
 
 /**
@@ -141,33 +139,6 @@ export function CargoDetail({
         </p>
       )}
 
-      {category.detailFormType !== 'FREE_TEXT' && (
-        <fieldset className="rounded-card border border-line bg-surface px-4 py-4">
-          <legend className="text-sm font-medium">Alış noktası</legend>
-          <div className="mt-3 flex flex-wrap items-center gap-x-6 gap-y-3">
-            <label className="flex items-center gap-2 text-sm">
-              Kat
-              <input
-                type="number"
-                min={0}
-                max={50}
-                value={selection.pickupFloor}
-                onChange={(e) => set({ pickupFloor: Number(e.target.value) })}
-                className="w-20 rounded-lg border border-line bg-ground px-3 py-2 tabular-nums"
-              />
-            </label>
-            <label className="flex items-center gap-2 text-sm">
-              <input
-                type="checkbox"
-                checked={selection.pickupHasElevator}
-                onChange={(e) => set({ pickupHasElevator: e.target.checked })}
-                className="size-4 accent-[var(--accent)]"
-              />
-              Asansör var
-            </label>
-          </div>
-        </fieldset>
-      )}
     </div>
   );
 }

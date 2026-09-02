@@ -3,6 +3,6 @@
  */
 @org.springframework.modulith.ApplicationModule(
         displayName = "Eşleştirme",
-        allowedDependencies = { "catalog", "geo", "fleet" }
+        allowedDependencies = { "catalog::api", "geo::api", "fleet" }
 )
 package com.turmove.api.dispatch;

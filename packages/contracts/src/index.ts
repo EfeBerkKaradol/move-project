@@ -76,3 +76,53 @@ export type CargoDeclarationRequest = {
   packageCount?: number | null;
   stops?: { floor?: number | null; hasElevator?: boolean | null }[];
 };
+
+export type District = {
+  id: string;
+  cityCode: string;
+  cityName: string;
+  name: string;
+  slug: string;
+  lat: number;
+  lng: number;
+};
+
+export type ExtraService = {
+  code: string;
+  displayName: string;
+  description: string | null;
+  pricingType: 'FIXED' | 'PER_UNIT' | 'PERCENT';
+  rate: number;
+  unitLabel: string | null;
+  sortOrder: number;
+};
+
+export type BreakdownLine = {
+  code: string;
+  label: string;
+  amount: Money;
+  note: string | null;
+};
+
+export type Quote = {
+  quoteId: string;
+  serviceModel: string;
+  vehicleTypeCode: string;
+  distanceMeters: number;
+  durationSeconds: number;
+  /** true ise mesafe gerçek yol ağından değil takribî hesaplandı — kullanıcıya bildirilir. */
+  approximateDistance: boolean;
+  breakdown: BreakdownLine[];
+  totalAmount: Money;
+  floorPrice: Money;
+  expiresAt: string;
+  signature: string;
+};
+
+export type QuoteRequest = {
+  serviceModel: 'INSTANT' | 'SCHEDULED';
+  vehicleTypeCode: string;
+  stops: { districtId: string; floor?: number | null; hasElevator?: boolean | null }[];
+  extraServices?: string[];
+  couponCode?: string | null;
+};

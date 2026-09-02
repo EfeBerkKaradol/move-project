@@ -6,7 +6,6 @@ import com.turmove.api.catalog.domain.VehicleType;
 import java.math.BigDecimal;
 import java.math.RoundingMode;
 import java.util.*;
-import org.springframework.cache.annotation.Cacheable;
 import org.springframework.stereotype.Service;
 
 /**
@@ -30,18 +29,15 @@ class RuleBasedVehicleRecommendationService implements VehicleRecommendationServ
 
     private static final BigDecimal PORTERAGE_VOLUME_M3 = new BigDecimal("3.0");
 
-    private final VehicleTypeRepository vehicleTypes;
-    private final CargoItemRepository cargoItems;
+    private final CatalogCache catalogCache;
     private final CargoPresetRepository presets;
     private final CargoCategoryRepository categories;
 
     RuleBasedVehicleRecommendationService(
-            VehicleTypeRepository vehicleTypes,
-            CargoItemRepository cargoItems,
+            CatalogCache catalogCache,
             CargoPresetRepository presets,
             CargoCategoryRepository categories) {
-        this.vehicleTypes = vehicleTypes;
-        this.cargoItems = cargoItems;
+        this.catalogCache = catalogCache;
         this.presets = presets;
         this.categories = categories;
     }
@@ -49,7 +45,7 @@ class RuleBasedVehicleRecommendationService implements VehicleRecommendationServ
     @Override
     public VehicleRecommendation recommend(CargoDeclarationRequest request) {
         var estimate = estimate(request);
-        var fleet = activeFleet();
+        var fleet = catalogCache.activeFleet();
 
         var suitable = fleet.stream()
                 .filter(v -> v.canCarry(estimate.volumeM3(), estimate.weightKg(), estimate.longestEdgeCm()))
@@ -83,7 +79,7 @@ class RuleBasedVehicleRecommendationService implements VehicleRecommendationServ
                     preset.getEstimatedLongestEdgeCm());
         }
 
-        var catalog = catalogByCode();
+        var catalog = catalogCache.itemsByCode();
         var rawVolume = BigDecimal.ZERO;
         var rawWeight = 0;
         var longestEdge = 0;
@@ -161,7 +157,7 @@ class RuleBasedVehicleRecommendationService implements VehicleRecommendationServ
             CargoDeclarationRequest request, VehicleRecommendation.Estimate estimate) {
 
         var extras = new ArrayList<VehicleRecommendation.SuggestedExtra>();
-        var catalog = catalogByCode();
+        var catalog = catalogCache.itemsByCode();
 
         var heaviest = request.itemsOrEmpty().stream()
                 .map(line -> catalog.get(line.cargoItemCode()))
@@ -190,20 +186,6 @@ class RuleBasedVehicleRecommendationService implements VehicleRecommendationServ
     }
 
     // --- yardımcılar ---
-
-    /**
-     * Katalog çok okunup az yazılıyor; öneri motorunun &lt;100 ms hedefi buna dayanıyor.
-     * Katalog değişince cache invalidate edilir.
-     */
-    @Cacheable("vehicleTypes")
-    List<VehicleType> activeFleet() {
-        return vehicleTypes.findByActiveTrueOrderBySortOrderAsc();
-    }
-
-    private Map<String, CargoItem> catalogByCode() {
-        return cargoItems.findByActiveTrueOrderBySortOrderAsc().stream()
-                .collect(java.util.stream.Collectors.toMap(CargoItem::getCode, i -> i));
-    }
 
     /** Türkçe ondalık ayracı virgüldür: 2.64 → "2,64". */
     private static String tr(BigDecimal value) {

@@ -35,11 +35,15 @@ CI yeşil; web'den API'ye kimlikli bir çağrı uçtan uca çalışıyor.
 **Amaç:** Bir kullanıcı fiyat alıp sipariş verebilsin. Henüz sürücü eşleştirme yok.
 
 **Backend**
-- [ ] `geo` modülü: Google Places/Geocoding/Routes adaptörleri + Redis önbellek
-- [ ] `catalog` modülü: araç tipleri, yük kategorileri, eşya kataloğu,
+- [x] `geo` modülü: ilçe merkezleri, hizmet bölgesi kontrolü, **takılabilir rota sağlayıcısı**
+      (Maps anahtarı yokken takribî: kuş uçuşu × 1,35 yol katsayısı)
+- [ ] `geo`: Google Places/Geocoding/Routes adaptörü — **[ANAHTARLAR.md #1](../ANAHTARLAR.md) bekliyor**
+- [x] `catalog` modülü: araç tipleri, yük kategorileri, eşya kataloğu,
       **araç öneri motoru** (hacim/ağırlık/en uzun kenar → uygun araç + gerekçe)
-- [ ] `pricing` modülü: birim fiyat kartları (firma × şehir × araç), komisyon (%0),
-      ek hizmetler, surge, kupon, imzalı quote, Hatay il içi kademeli mesafe
+- [x] `pricing` modülü: birim fiyat kartları (firma × şehir × araç), komisyon (%0),
+      ek hizmetler, imzalı quote, Hatay il içi kademeli mesafe
+      — ⚠️ tarife değerleri **geçici**, firma görüşmeleri sonuçlanınca güncellenecek
+- [ ] `pricing`: surge kuralları ve kupon
 - [ ] `identity` modülü: telefon+OTP (Keycloak custom authenticator), profil, adres defteri
 - [ ] `ordering` modülü: sipariş oluşturma, durum makinesi, iptal politikası
 - [ ] `fleet` modülü: nakliyeci başvurusu, firma kaydı, belge yükleme (presigned URL)
@@ -48,8 +52,9 @@ CI yeşil; web'den API'ye kimlikli bir çağrı uçtan uca çalışıyor.
 
 **Web**
 - [ ] Pazarlama: ana sayfa, nasıl çalışır, araç filosu, nakliyeci ol, kurumsal, hukuki
-- [ ] **Kategori paneli + araç önerisi + doluluk göstergesi** (giriş gerekmez)
-- [ ] Fiyat hesaplayıcı — kategori panelinin devamı, ana dönüşüm akışı
+- [x] **Kategori paneli + araç önerisi + doluluk göstergesi** (giriş gerekmez)
+- [x] Fiyat hesaplayıcı — adres adımı (ilçe seçimi) + canlı fiyat dökümü
+- [ ] Adres arama ve harita üzerinden pin — Maps anahtarı bekliyor
 - [ ] Giriş/kayıt (OTP), profil, adres defteri, gizlilik merkezi
 - [ ] Sipariş oluşturma akışı + sipariş detayı + geçmiş
 - [ ] Nakliyeci başvuru formu + belge yükleme

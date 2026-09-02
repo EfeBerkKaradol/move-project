@@ -1,6 +1,13 @@
 import type { Metadata } from 'next';
 import { BookingFlow } from '@/components/booking/BookingFlow';
-import { getCargoCategories, getCargoItems, getCargoPresets, getVehicleTypes } from '@/lib/api';
+import {
+  getCargoCategories,
+  getCargoItems,
+  getCargoPresets,
+  getDistricts,
+  getExtraServices,
+  getVehicleTypes,
+} from '@/lib/api';
 
 export const metadata: Metadata = {
   title: 'Fiyat hesapla',
@@ -9,14 +16,16 @@ export const metadata: Metadata = {
 };
 
 export default async function QuotePage() {
-  const [categories, items, presets, vehicleTypes] = await Promise.all([
+  const [categories, items, presets, vehicleTypes, districts, extraServices] = await Promise.all([
     getCargoCategories(),
     getCargoItems(),
     getCargoPresets(),
     getVehicleTypes(),
+    getDistricts(),
+    getExtraServices(),
   ]);
 
-  if (!categories || !items || !presets || !vehicleTypes) {
+  if (!categories || !items || !presets || !vehicleTypes || !districts || !extraServices) {
     return (
       <main className="mx-auto max-w-2xl px-6 py-24">
         <h1 className="text-2xl font-bold">Katalog yüklenemedi</h1>
@@ -43,6 +52,8 @@ export default async function QuotePage() {
           items={items}
           presets={presets}
           vehicleTypes={vehicleTypes}
+          districts={districts}
+          extraServices={extraServices}
         />
       </div>
     </main>

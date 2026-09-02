@@ -3,6 +3,10 @@ import type {
   CargoDeclarationRequest,
   CargoItem,
   CargoPreset,
+  District,
+  ExtraService,
+  Quote,
+  QuoteRequest,
   VehicleRecommendation,
   VehicleType,
 } from '@turmove/contracts';
@@ -30,6 +34,8 @@ export const getVehicleTypes = () => get<VehicleType[]>('/vehicle-types');
 export const getCargoCategories = () => get<CargoCategory[]>('/cargo-categories');
 export const getCargoItems = () => get<CargoItem[]>('/cargo-items');
 export const getCargoPresets = () => get<CargoPreset[]>('/cargo-presets');
+export const getDistricts = () => get<District[]>('/districts');
+export const getExtraServices = () => get<ExtraService[]>('/extra-services');
 
 /** Araç önerisi — tarayıcıdan çağrılır, her seçim değişikliğinde yenilenir. */
 export async function fetchRecommendation(
@@ -46,4 +52,19 @@ export async function fetchRecommendation(
     throw new Error(`Öneri alınamadı (${res.status})`);
   }
   return (await res.json()) as VehicleRecommendation;
+}
+
+/** Fiyat teklifi — kimlik gerektirmez, her seçim değişikliğinde yenilenir. */
+export async function fetchQuote(body: QuoteRequest, signal?: AbortSignal): Promise<Quote> {
+  const res = await fetch(`${API_URL}/api/v1/public/quotes`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(body),
+    signal,
+  });
+  if (!res.ok) {
+    const problem = (await res.json().catch(() => null)) as { detail?: string } | null;
+    throw new Error(problem?.detail ?? `Fiyat hesaplanamadı (${res.status})`);
+  }
+  return (await res.json()) as Quote;
 }

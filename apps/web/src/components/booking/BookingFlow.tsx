@@ -5,13 +5,19 @@ import type {
   CargoDeclarationRequest,
   CargoItem,
   CargoPreset,
+  District,
+  ExtraService,
+  Quote,
+  QuoteRequest,
   VehicleRecommendation,
   VehicleType,
 } from '@turmove/contracts';
 import { useEffect, useMemo, useRef, useState } from 'react';
-import { fetchRecommendation } from '@/lib/api';
+import { fetchQuote, fetchRecommendation } from '@/lib/api';
+import { AddressStep, type StopInput } from './AddressStep';
 import { CategoryGrid } from './CategoryGrid';
 import { CargoDetail, type CargoSelection } from './CargoDetail';
+import { PricePanel } from './PricePanel';
 import { RecommendationPanel } from './RecommendationPanel';
 
 type ServiceModel = 'INSTANT' | 'SCHEDULED';
@@ -20,9 +26,9 @@ const EMPTY_SELECTION: CargoSelection = {
   itemQuantities: {},
   presetCode: null,
   packageCount: 0,
-  pickupFloor: 0,
-  pickupHasElevator: true,
 };
+
+const EMPTY_STOP: StopInput = { districtId: '', floor: 0, hasElevator: true };
 
 /**
  * Kritik akış adım 1-4 (docs/06 §3): hizmet modeli → kategori → detay → araç önerisi.
@@ -35,11 +41,15 @@ export function BookingFlow({
   items,
   presets,
   vehicleTypes,
+  districts,
+  extraServices,
 }: {
   categories: CargoCategory[];
   items: CargoItem[];
   presets: CargoPreset[];
   vehicleTypes: VehicleType[];
+  districts: District[];
+  extraServices: ExtraService[];
 }) {
   const [serviceModel, setServiceModel] = useState<ServiceModel>('INSTANT');
   const [categoryCode, setCategoryCode] = useState<string | null>(null);
@@ -49,6 +59,13 @@ export function BookingFlow({
   const [recommendation, setRecommendation] = useState<VehicleRecommendation | null>(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+
+  const [pickup, setPickup] = useState<StopInput>(EMPTY_STOP);
+  const [dropoff, setDropoff] = useState<StopInput>(EMPTY_STOP);
+  const [selectedExtras, setSelectedExtras] = useState<string[]>([]);
+  const [quote, setQuote] = useState<Quote | null>(null);
+  const [quoteLoading, setQuoteLoading] = useState(false);
+  const [quoteError, setQuoteError] = useState<string | null>(null);
 
   const category = categories.find((c) => c.code === categoryCode) ?? null;
   const categoryItems = useMemo(
@@ -77,9 +94,28 @@ export function BookingFlow({
       items: chosenItems,
       presetCode: selection.presetCode,
       packageCount: selection.packageCount || null,
-      stops: [{ floor: selection.pickupFloor, hasElevator: selection.pickupHasElevator }],
+      stops: [
+        { floor: pickup.floor, hasElevator: pickup.hasElevator },
+        { floor: dropoff.floor, hasElevator: dropoff.hasElevator },
+      ],
     };
-  }, [category, selection]);
+  }, [category, selection, pickup, dropoff]);
+
+  /** Seçilen araç: kullanıcı öneriyi ezdiyse onunki, yoksa birincil öneri. */
+  const chosenVehicleCode = overrideCode ?? recommendation?.primary.vehicleTypeCode ?? null;
+
+  const quoteRequest = useMemo<QuoteRequest | null>(() => {
+    if (!chosenVehicleCode || !pickup.districtId || !dropoff.districtId) return null;
+    return {
+      serviceModel,
+      vehicleTypeCode: chosenVehicleCode,
+      stops: [
+        { districtId: pickup.districtId, floor: pickup.floor, hasElevator: pickup.hasElevator },
+        { districtId: dropoff.districtId, floor: dropoff.floor, hasElevator: dropoff.hasElevator },
+      ],
+      extraServices: selectedExtras,
+    };
+  }, [chosenVehicleCode, pickup, dropoff, selectedExtras, serviceModel]);
 
   const abortRef = useRef<AbortController | null>(null);
 
@@ -113,6 +149,43 @@ export function BookingFlow({
 
     return () => clearTimeout(timer);
   }, [request]);
+
+  const quoteAbortRef = useRef<AbortController | null>(null);
+
+  useEffect(() => {
+    if (!quoteRequest) {
+      setQuote(null);
+      setQuoteError(null);
+      return;
+    }
+
+    const timer = setTimeout(() => {
+      quoteAbortRef.current?.abort();
+      const controller = new AbortController();
+      quoteAbortRef.current = controller;
+
+      setQuoteLoading(true);
+      fetchQuote(quoteRequest, controller.signal)
+        .then((result) => {
+          setQuote(result);
+          setQuoteError(null);
+        })
+        .catch((err: unknown) => {
+          if (err instanceof DOMException && err.name === 'AbortError') return;
+          setQuoteError(err instanceof Error ? err.message : 'Fiyat hesaplanamadı.');
+        })
+        .finally(() => {
+          if (!controller.signal.aborted) setQuoteLoading(false);
+        });
+    }, 300);
+
+    return () => clearTimeout(timer);
+  }, [quoteRequest]);
+
+  const toggleExtra = (code: string) =>
+    setSelectedExtras((prev) =>
+      prev.includes(code) ? prev.filter((c) => c !== code) : [...prev, code],
+    );
 
   return (
     <div className="space-y-10">
@@ -189,13 +262,37 @@ export function BookingFlow({
               onOverride={setOverrideCode}
             />
 
-            {recommendation && (
-              <p className="mt-4 rounded-card border border-dashed border-line px-4 py-3 text-sm text-ink-muted">
-                Sıradaki adım: adres girişi ve fiyat. Fiyatlandırma Faz 1&apos;de devreye
-                girecek — {serviceModel === 'INSTANT' ? 'anlık' : 'planlı'} taşıma tarifesi
-                firmalarla anlaşılan birim fiyatlara dayanacak.
-              </p>
-            )}
+          </div>
+        </section>
+      )}
+
+      {recommendation && (
+        <section className="grid gap-8 lg:grid-cols-[minmax(0,1.35fr)_minmax(0,1fr)]">
+          <div>
+            <h2 className="text-xl font-semibold">Nereden nereye?</h2>
+            <p className="mt-1 mb-5 text-sm text-ink-muted">
+              Adres arama harita servisi devreye girince gelecek. Şimdilik ilçe seçimiyle
+              takribî mesafe hesaplanıyor.
+            </p>
+            <AddressStep
+              districts={districts}
+              extraServices={extraServices}
+              pickup={pickup}
+              dropoff={dropoff}
+              selectedExtras={selectedExtras}
+              onPickup={setPickup}
+              onDropoff={setDropoff}
+              onToggleExtra={toggleExtra}
+            />
+          </div>
+
+          <div className="lg:sticky lg:top-8 lg:self-start">
+            <PricePanel
+              quote={quote}
+              loading={quoteLoading}
+              error={quoteError}
+              onNegotiate={() => undefined}
+            />
           </div>
         </section>
       )}

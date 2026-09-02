@@ -3,6 +3,6 @@
  */
 @org.springframework.modulith.ApplicationModule(
         displayName = "Sipariş",
-        allowedDependencies = { "catalog", "geo", "pricing", "identity" }
+        allowedDependencies = { "catalog::api", "geo::api", "pricing::api", "identity" }
 )
 package com.turmove.api.ordering;

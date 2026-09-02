@@ -3,6 +3,6 @@
  */
 @org.springframework.modulith.ApplicationModule(
         displayName = "Filo",
-        allowedDependencies = { "catalog" }
+        allowedDependencies = { "catalog::api" }
 )
 package com.turmove.api.fleet;

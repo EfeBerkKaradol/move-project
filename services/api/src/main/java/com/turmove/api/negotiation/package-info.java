@@ -3,6 +3,6 @@
  */
 @org.springframework.modulith.ApplicationModule(
         displayName = "Pazarlık",
-        allowedDependencies = { "catalog", "fleet", "pricing" }
+        allowedDependencies = { "catalog::api", "fleet", "pricing::api" }
 )
 package com.turmove.api.negotiation;
