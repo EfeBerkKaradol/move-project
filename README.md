@@ -54,6 +54,7 @@ seçer, sistem uygun aracı önerir ve kullanıcı isterse **pazarlık** başlat
 | [09 — Güven Panosu](docs/09-guven-panosu.md) | Herkese açık sipariş akışı, gizlilik tasarımı |
 | [10 — Pazarlık](docs/10-pazarlik.md) | Müşteri ↔ nakliyeci fiyat müzakeresi |
 | [ADR'ler](docs/adr/) | Kalıcı mimari kararlar ve gerekçeleri |
+| [🔑 Anahtarlar](ANAHTARLAR.md) | Sağlanması gereken API anahtarları ve hesaplar — ilerleme listesi |
 
 ## Durum
 

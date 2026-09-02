@@ -137,7 +137,7 @@ export function CargoDetail({
       {category.detailFormType === 'FREE_TEXT' && (
         <p className="rounded-card border border-line bg-surface px-4 py-4 text-sm text-ink-muted">
           Bu kategori için aracı operasyon ekibimiz belirliyor. Yükünüzü tarif edip fotoğraf
-          eklediğinizde size özel fiyat dönülür. Bu akış Faz 1'de tamamlanacak.
+          eklediğinizde size özel fiyat dönülür. Bu akış Faz 1&apos;de tamamlanacak.
         </p>
       )}
 

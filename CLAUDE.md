@@ -23,6 +23,9 @@ pnpm dev               # Next.js  → localhost:3000
 
 Test kullanıcıları (şifre `turmove`): `musteri@`, `nakliyeci@`, `operasyon@turmove.local`
 
+**Eksik anahtarlar:** [ANAHTARLAR.md](ANAHTARLAR.md) — hangi dış servisin beklendiği ve
+neyin bloke olduğu orada. Gerçek değerler `.env` dosyalarında, repoya girmez.
+
 ## Uymak zorunda olduğun kurallar
 
 **Şemayı Flyway yönetir.** `ddl-auto: validate`. Yeni tablo/sütun = yeni migration.
@@ -65,6 +68,10 @@ docs/               Gereksinimler, mimari, ADR'ler
 API 1.32 gönderiyor, Docker Engine 29 ise minimum 1.44 istiyor ve 400 dönüyor.
 `services/api/build.gradle.kts` içindeki test task'ı `api.version` sistem özelliğini ve
 soket yolunu ayarlayarak bunu çözüyor. Linux CI'da bu blok devre dışı kalır.
+
+**`next build` ile `next dev` aynı anda çalıştırılmaz.** İkisi de `apps/web/.next`
+dizinini kullanıyor; eşzamanlı çalıştırınca Turbopack panic atıp dev sunucuyu 500'e
+düşürüyor. Build almadan önce dev sunucuyu durdur.
 
 **Spring Boot sürümü:** Plan Boot 4 diyordu; Faz 0 uyumluluk doğrulamasında springdoc,
 Modulith ve Redisson için Boot 4 uyumlu sürümler henüz stabil olmadığından **3.4 LTS**
