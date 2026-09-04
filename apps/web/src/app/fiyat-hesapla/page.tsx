@@ -1,5 +1,7 @@
 import type { Metadata } from 'next';
 import { BookingFlow } from '@/components/booking/BookingFlow';
+import { Footer } from '@/components/site/Footer';
+import { Header } from '@/components/site/Header';
 import {
   getCargoCategories,
   getCargoItems,
@@ -27,35 +29,44 @@ export default async function QuotePage() {
 
   if (!categories || !items || !presets || !vehicleTypes || !districts || !extraServices) {
     return (
-      <main className="mx-auto max-w-2xl px-6 py-24">
-        <h1 className="text-2xl font-bold">Katalog yüklenemedi</h1>
-        <p className="mt-3 text-ink-muted">
-          API çalışmıyor olabilir. <code className="text-ink">pnpm infra:up</code> ve{' '}
-          <code className="text-ink">pnpm api</code> ile ayağa kaldırabilirsin.
-        </p>
-      </main>
+      <>
+        <Header />
+        <main className="mx-auto max-w-2xl px-6 py-24">
+          <h1 className="font-display text-2xl font-bold">Katalog yüklenemedi</h1>
+          <p className="mt-3 text-ink-muted">
+            API çalışmıyor olabilir. <code className="text-ink">pnpm infra:up</code> ve{' '}
+            <code className="text-ink">pnpm api</code> ile ayağa kaldırabilirsin.
+          </p>
+        </main>
+        <Footer />
+      </>
     );
   }
 
   return (
-    <main className="mx-auto max-w-6xl px-6 py-14">
-      <h1 className="text-3xl font-bold tracking-tight text-balance sm:text-4xl">
-        Ne taşıyacağını söyle, aracı biz bulalım
-      </h1>
-      <p className="mt-3 max-w-xl text-ink-muted">
-        Kayıt gerekmez. Yükünüzü tarif edin, uygun aracı ve neden o araç olduğunu görün.
-      </p>
+    <>
+      <Header />
+      <main className="mx-auto max-w-6xl px-6 py-12">
+        <h1 className="font-display text-3xl font-extrabold sm:text-4xl">
+          Ne taşıyacağını söyle, aracı biz bulalım
+        </h1>
+        <p className="mt-3 max-w-xl text-ink-muted">
+          Kayıt gerekmez. Yükünüzü tarif edin; uygun aracı, net fiyatı ve neden o araç
+          olduğunu görün.
+        </p>
 
-      <div className="mt-12">
-        <BookingFlow
-          categories={categories}
-          items={items}
-          presets={presets}
-          vehicleTypes={vehicleTypes}
-          districts={districts}
-          extraServices={extraServices}
-        />
-      </div>
-    </main>
+        <div className="mt-10">
+          <BookingFlow
+            categories={categories}
+            items={items}
+            presets={presets}
+            vehicleTypes={vehicleTypes}
+            districts={districts}
+            extraServices={extraServices}
+          />
+        </div>
+      </main>
+      <Footer />
+    </>
   );
 }
