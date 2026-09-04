@@ -79,14 +79,14 @@ export function PricePanel({
       <div className="mt-5 space-y-2">
         <button
           type="button"
-          className="w-full rounded-xl bg-primary px-6 py-3 font-medium text-primary-fg"
+          className="w-full rounded-pill bg-primary px-6 py-3 font-medium text-primary-fg"
         >
           Hemen sipariş ver
         </button>
         <button
           type="button"
           onClick={onNegotiate}
-          className="w-full rounded-xl border border-line px-6 py-3 text-sm font-medium"
+          className="w-full rounded-pill border border-line px-6 py-3 text-sm font-medium"
         >
           Pazarlık yap
           <span className="block text-xs font-normal text-ink-muted">

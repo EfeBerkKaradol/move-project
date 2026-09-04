@@ -62,7 +62,7 @@ export function RecommendationPanel({
       aria-live="polite"
       className={['space-y-4', loading ? 'opacity-60 transition-opacity' : ''].join(' ')}
     >
-      <div className="rounded-card border-2 border-accent bg-surface p-5">
+      <div className="rounded-card border-2 border-brand bg-surface p-5">
         <p className="text-xs font-medium uppercase tracking-[0.14em] text-ink-muted">
           Önerimiz
         </p>
@@ -140,7 +140,7 @@ export function RecommendationPanel({
             onClick={() => onOverride(null)}
             className={[
               'rounded-lg border px-3 py-2 text-sm',
-              overrideCode === null ? 'border-accent bg-accent-soft' : 'border-line',
+              overrideCode === null ? 'border-brand bg-brand-soft' : 'border-line',
             ].join(' ')}
           >
             Öneriyi kullan
@@ -152,7 +152,7 @@ export function RecommendationPanel({
               onClick={() => onOverride(v.code)}
               className={[
                 'rounded-lg border px-3 py-2 text-sm',
-                overrideCode === v.code ? 'border-accent bg-accent-soft' : 'border-line',
+                overrideCode === v.code ? 'border-brand bg-brand-soft' : 'border-line',
               ].join(' ')}
             >
               {v.displayName}
@@ -187,7 +187,7 @@ function FillGauge({ percent }: { percent: number }) {
         aria-label={`Yükünüz aracın yüzde ${percent}'ini dolduruyor`}
       >
         <div
-          className={['h-full rounded-full transition-all', tight ? 'bg-primary' : 'bg-accent'].join(
+          className={['h-full rounded-full transition-all', tight ? 'bg-primary' : 'bg-brand'].join(
             ' ',
           )}
           style={{ width: `${clamped}%` }}

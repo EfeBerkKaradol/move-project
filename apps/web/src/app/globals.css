@@ -3,12 +3,13 @@
 /*
  * TurMove tasarım sistemi (docs/06 §5)
  *
- * Renk: derin petrol = güven · yol yeşili = hareket, ilerleme, "yolda"
- * Tipografi: Archivo (başlık — tabela/işaretleme karakteri, taşımacılığa yakın)
- *            IBM Plex Sans (gövde — teknik ama sıcak, Türkçe karakterleri tam)
+ * Yön: referans ürünlerin (Lalamove, Qmove) ticari ve sıcak dili — beyaz baskın
+ * zemin, tek ve doygun bir marka rengi, cömert yuvarlatma, yuvarlak geometrik
+ * tipografi. Editoryal/minimal değil; bir nakliye markası gibi görünmeli.
  *
- * Tailwind v4 kalıbı: ham değerler :root'ta ve karanlık tema media query'sinde
- * tanımlanır; `@theme inline` bunları utility'lere bağlar.
+ * Renk: yol yeşili — hareket, "yolda", güvenli varış.
+ * Tipografi: Lexend. Yuvarlak geometrik, Türkçe karakterleri tam, ekranda
+ *            yüksek okunabilirlik için tasarlanmış.
  */
 
 @theme inline {
@@ -19,60 +20,83 @@
   --color-ink-muted: var(--ink-muted);
   --color-line: var(--line);
 
+  --color-brand: var(--brand);
+  --color-brand-deep: var(--brand-deep);
+  --color-brand-soft: var(--brand-soft);
+  --color-brand-ink: var(--brand-ink);
   --color-primary: var(--primary);
   --color-primary-fg: var(--primary-fg);
-  --color-accent: var(--accent);
-  --color-accent-soft: var(--accent-soft);
-  --color-accent-ink: var(--accent-ink);
   --color-signal: var(--signal);
   --color-signal-soft: var(--signal-soft);
+  --color-wheel: var(--wheel);
+  --color-sky-top: var(--sky-top);
+  --color-sky-bottom: var(--sky-bottom);
 
-  --radius-card: 0.875rem;
-  --font-sans: var(--font-plex), ui-sans-serif, system-ui, sans-serif;
-  --font-display: var(--font-archivo), "Helvetica Neue", Arial, sans-serif;
+  --radius-card: 1.25rem;
+  --radius-pill: 999px;
+  --font-sans: var(--font-lexend), ui-sans-serif, system-ui, sans-serif;
+  --font-display: var(--font-lexend), ui-sans-serif, system-ui, sans-serif;
 
-  --shadow-card: 0 1px 2px rgb(14 58 66 / 0.05), 0 10px 30px rgb(14 58 66 / 0.05);
-  --shadow-lift: 0 2px 4px rgb(14 58 66 / 0.06), 0 18px 44px rgb(14 58 66 / 0.10);
+  --shadow-card: 0 1px 2px rgb(6 40 32 / 0.04), 0 8px 24px rgb(6 40 32 / 0.06);
+  --shadow-lift: 0 2px 6px rgb(6 40 32 / 0.06), 0 20px 48px rgb(6 40 32 / 0.12);
 }
 
 :root {
-  --ground: #f2f5f4;
+  --ground: #ffffff;
   --surface: #ffffff;
-  --surface-2: #e8eeec;
-  --ink: #0f1719;
-  --ink-muted: #566a6f;
-  --line: #dbe3e1;
+  --surface-2: #f2f7f5;
+  --ink: #0b1a18;
+  --ink-muted: #5a6e6b;
+  --line: #e2eae7;
 
-  /* Birincil aksiyon: derin petrol zemin, beyaz yazı */
-  --primary: #0e3a42;
+  /* Parlak marka yeşili: grafik, ikon ve vurgular */
+  --brand: #00b87c;
+  /* Beyaz yazı taşıyan yüzeyler için koyu ton — kontrast AA'yı geçmeli */
+  --brand-deep: #007a52;
+  --brand-soft: #e2f7ef;
+  --brand-ink: #00674a;
+
+  --primary: #007a52;
   --primary-fg: #ffffff;
-  --accent: #0f8f68;
-  --accent-soft: #dcf0e7;
-  --accent-ink: #0b6b4e;
-  --signal: #b0700a;
-  --signal-soft: #f7ecd8;
+
+  --signal: #a1620a;
+  --signal-soft: #fdf1dd;
+
+  /* Tekerlek: gövde rengiyle de zeminle de kontrast yapmalı, --ink'e bağlanamaz */
+  --wheel: #0b1a18;
+
+  /* Hero'nun açık hava hissi — referans sitelerin fotoğraflı gökyüzü */
+  --sky-top: #d9eefb;
+  --sky-bottom: #f4fbf8;
 }
 
 @media (prefers-color-scheme: dark) {
   :root {
-    --ground: #0a1113;
-    --surface: #111a1d;
-    --surface-2: #182428;
-    --ink: #e8efec;
-    --ink-muted: #8ba1a3;
-    --line: #233135;
+    --ground: #08110f;
+    --surface: #0f1c19;
+    --surface-2: #16261f;
+    --ink: #e9f2ee;
+    --ink-muted: #8ba49d;
+    --line: #1f342c;
 
-    /* Karanlık zeminde derin petrol okunmuyor — açık petrol zemine koyu yazı */
-    --primary: #7fcbce;
-    --primary-fg: #06232a;
-    --accent: #3fcb99;
-    --accent-soft: #102c25;
-    --accent-ink: #6fdcb4;
-    --signal: #e0a445;
-    --signal-soft: #2c2314;
+    --brand: #2ee6a8;
+    --brand-deep: #2ee6a8;
+    --brand-soft: #0e2a22;
+    --brand-ink: #6ff0c4;
 
-    --shadow-card: 0 1px 2px rgb(0 0 0 / 0.4), 0 12px 32px rgb(0 0 0 / 0.28);
-    --shadow-lift: 0 2px 6px rgb(0 0 0 / 0.45), 0 22px 50px rgb(0 0 0 / 0.38);
+    /* Koyu zeminde koyu yeşil okunmaz: açık yeşil zemin, koyu yazı */
+    --primary: #2ee6a8;
+    --primary-fg: #04231a;
+
+    --signal: #e5b25c;
+    --signal-soft: #2b2112;
+
+    --wheel: #05392a;
+    --sky-top: #0d2230;
+    --sky-bottom: #08110f;
+
+    --shadow-card: 0 1px 2px rgb(0 0 0 / 0.4), 0 12px 32px rgb(0 0 0 / 0.3);
+    --shadow-lift: 0 2px 6px rgb(0 0 0 / 0.45), 0 22px 50px rgb(0 0 0 / 0.4);
   }
 }
 
@@ -81,52 +105,41 @@ body {
   color: var(--ink);
 }
 
-/* Başlıklar tabela karakterinde: sıkı harf aralığı, dengeli satır kırımı */
 h1, h2, h3, .font-display {
   font-family: var(--font-display);
-  letter-spacing: -0.022em;
+  letter-spacing: -0.02em;
   text-wrap: balance;
 }
 
-/* ── Hareket ────────────────────────────────────────────────────────
-   Animasyonlar anlam taşır: rota çizgisi süreci anlatır, doluluk çubuğu
-   "sığıyor mu?" sorusunu yanıtlar. Süsleme yok. */
+/* ── Hareket ──────────────────────────────────────────────────────── */
 
 @keyframes route-draw {
   from { stroke-dashoffset: var(--route-length); }
   to   { stroke-dashoffset: 0; }
 }
 
-@keyframes truck-along {
-  from { offset-distance: 0%; }
-  to   { offset-distance: 100%; }
-}
-
-@keyframes pin-drop {
-  0%   { transform: translateY(-14px) scale(0.7); opacity: 0; }
-  60%  { transform: translateY(2px) scale(1.04); opacity: 1; }
-  100% { transform: translateY(0) scale(1); opacity: 1; }
+@keyframes drive-in {
+  from { transform: translateX(-24px); opacity: 0.001; }
+  to   { transform: none; opacity: 1; }
 }
 
 @keyframes pulse-ring {
-  0%   { transform: scale(0.85); opacity: 0.55; }
-  70%  { transform: scale(1.8); opacity: 0; }
-  100% { transform: scale(1.8); opacity: 0; }
+  0%   { transform: scale(0.85); opacity: 0.5; }
+  70%  { transform: scale(1.9); opacity: 0; }
+  100% { transform: scale(1.9); opacity: 0; }
 }
 
 /* Yalnızca hareket. Opaklık bilerek dışarıda: bir açılış animasyonu opacity'yi
    0'dan başlatırsa ve animasyon donarsa (arka plan sekmesi, boyaması duraklatılmış
-   görünümler) içerik kalıcı olarak görünmez kalır. Hareket donarsa en kötü ihtimalle
-   16 piksel kaymış görünür — zararsız. */
+   görünümler) içerik kalıcı olarak görünmez kalır. */
 @keyframes rise-in {
   from { transform: translateY(16px); }
   to   { transform: none; }
 }
 
-.animate-route  { animation: route-draw 2.2s cubic-bezier(0.4, 0, 0.2, 1) forwards; }
-.animate-truck  { animation: truck-along 5.5s cubic-bezier(0.45, 0, 0.55, 1) infinite; }
-.animate-pin    { animation: pin-drop 0.5s cubic-bezier(0.34, 1.4, 0.64, 1) backwards; }
-.animate-ring   { animation: pulse-ring 2.4s cubic-bezier(0, 0, 0.2, 1) infinite; }
+.animate-route { animation: route-draw 2s cubic-bezier(0.4, 0, 0.2, 1) forwards; }
+.animate-ring  { animation: pulse-ring 2.4s cubic-bezier(0, 0, 0.2, 1) infinite; }
+.animate-drive { animation: drive-in 0.7s cubic-bezier(0.22, 1, 0.36, 1) backwards; }
 
 /* Görünür alana girince açılan bölümler — IntersectionObserver ile tetiklenir.
    JS kapalıysa layout'taki <noscript> stili bu gizlemeyi geri alır; içerik
@@ -135,10 +148,6 @@ h1, h2, h3, .font-display {
   opacity: 0;
   transform: translateY(16px);
 }
-/* Görünürlük STATİK olarak veriliyor; animasyon yalnızca hareketi ekliyor.
-   Son durumu animasyonun `forwards` doluşuna bırakmak, animasyonun hiç
-   çalışmadığı durumlarda (arka plan sekmesi, boyama duraklatılmış görünümler)
-   içeriği kalıcı olarak görünmez bırakıyordu. */
 [data-reveal][data-visible='true'] {
   opacity: 1;
   transform: none;
@@ -146,9 +155,7 @@ h1, h2, h3, .font-display {
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .animate-route, .animate-truck, .animate-pin, .animate-ring {
-    animation: none !important;
-  }
+  .animate-route, .animate-ring, .animate-drive { animation: none !important; }
   .animate-route { stroke-dashoffset: 0 !important; }
   [data-reveal] { opacity: 1; transform: none; animation: none !important; }
 }

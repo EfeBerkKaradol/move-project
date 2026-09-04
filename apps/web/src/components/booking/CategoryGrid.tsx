@@ -35,7 +35,7 @@ export function CategoryGrid({
               'rounded-card border p-5 text-left transition',
               'focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent',
               isSelected
-                ? 'border-accent bg-accent-soft ring-1 ring-accent'
+                ? 'border-brand bg-brand-soft ring-1 ring-brand'
                 : 'border-line bg-surface hover:border-ink-muted',
             ].join(' ')}
           >

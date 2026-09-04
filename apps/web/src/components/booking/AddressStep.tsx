@@ -81,7 +81,7 @@ export function AddressStep({
                 title={e.description ?? undefined}
                 className={[
                   'rounded-lg border px-3 py-2 text-sm transition',
-                  on ? 'border-accent bg-accent-soft ring-1 ring-accent' : 'border-line',
+                  on ? 'border-brand bg-brand-soft ring-1 ring-brand' : 'border-line',
                 ].join(' ')}
               >
                 {e.displayName}
@@ -160,7 +160,7 @@ function StopFields({
             type="checkbox"
             checked={value.hasElevator}
             onChange={(e) => onChange({ ...value, hasElevator: e.target.checked })}
-            className="size-4 accent-[var(--accent)]"
+            className="size-4 accent-[var(--brand)]"
           />
           Asansör var
         </label>

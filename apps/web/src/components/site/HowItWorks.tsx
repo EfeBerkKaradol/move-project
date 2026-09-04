@@ -37,7 +37,7 @@ export function HowItWorks() {
           {STEPS.map((step, i) => (
             <li key={step.title} className="bg-surface">
               <Reveal delay={i * 90} className="h-full p-6">
-                <span className="font-display text-sm font-bold tabular-nums text-accent">
+                <span className="font-display text-sm font-bold tabular-nums text-brand-ink">
                   {String(i + 1).padStart(2, '0')}
                 </span>
                 <h3 className="mt-3 font-display text-lg font-bold">{step.title}</h3>

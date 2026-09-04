@@ -8,8 +8,6 @@ import { Reveal } from './Reveal';
  * yan yana koyarak yanıtlıyor — ölçek doğrusal, çarpıtma yok.
  */
 export function FleetShowcase({ vehicles }: { vehicles: VehicleType[] }) {
-  const longest = Math.max(...vehicles.map((v) => v.innerLengthCm));
-
   return (
     <section id="filo" className="border-b border-line py-20">
       <div className="mx-auto max-w-6xl px-6">
@@ -32,7 +30,7 @@ export function FleetShowcase({ vehicles }: { vehicles: VehicleType[] }) {
               <article className="h-full rounded-card border border-line bg-surface p-5 transition hover:shadow-lift">
                 <div className="flex items-baseline justify-between gap-3">
                   <h3 className="font-display text-lg font-bold">{v.displayName}</h3>
-                  <span className="tabular-nums text-sm font-medium text-accent">
+                  <span className="tabular-nums text-sm font-medium text-brand-ink">
                     {formatVolume(v.volumeM3)}
                   </span>
                 </div>
@@ -62,33 +60,6 @@ export function FleetShowcase({ vehicles }: { vehicles: VehicleType[] }) {
           ))}
         </div>
 
-        <Reveal className="mt-12">
-          <div className="rounded-card border border-line bg-surface p-6">
-            <p className="text-xs font-semibold uppercase tracking-[0.16em] text-ink-muted">
-              Kasa boyu karşılaştırması
-            </p>
-            <ul className="mt-4 space-y-2.5">
-              {vehicles.map((v) => (
-                <li key={v.code} className="flex items-center gap-4">
-                  <span className="w-28 shrink-0 text-sm font-medium">{v.displayName}</span>
-                  <span className="flex-1">
-                    <span
-                      className="block h-3 rounded-full bg-accent"
-                      style={{ width: `${Math.max((v.innerLengthCm / longest) * 100, 1.5)}%` }}
-                    />
-                  </span>
-                  <span className="w-20 shrink-0 text-right tabular-nums text-sm text-ink-muted">
-                    {v.innerLengthCm.toLocaleString('tr-TR')} cm
-                  </span>
-                </li>
-              ))}
-            </ul>
-            <p className="mt-4 text-xs text-ink-muted">
-              200 cm&apos;lik bir yatak, hacim olarak Doblo&apos;ya sığsa bile 170 cm&apos;lik
-              kasaya girmez. Öneri motoru bunu hesaba katıyor.
-            </p>
-          </div>
-        </Reveal>
       </div>
     </section>
   );

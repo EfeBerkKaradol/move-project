@@ -207,9 +207,9 @@ export function BookingFlow({
               aria-checked={serviceModel === value}
               onClick={() => setServiceModel(value)}
               className={[
-                'rounded-xl border px-5 py-3 text-left transition',
+                'rounded-pill border px-5 py-3 text-left transition',
                 serviceModel === value
-                  ? 'border-accent bg-accent-soft ring-1 ring-accent'
+                  ? 'border-brand bg-brand-soft ring-1 ring-brand'
                   : 'border-line bg-surface hover:border-ink-muted',
               ].join(' ')}
             >

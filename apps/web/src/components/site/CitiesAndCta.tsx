@@ -48,7 +48,7 @@ export function CitiesAndCta({ districtCount }: { districtCount: number }) {
                 </p>
                 <Link
                   href="/nakliyeci-ol"
-                  className="mt-6 inline-block rounded-xl bg-primary px-6 py-3.5 font-medium text-primary-fg transition hover:opacity-90"
+                  className="mt-6 inline-block rounded-pill bg-primary px-6 py-3.5 font-medium text-primary-fg transition hover:opacity-90"
                 >
                   Başvuru yap
                 </Link>

@@ -14,13 +14,13 @@ const NAV = [
  */
 export function Header() {
   return (
-    <header className="sticky top-0 z-40 border-b border-line/70 bg-ground/85 backdrop-blur-md">
+    <header className="sticky top-0 z-50 border-b border-line/60 bg-ground/90 backdrop-blur-md">
       <div className="mx-auto flex max-w-6xl items-center gap-4 px-6 py-2.5">
         <Link
           href="/"
           className="flex items-center gap-2.5 py-2 font-display text-lg font-extrabold"
         >
-          <span className="grid size-8 place-items-center rounded-lg bg-primary" aria-hidden>
+          <span className="grid size-9 place-items-center rounded-xl bg-primary" aria-hidden>
             <svg viewBox="0 0 24 24" className="size-5" fill="none" stroke="var(--primary-fg)"
               strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
               <path d="M4 17V7h9v10" />
@@ -46,7 +46,7 @@ export function Header() {
 
         <Link
           href="/fiyat-hesapla"
-          className="ml-auto rounded-xl bg-primary px-4 py-3 text-sm font-medium text-primary-fg transition hover:opacity-90 md:ml-0"
+          className="ml-auto rounded-pill bg-primary px-4 py-3 text-sm font-medium text-primary-fg transition hover:opacity-90 md:ml-0"
         >
           Fiyat al
         </Link>
@@ -54,7 +54,7 @@ export function Header() {
         <details className="group relative md:hidden">
           <summary
             aria-label="Menüyü aç"
-            className="grid size-11 cursor-pointer list-none place-items-center rounded-xl border border-line [&::-webkit-details-marker]:hidden"
+            className="grid size-11 cursor-pointer list-none place-items-center rounded-pill border border-line [&::-webkit-details-marker]:hidden"
           >
             <svg viewBox="0 0 24 24" className="size-5" fill="none" stroke="currentColor"
               strokeWidth="2" strokeLinecap="round">

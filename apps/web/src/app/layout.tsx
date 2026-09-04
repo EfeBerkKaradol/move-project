@@ -1,23 +1,19 @@
 import type { Metadata } from 'next';
-import { Archivo, IBM_Plex_Sans } from 'next/font/google';
+import { Lexend } from 'next/font/google';
 import './globals.css';
 
 /**
- * Fontlar next/font ile self-host ediliyor: Google'a istek gitmiyor (KVKK ve
- * performans), font dosyaları kendi alan adımızdan servis ediliyor ve
- * yükleme sırasında düzen kayması olmuyor.
+ * Lexend: yuvarlak geometrik, okunabilirlik için tasarlanmış, Türkçe karakterleri
+ * tam. Referans ürünlerin sıcak ve ticari diline yakın duruyor.
+ *
+ * next/font ile self-host ediliyor: Google'a istek gitmiyor (KVKK ve performans),
+ * font dosyaları kendi alan adımızdan servis ediliyor, yükleme sırasında düzen
+ * kayması olmuyor.
  */
-const archivo = Archivo({
+const lexend = Lexend({
   subsets: ['latin-ext'],
-  weight: ['600', '700', '800'],
-  variable: '--font-archivo',
-  display: 'swap',
-});
-
-const plex = IBM_Plex_Sans({
-  subsets: ['latin-ext'],
-  weight: ['400', '500', '600'],
-  variable: '--font-plex',
+  weight: ['400', '500', '600', '700', '800'],
+  variable: '--font-lexend',
   display: 'swap',
 });
 
@@ -33,7 +29,7 @@ export const metadata: Metadata = {
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
-    <html lang="tr" className={`${archivo.variable} ${plex.variable}`}>
+    <html lang="tr" className={lexend.variable}>
       <head>
         {/*
           Açılış animasyonlarının başlangıç durumu (opacity: 0) script çalışmadığında
