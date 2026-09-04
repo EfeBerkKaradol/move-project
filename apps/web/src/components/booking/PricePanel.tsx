@@ -29,7 +29,7 @@ export function PricePanel({
   if (!quote) {
     return (
       <div className="rounded-card border border-dashed border-line p-5">
-        <p className="text-sm text-ink-muted">
+        <p className="text-sm text-muted">
           Alış ve teslim ilçesini seçin, fiyatı hesaplayalım.
         </p>
       </div>
@@ -44,8 +44,8 @@ export function PricePanel({
       )}
     >
       <div className="flex items-baseline justify-between gap-3">
-        <p className="text-xs font-medium uppercase tracking-[0.14em] text-ink-muted">Fiyat</p>
-        <p className="tabular-nums text-xs text-ink-muted">
+        <p className="text-xs font-medium uppercase tracking-[0.14em] text-muted">Fiyat</p>
+        <p className="tabular-nums text-xs text-muted">
           {(quote.distanceMeters / 1000).toLocaleString('tr-TR', { maximumFractionDigits: 1 })} km ·{' '}
           {Math.round(quote.durationSeconds / 60)} dk
         </p>
@@ -61,7 +61,7 @@ export function PricePanel({
               </dd>
             </div>
             {line.note && (
-              <p className="mt-0.5 border-l-2 border-line pl-2 text-xs text-ink-muted">
+              <p className="mt-0.5 border-l-2 border-line pl-2 text-xs text-muted">
                 {line.note}
               </p>
             )}
@@ -79,23 +79,23 @@ export function PricePanel({
       <div className="mt-5 space-y-2">
         <button
           type="button"
-          className="w-full rounded-pill bg-primary px-6 py-3 font-medium text-primary-fg"
+          className="w-full rounded-field bg-amber px-6 py-3 font-medium text-[var(--amber-ink)]"
         >
           Hemen sipariş ver
         </button>
         <button
           type="button"
           onClick={onNegotiate}
-          className="w-full rounded-pill border border-line px-6 py-3 text-sm font-medium"
+          className="w-full rounded-field border border-line px-6 py-3 text-sm font-medium"
         >
           Pazarlık yap
-          <span className="block text-xs font-normal text-ink-muted">
+          <span className="block text-xs font-normal text-muted">
             En düşük teklif {formatPrice(quote.floorPrice.amount)} · ~6 dk sürer
           </span>
         </button>
       </div>
 
-      <p className="mt-3 text-center text-xs text-ink-muted">
+      <p className="mt-3 text-center text-xs text-muted">
         Sipariş ve pazarlık akışı sıradaki adımda devreye girecek.
       </p>
     </div>

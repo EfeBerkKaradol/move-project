@@ -1,40 +1,46 @@
 import type { Metadata } from 'next';
-import { Lexend } from 'next/font/google';
+import { Archivo, IBM_Plex_Mono } from 'next/font/google';
 import './globals.css';
 
 /**
- * Lexend: yuvarlak geometrik, okunabilirlik için tasarlanmış, Türkçe karakterleri
- * tam. Referans ürünlerin sıcak ve ticari diline yakın duruyor.
+ * Archivo: sıkı harf aralıklı, kalın kesilebilen grotesk — tasarımın başlık dili.
+ * IBM Plex Mono: köşeli parantezli sayılar ve harf aralıklı küçük etiketler için.
  *
  * next/font ile self-host ediliyor: Google'a istek gitmiyor (KVKK ve performans),
  * font dosyaları kendi alan adımızdan servis ediliyor, yükleme sırasında düzen
  * kayması olmuyor.
  */
-const lexend = Lexend({
+const archivo = Archivo({
   subsets: ['latin-ext'],
   weight: ['400', '500', '600', '700', '800'],
-  variable: '--font-lexend',
+  variable: '--font-archivo',
+  display: 'swap',
+});
+
+const plexMono = IBM_Plex_Mono({
+  subsets: ['latin-ext'],
+  weight: ['400', '500', '600', '700'],
+  variable: '--font-plex-mono',
   display: 'swap',
 });
 
 export const metadata: Metadata = {
   title: {
-    default: 'TurMove — Ne taşıyacağını söyle, aracı biz bulalım',
-    template: '%s · TurMove',
+    default: 'Konvoy — Yükünüz için doğru aracı dakikalar içinde bulun',
+    template: '%s · Konvoy',
   },
   description:
-    'Yük taşıma ve teslimat platformu. Sipariş öncesi net fiyat, canlı araç takibi, ' +
-    'nakliyeciyle pazarlık. İstanbul, Ankara ve Hatay.',
+    'Rotanızı girin, doğrulanmış araç sahiplerinden teklif alın. Aracı siz seçin, ' +
+    'ödemeyi teslimatta onaylayın. 81 il, motosikletten kırkayağa.',
 };
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
-    <html lang="tr" className={lexend.variable}>
+    <html lang="tr" className={`${archivo.variable} ${plexMono.variable}`}>
       <head>
         {/*
           Açılış animasyonlarının başlangıç durumu (opacity: 0) script çalışmadığında
-          içeriği kalıcı olarak gizlerdi. <noscript> bunu geri alıyor — <html> class'ını
-          bir script'le değiştirmeye göre avantajı, React'in hydration'ıyla çakışmaması.
+          içeriği kalıcı olarak gizlerdi. <noscript> bunu geri alıyor.
         */}
         <noscript>
           <style>{`[data-reveal]{opacity:1 !important;transform:none !important}`}</style>

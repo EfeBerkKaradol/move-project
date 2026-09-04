@@ -1,127 +1,89 @@
 @import "tailwindcss";
 
 /*
- * TurMove tasarım sistemi (docs/06 §5)
+ * Konvoy tasarım sistemi — "Konvoy Nakliye Ana Sayfa" tasarımından türetildi.
  *
- * Yön: referans ürünlerin (Lalamove, Qmove) ticari ve sıcak dili — beyaz baskın
- * zemin, tek ve doygun bir marka rengi, cömert yuvarlatma, yuvarlak geometrik
- * tipografi. Editoryal/minimal değil; bir nakliye markası gibi görünmeli.
- *
- * Renk: yol yeşili — hareket, "yolda", güvenli varış.
- * Tipografi: Lexend. Yuvarlak geometrik, Türkçe karakterleri tam, ekranda
- *            yüksek okunabilirlik için tasarlanmış.
+ * Bu tasarım açık/koyu tema değiştirmiyor: bölümler sabit olarak koyu ya da krem.
+ * Bu yüzden prefers-color-scheme yerine BÖLÜM KAPSAMLI tema sınıfları kullanılıyor
+ * (.theme-dark / .theme-cream). Her sınıf aynı token setini yeniden tanımlıyor,
+ * bileşenler token üzerinden yazıldığı için ikisinde de doğru çalışıyor.
  */
 
 @theme inline {
-  --color-ground: var(--ground);
+  --color-bg: var(--bg);
   --color-surface: var(--surface);
   --color-surface-2: var(--surface-2);
   --color-ink: var(--ink);
-  --color-ink-muted: var(--ink-muted);
+  --color-muted: var(--muted);
   --color-line: var(--line);
+  --color-amber: var(--amber);
+  --color-amber-ink: var(--amber-ink);
+  --color-amber-soft: var(--amber-soft);
 
-  --color-brand: var(--brand);
-  --color-brand-deep: var(--brand-deep);
-  --color-brand-soft: var(--brand-soft);
-  --color-brand-ink: var(--brand-ink);
-  --color-primary: var(--primary);
-  --color-primary-fg: var(--primary-fg);
-  --color-signal: var(--signal);
-  --color-signal-soft: var(--signal-soft);
-  --color-wheel: var(--wheel);
-  --color-sky-top: var(--sky-top);
-  --color-sky-bottom: var(--sky-bottom);
+  --radius-card: 1rem;
+  --radius-field: 0.625rem;
 
-  --radius-card: 1.25rem;
-  --radius-pill: 999px;
-  --font-sans: var(--font-lexend), ui-sans-serif, system-ui, sans-serif;
-  --font-display: var(--font-lexend), ui-sans-serif, system-ui, sans-serif;
+  --font-sans: var(--font-archivo), ui-sans-serif, system-ui, sans-serif;
+  --font-mono: var(--font-plex-mono), ui-monospace, SFMono-Regular, monospace;
 
-  --shadow-card: 0 1px 2px rgb(6 40 32 / 0.04), 0 8px 24px rgb(6 40 32 / 0.06);
-  --shadow-lift: 0 2px 6px rgb(6 40 32 / 0.06), 0 20px 48px rgb(6 40 32 / 0.12);
+  --shadow-card: 0 1px 2px rgb(13 16 21 / 0.06), 0 10px 30px rgb(13 16 21 / 0.06);
+  --shadow-lift: 0 2px 6px rgb(13 16 21 / 0.10), 0 22px 48px rgb(13 16 21 / 0.16);
 }
 
+/* Amber her iki temada da aynı — markanın sabiti */
 :root {
-  --ground: #ffffff;
-  --surface: #ffffff;
-  --surface-2: #f2f7f5;
-  --ink: #0b1a18;
-  --ink-muted: #5a6e6b;
-  --line: #e2eae7;
-
-  /* Parlak marka yeşili: grafik, ikon ve vurgular */
-  --brand: #00b87c;
-  /* Beyaz yazı taşıyan yüzeyler için koyu ton — kontrast AA'yı geçmeli */
-  --brand-deep: #007a52;
-  --brand-soft: #e2f7ef;
-  --brand-ink: #00674a;
-
-  --primary: #007a52;
-  --primary-fg: #ffffff;
-
-  --signal: #a1620a;
-  --signal-soft: #fdf1dd;
-
-  /* Tekerlek: gövde rengiyle de zeminle de kontrast yapmalı, --ink'e bağlanamaz */
-  --wheel: #0b1a18;
-
-  /* Hero'nun açık hava hissi — referans sitelerin fotoğraflı gökyüzü */
-  --sky-top: #d9eefb;
-  --sky-bottom: #f4fbf8;
+  --amber: #f49f2c;
+  --amber-ink: #0d1015;
+  --amber-soft: #fdf3e2;
 }
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --ground: #08110f;
-    --surface: #0f1c19;
-    --surface-2: #16261f;
-    --ink: #e9f2ee;
-    --ink-muted: #8ba49d;
-    --line: #1f342c;
+.theme-dark {
+  color: var(--ink);
+  --bg: #0d1015;
+  --surface: #151a20;
+  --surface-2: #1b2128;
+  --ink: #ffffff;
+  --muted: #99a1aa;
+  --line: rgb(255 255 255 / 0.09);
+}
 
-    --brand: #2ee6a8;
-    --brand-deep: #2ee6a8;
-    --brand-soft: #0e2a22;
-    --brand-ink: #6ff0c4;
-
-    /* Koyu zeminde koyu yeşil okunmaz: açık yeşil zemin, koyu yazı */
-    --primary: #2ee6a8;
-    --primary-fg: #04231a;
-
-    --signal: #e5b25c;
-    --signal-soft: #2b2112;
-
-    --wheel: #05392a;
-    --sky-top: #0d2230;
-    --sky-bottom: #08110f;
-
-    --shadow-card: 0 1px 2px rgb(0 0 0 / 0.4), 0 12px 32px rgb(0 0 0 / 0.3);
-    --shadow-lift: 0 2px 6px rgb(0 0 0 / 0.45), 0 22px 50px rgb(0 0 0 / 0.4);
-  }
+.theme-cream {
+  color: var(--ink);
+  --bg: #f5f4f0;
+  --surface: #ffffff;
+  --surface-2: #f9f8f4;
+  --ink: #0d1015;
+  --muted: #5b6470;
+  --line: #e7e6e1;
 }
 
 body {
-  background: var(--ground);
-  color: var(--ink);
+  background: #0d1015;
+  color: #ffffff;
 }
 
-h1, h2, h3, .font-display {
-  font-family: var(--font-display);
-  letter-spacing: -0.02em;
+h1, h2, h3 {
+  letter-spacing: -0.03em;
   text-wrap: balance;
+  font-weight: 800;
+}
+
+/* Tasarımın imzası: köşeli parantez içinde monospace sayılar */
+.stat {
+  font-family: var(--font-mono);
+  font-weight: 700;
+  letter-spacing: -0.02em;
+}
+
+/* Küçük, harf aralıklı, monospace etiketler */
+.label-mono {
+  font-family: var(--font-mono);
+  font-size: 0.6875rem;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
 }
 
 /* ── Hareket ──────────────────────────────────────────────────────── */
-
-@keyframes route-draw {
-  from { stroke-dashoffset: var(--route-length); }
-  to   { stroke-dashoffset: 0; }
-}
-
-@keyframes drive-in {
-  from { transform: translateX(-24px); opacity: 0.001; }
-  to   { transform: none; opacity: 1; }
-}
 
 @keyframes pulse-ring {
   0%   { transform: scale(0.85); opacity: 0.5; }
@@ -130,16 +92,14 @@ h1, h2, h3, .font-display {
 }
 
 /* Yalnızca hareket. Opaklık bilerek dışarıda: bir açılış animasyonu opacity'yi
-   0'dan başlatırsa ve animasyon donarsa (arka plan sekmesi, boyaması duraklatılmış
+   0'dan başlatır ve animasyon donarsa (arka plan sekmesi, boyaması duraklatılmış
    görünümler) içerik kalıcı olarak görünmez kalır. */
 @keyframes rise-in {
   from { transform: translateY(16px); }
   to   { transform: none; }
 }
 
-.animate-route { animation: route-draw 2s cubic-bezier(0.4, 0, 0.2, 1) forwards; }
-.animate-ring  { animation: pulse-ring 2.4s cubic-bezier(0, 0, 0.2, 1) infinite; }
-.animate-drive { animation: drive-in 0.7s cubic-bezier(0.22, 1, 0.36, 1) backwards; }
+.animate-ring { animation: pulse-ring 2.4s cubic-bezier(0, 0, 0.2, 1) infinite; }
 
 /* Görünür alana girince açılan bölümler — IntersectionObserver ile tetiklenir.
    JS kapalıysa layout'taki <noscript> stili bu gizlemeyi geri alır; içerik
@@ -155,7 +115,6 @@ h1, h2, h3, .font-display {
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .animate-route, .animate-ring, .animate-drive { animation: none !important; }
-  .animate-route { stroke-dashoffset: 0 !important; }
+  .animate-ring { animation: none !important; }
   [data-reveal] { opacity: 1; transform: none; animation: none !important; }
 }

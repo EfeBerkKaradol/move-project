@@ -55,7 +55,7 @@ export function CargoDetail({
       {category.detailFormType === 'ITEM_PICKER' && (
         <fieldset>
           <legend className="text-sm font-medium">Hangi eşyaları taşıyacaksınız?</legend>
-          <p className="mt-1 text-sm text-ink-muted">
+          <p className="mt-1 text-sm text-muted">
             Seçtikçe tahmin ve araç önerisi anında güncellenir.
           </p>
           <ul className="mt-4 divide-y divide-line rounded-card border border-line bg-surface">
@@ -63,7 +63,7 @@ export function CargoDetail({
               <li key={item.code} className="flex items-center justify-between gap-4 px-4 py-2.5">
                 <div className="min-w-0">
                   <p className="truncate text-sm font-medium">{item.displayName}</p>
-                  <p className="text-xs tabular-nums text-ink-muted">
+                  <p className="text-xs tabular-nums text-muted">
                     {formatVolume(item.volumeM3)} · {item.weightKg} kg · en uzun kenar{' '}
                     {item.longestEdgeCm} cm
                   </p>
@@ -95,12 +95,12 @@ export function CargoDetail({
                   className={[
                     'rounded-lg border px-4 py-2.5 text-sm transition',
                     isSelected
-                      ? 'border-brand bg-brand-soft ring-1 ring-brand'
+                      ? 'border-amber bg-[var(--amber-soft)] ring-1 ring-amber'
                       : 'border-line bg-surface hover:border-ink-muted',
                   ].join(' ')}
                 >
                   <span className="font-medium">{p.displayName}</span>
-                  <span className="ml-2 tabular-nums text-xs text-ink-muted">
+                  <span className="ml-2 tabular-nums text-xs text-muted">
                     ≈ {formatVolume(p.estimatedVolumeM3)}
                   </span>
                 </button>
@@ -117,7 +117,7 @@ export function CargoDetail({
             <legend className="text-sm font-medium">
               {category.detailFormType === 'PACKAGE_COUNT' ? 'Kaç paket?' : 'Ek koli var mı?'}
             </legend>
-            <p className="mt-0.5 text-xs text-ink-muted">
+            <p className="mt-0.5 text-xs text-muted">
               {category.code === 'BELGE_PAKET'
                 ? 'Küçük paket / zarf — 0,02 m³'
                 : 'Standart koli — 0,12 m³'}
@@ -133,7 +133,7 @@ export function CargoDetail({
       )}
 
       {category.detailFormType === 'FREE_TEXT' && (
-        <p className="rounded-card border border-line bg-surface px-4 py-4 text-sm text-ink-muted">
+        <p className="rounded-card border border-line bg-surface px-4 py-4 text-sm text-muted">
           Bu kategori için aracı operasyon ekibimiz belirliyor. Yükünüzü tarif edip fotoğraf
           eklediğinizde size özel fiyat dönülür. Bu akış Faz 1&apos;de tamamlanacak.
         </p>

@@ -190,7 +190,7 @@ export function BookingFlow({
   return (
     <div className="space-y-10">
       <section>
-        <h2 className="text-sm font-medium uppercase tracking-[0.14em] text-ink-muted">
+        <h2 className="text-sm font-medium uppercase tracking-[0.14em] text-muted">
           Ne zaman?
         </h2>
         <div className="mt-3 flex flex-wrap gap-3">
@@ -207,14 +207,14 @@ export function BookingFlow({
               aria-checked={serviceModel === value}
               onClick={() => setServiceModel(value)}
               className={[
-                'rounded-pill border px-5 py-3 text-left transition',
+                'rounded-field border px-5 py-3 text-left transition',
                 serviceModel === value
-                  ? 'border-brand bg-brand-soft ring-1 ring-brand'
+                  ? 'border-amber bg-[var(--amber-soft)] ring-1 ring-amber'
                   : 'border-line bg-surface hover:border-ink-muted',
               ].join(' ')}
             >
               <span className="block font-medium">{label}</span>
-              <span className="block text-xs text-ink-muted">{hint}</span>
+              <span className="block text-xs text-muted">{hint}</span>
             </button>
           ))}
         </div>
@@ -222,7 +222,7 @@ export function BookingFlow({
 
       <section>
         <h2 className="text-xl font-semibold">Ne taşımak istiyorsunuz?</h2>
-        <p className="mt-1 text-sm text-ink-muted">
+        <p className="mt-1 text-sm text-muted">
           Aracı size sormuyoruz — yükünüzü tarif edin, uygun aracı biz hesaplayalım.
         </p>
         <div className="mt-5">
@@ -242,7 +242,7 @@ export function BookingFlow({
         <section className="grid gap-8 lg:grid-cols-[minmax(0,1.35fr)_minmax(0,1fr)]">
           <div>
             <h2 className="text-xl font-semibold">{category.displayName}</h2>
-            <p className="mt-1 mb-5 text-sm text-ink-muted">{category.scaleHint}</p>
+            <p className="mt-1 mb-5 text-sm text-muted">{category.scaleHint}</p>
             <CargoDetail
               category={category}
               items={categoryItems}
@@ -270,7 +270,7 @@ export function BookingFlow({
         <section className="grid gap-8 lg:grid-cols-[minmax(0,1.35fr)_minmax(0,1fr)]">
           <div>
             <h2 className="text-xl font-semibold">Nereden nereye?</h2>
-            <p className="mt-1 mb-5 text-sm text-ink-muted">
+            <p className="mt-1 mb-5 text-sm text-muted">
               Adres arama harita servisi devreye girince gelecek. Şimdilik ilçe seçimiyle
               takribî mesafe hesaplanıyor.
             </p>

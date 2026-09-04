@@ -25,6 +25,8 @@ export type VehicleType = {
   payloadKg: number;
   innerLengthCm: number;
   exampleLoads: string | null;
+  /** false ise araç henüz hizmete açılmadı — arayüzde "Yakında" gösterilir. */
+  active: boolean;
   sortOrder: number;
 };
 

@@ -44,7 +44,7 @@ class PricingServiceTest extends IntegrationTestBase {
 
     @Test
     void dokumToplamiGenelToplamaEsit() {
-        var quote = pricing.quote(request("34", "kadikoy", "besiktas", "TRANSPORTER"));
+        var quote = pricing.quote(request("34", "kadikoy", "besiktas", "KAMYONET"));
 
         var sum = quote.breakdown().stream()
                 .map(l -> l.amount().amount())
@@ -55,7 +55,7 @@ class PricingServiceTest extends IntegrationTestBase {
 
     @Test
     void komisyonSatiriSifirOlsaBileGorunur() {
-        var quote = pricing.quote(request("34", "kadikoy", "besiktas", "TRANSPORTER"));
+        var quote = pricing.quote(request("34", "kadikoy", "besiktas", "KAMYONET"));
 
         var commission = quote.breakdown().stream()
                 .filter(l -> l.code().equals("COMMISSION"))
@@ -68,7 +68,7 @@ class PricingServiceTest extends IntegrationTestBase {
 
     @Test
     void takribiMesafeKullaniciyaBildirilir() {
-        var quote = pricing.quote(request("34", "kadikoy", "besiktas", "TRANSPORTER"));
+        var quote = pricing.quote(request("34", "kadikoy", "besiktas", "KAMYONET"));
 
         assertThat(quote.approximateDistance()).isTrue();
         assertThat(quote.breakdown())
@@ -79,7 +79,7 @@ class PricingServiceTest extends IntegrationTestBase {
 
     @Test
     void buyukAracDahaPahali() {
-        var doblo = pricing.quote(request("34", "kadikoy", "besiktas", "DOBLO"));
+        var doblo = pricing.quote(request("34", "kadikoy", "besiktas", "PANELVAN"));
         var kamyon = pricing.quote(request("34", "kadikoy", "besiktas", "KAMYON"));
 
         assertThat(kamyon.totalAmount().amount()).isGreaterThan(doblo.totalAmount().amount());
@@ -88,18 +88,18 @@ class PricingServiceTest extends IntegrationTestBase {
     @Test
     void cokKisaMesafedeMinimumUcretUygulanir() {
         // Aynı ilçeden aynı ilçeye: mesafe sıfıra yakın, taban + süre minimumun altında kalır
-        var quote = pricing.quote(request("34", "kadikoy", "kadikoy", "MOTOR"));
+        var quote = pricing.quote(request("34", "kadikoy", "kadikoy", "MOTOKURYE"));
 
-        assertThat(quote.totalAmount().amount()).isGreaterThanOrEqualTo(new BigDecimal("172.50"));
+        assertThat(quote.totalAmount().amount()).isGreaterThanOrEqualTo(new BigDecimal("195.50"));
     }
 
     @Test
     void asansorsuzUstKatOtomatikUcretlendirilir() {
-        var withElevator = pricing.quote(request("34", "kadikoy", "besiktas", "TRANSPORTER"));
+        var withElevator = pricing.quote(request("34", "kadikoy", "besiktas", "KAMYONET"));
 
         var noElevator = pricing.quote(new QuoteRequest(
                 "INSTANT",
-                "TRANSPORTER",
+                "KAMYONET",
                 List.of(
                         new QuoteRequest.Stop(districtId("34", "kadikoy"), 4, false),
                         new QuoteRequest.Stop(districtId("34", "besiktas"), 0, true)),
@@ -132,7 +132,7 @@ class PricingServiceTest extends IntegrationTestBase {
     void sehirlerarasiTasimaReddedilir() {
         var request = new QuoteRequest(
                 "INSTANT",
-                "TRANSPORTER",
+                "KAMYONET",
                 List.of(
                         new QuoteRequest.Stop(districtId("34", "kadikoy"), 0, true),
                         new QuoteRequest.Stop(districtId("06", "cankaya"), 0, true)),
@@ -145,7 +145,7 @@ class PricingServiceTest extends IntegrationTestBase {
 
     @Test
     void pazarlikTabaniReferansinYuzde70i() {
-        var quote = pricing.quote(request("34", "kadikoy", "besiktas", "TRANSPORTER"));
+        var quote = pricing.quote(request("34", "kadikoy", "besiktas", "KAMYONET"));
 
         var expected = quote.totalAmount().amount()
                 .multiply(new BigDecimal("0.70"))
@@ -156,7 +156,7 @@ class PricingServiceTest extends IntegrationTestBase {
 
     @Test
     void teklifImzalanmisVeSuresiVar() {
-        var quote = pricing.quote(request("34", "kadikoy", "besiktas", "TRANSPORTER"));
+        var quote = pricing.quote(request("34", "kadikoy", "besiktas", "KAMYONET"));
 
         assertThat(quote.signature()).startsWith("v1:");
         assertThat(quote.expiresAt()).isAfter(java.time.Instant.now());
@@ -174,9 +174,9 @@ class PricingServiceTest extends IntegrationTestBase {
                 new QuoteRequest.Stop(districtId("34", "kadikoy"), 4, false),
                 new QuoteRequest.Stop(districtId("34", "besiktas"), 0, true));
 
-        var otomatik = pricing.quote(new QuoteRequest("INSTANT", "TRANSPORTER", stops, List.of(), null));
+        var otomatik = pricing.quote(new QuoteRequest("INSTANT", "KAMYONET", stops, List.of(), null));
         var acikca = pricing.quote(
-                new QuoteRequest("INSTANT", "TRANSPORTER", stops, List.of("NO_ELEVATOR"), null));
+                new QuoteRequest("INSTANT", "KAMYONET", stops, List.of("NO_ELEVATOR"), null));
 
         assertThat(acikca.totalAmount().amount())
                 .isEqualByComparingTo(otomatik.totalAmount().amount());
@@ -192,7 +192,7 @@ class PricingServiceTest extends IntegrationTestBase {
     void beklemeUcretiTeklifAsamasindaEklenmez() {
         var quote = pricing.quote(new QuoteRequest(
                 "INSTANT",
-                "TRANSPORTER",
+                "KAMYONET",
                 List.of(
                         new QuoteRequest.Stop(districtId("34", "kadikoy"), 0, true),
                         new QuoteRequest.Stop(districtId("34", "besiktas"), 0, true)),
@@ -206,7 +206,7 @@ class PricingServiceTest extends IntegrationTestBase {
     void ekHizmetDokumeSatirOlarakEklenir() {
         var quote = pricing.quote(new QuoteRequest(
                 "INSTANT",
-                "TRANSPORTER",
+                "KAMYONET",
                 List.of(
                         new QuoteRequest.Stop(districtId("34", "kadikoy"), 0, true),
                         new QuoteRequest.Stop(districtId("34", "besiktas"), 0, true)),

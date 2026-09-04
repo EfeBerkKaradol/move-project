@@ -44,9 +44,12 @@ class PublicCatalogController {
     }
 
     @GetMapping("/vehicle-types")
-    @Operation(summary = "Araç filosu ve kapasiteleri")
+    @Operation(summary = "Araç filosu ve kapasiteleri — hizmete açılmamışlar dahil")
     List<VehicleType> vehicleTypes() {
-        return vehicleTypes.findByActiveTrueOrderBySortOrderAsc();
+        // Hizmete açılmamış araçlar da dönüyor: arayüz onları "Yakında" rozetiyle
+        // gösteriyor, böylece kullanıcı filonun tamamını görüyor. Öneri motoru
+        // yalnızca aktif olanları değerlendiriyor (CatalogCache.activeFleet).
+        return vehicleTypes.findAllByOrderBySortOrderAsc();
     }
 
     @GetMapping("/cargo-categories")

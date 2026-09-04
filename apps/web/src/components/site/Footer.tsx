@@ -1,21 +1,20 @@
 import Link from 'next/link';
-import { CITIES } from '@turmove/shared';
 
 const COLUMNS = [
   {
-    title: 'Hizmetler',
+    title: 'Yük veren',
     links: [
-      { href: '/fiyat-hesapla', label: 'Anlık taşıma' },
-      { href: '/fiyat-hesapla', label: 'Planlı taşıma' },
-      { href: '/#filo', label: 'Araç tipleri' },
+      { href: '/yuk-ver', label: 'Fiyat al' },
+      { href: '/#araclar', label: 'Araç tipleri' },
+      { href: '/#nasil-calisir', label: 'Nasıl çalışır' },
     ],
   },
   {
-    title: 'Kurumsal',
+    title: 'Araç sahibi',
     links: [
-      { href: '/#pano', label: 'Güven panosu' },
-      { href: '/#sehirler', label: 'Hizmet bölgeleri' },
-      { href: '/#nakliyeci', label: 'Nakliyeci ol' },
+      { href: '/sofor-ol', label: 'Şoför olarak katıl' },
+      { href: '/#bos-donus', label: 'Boş dönüş eşleştirme' },
+      { href: '/belgeler', label: 'Gerekli belgeler' },
     ],
   },
   {
@@ -30,28 +29,19 @@ const COLUMNS = [
 
 export function Footer() {
   return (
-    <footer className="border-t border-line bg-surface">
-      <div className="mx-auto max-w-6xl px-6 py-14">
-        <div className="grid gap-10 sm:grid-cols-2 lg:grid-cols-4">
-          <div>
-            <p className="font-display text-lg font-extrabold">TurMove</p>
-            <p className="mt-2 max-w-xs text-sm text-ink-muted">
-              Ne taşıyacağını söyle, aracı biz bulalım. {CITIES.map((c) => c.name).join(' · ')}.
-            </p>
-          </div>
-
+    <footer className="theme-dark border-t border-line bg-bg">
+      <div className="mx-auto max-w-3xl px-6 py-14">
+        <div className="grid gap-8 sm:grid-cols-3">
           {COLUMNS.map((col) => (
             <div key={col.title}>
-              <p className="text-xs font-semibold uppercase tracking-[0.14em] text-ink-muted">
-                {col.title}
-              </p>
-              {/* Dokunma hedefleri en az 44px: py-2.5 + satır yüksekliği (docs/01) */}
+              <p className="label-mono text-muted">{col.title}</p>
               <ul className="mt-1">
                 {col.links.map((link) => (
                   <li key={link.label}>
+                    {/* Dokunma hedefleri en az 44px (docs/01) */}
                     <Link
                       href={link.href}
-                      className="block py-3.5 text-sm text-ink-muted transition hover:text-ink"
+                      className="block py-3.5 text-sm text-muted transition hover:text-ink"
                     >
                       {link.label}
                     </Link>
@@ -62,8 +52,8 @@ export function Footer() {
           ))}
         </div>
 
-        <p className="mt-12 border-t border-line pt-6 text-xs text-ink-muted">
-          © {new Date().getFullYear()} TurMove · Marka adı ve kurumsal kimlik geçicidir.
+        <p className="label-mono mt-10 border-t border-line pt-6 text-muted">
+          © {new Date().getFullYear()} Konvoy · 81 il · Marka ve kurumsal kimlik geçicidir
         </p>
       </div>
     </footer>

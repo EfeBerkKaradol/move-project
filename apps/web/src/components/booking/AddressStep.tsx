@@ -81,11 +81,11 @@ export function AddressStep({
                 title={e.description ?? undefined}
                 className={[
                   'rounded-lg border px-3 py-2 text-sm transition',
-                  on ? 'border-brand bg-brand-soft ring-1 ring-brand' : 'border-line',
+                  on ? 'border-amber bg-[var(--amber-soft)] ring-1 ring-amber' : 'border-line',
                 ].join(' ')}
               >
                 {e.displayName}
-                <span className="ml-2 tabular-nums text-xs text-ink-muted">
+                <span className="ml-2 tabular-nums text-xs text-muted">
                   {e.pricingType === 'PERCENT'
                     ? `%${e.rate}`
                     : `+${e.rate.toLocaleString('tr-TR')} ₺`}
@@ -117,7 +117,7 @@ function StopFields({
     <fieldset className="rounded-card border border-line bg-surface px-4 py-4">
       <legend className="text-sm font-medium">
         {legend}
-        {hint && <span className="ml-2 font-normal text-ink-muted">· {hint}</span>}
+        {hint && <span className="ml-2 font-normal text-muted">· {hint}</span>}
       </legend>
 
       <div className="mt-3 flex flex-wrap items-end gap-x-5 gap-y-3">
@@ -127,7 +127,7 @@ function StopFields({
             id={`${id}-ilce`}
             value={value.districtId}
             onChange={(e) => onChange({ ...value, districtId: e.target.value })}
-            className="min-w-52 rounded-lg border border-line bg-ground px-3 py-2"
+            className="min-w-52 rounded-lg border border-line bg-bg px-3 py-2"
           >
             <option value="">Seçin…</option>
             {options.map(([city, list]) => (
@@ -151,7 +151,7 @@ function StopFields({
             max={50}
             value={value.floor}
             onChange={(e) => onChange({ ...value, floor: Number(e.target.value) })}
-            className="w-20 rounded-lg border border-line bg-ground px-3 py-2 tabular-nums"
+            className="w-20 rounded-lg border border-line bg-bg px-3 py-2 tabular-nums"
           />
         </label>
 
@@ -160,7 +160,7 @@ function StopFields({
             type="checkbox"
             checked={value.hasElevator}
             onChange={(e) => onChange({ ...value, hasElevator: e.target.checked })}
-            className="size-4 accent-[var(--brand)]"
+            className="size-4 accent-[var(--amber)]"
           />
           Asansör var
         </label>
