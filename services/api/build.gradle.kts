@@ -45,7 +45,7 @@ dependencies {
     implementation("org.springframework.modulith:spring-modulith-starter-jpa")
 
     // dağıtık kilit — çift atama koruması (dispatch & pazarlık)
-    implementation("org.redisson:redisson-spring-boot-starter:3.40.2")
+    implementation("org.redisson:redisson-spring-boot-starter:4.7.0")
 
     // gözlem
     implementation("org.springframework.boot:spring-boot-starter-actuator")
