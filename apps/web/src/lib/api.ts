@@ -10,27 +10,52 @@ import type {
   VehicleRecommendation,
   VehicleType,
 } from '@turmove/contracts';
+import { FALLBACK_FLEET } from './fallback-fleet';
 
 export const API_URL = process.env.NEXT_PUBLIC_API_URL ?? 'http://localhost:8080';
 
 /**
+ * Sunucu tarafı isteklerin üst sınırı.
+ *
+ * <p>Zaman aşımı olmadan, ulaşılamayan bir API'ye açılan bağlantı asılı kalıyor ve
+ * derlemeyi kilitliyordu: Vercel'de sayfa üretimi 60 saniyelik bütçeyi doldurup
+ * build'i düşürdü. Hızlı başarısız olmak, yavaş başarısız olmaktan iyidir.
+ */
+const SERVER_FETCH_TIMEOUT_MS = 6000;
+
+/**
  * Katalog uçları kimlik gerektirmiyor — kullanıcı fiyat almadan ve kayıt olmadan
- * önce buradan geçiyor. API kapalıysa sayfa boş liste ile render edilir; iskelet
- * aşamasında backend olmadan da web ayağa kalkabilmeli.
+ * önce buradan geçiyor. API ulaşılamazsa null dönüyor; çağıran taraf ya yedek
+ * veriyle ya da bilgilendirici bir durumla devam ediyor.
  */
 async function get<T>(path: string): Promise<T | null> {
   try {
     const res = await fetch(`${API_URL}/api/v1/public${path}`, {
       next: { revalidate: 3600 },
+      signal: AbortSignal.timeout(SERVER_FETCH_TIMEOUT_MS),
     });
-    if (!res.ok) return null;
+    if (!res.ok) {
+      console.warn(`[api] ${path} → HTTP ${res.status}`);
+      return null;
+    }
     return (await res.json()) as T;
-  } catch {
+  } catch (error) {
+    // Sessizce yutmuyoruz: dağıtım loglarında API'nin ulaşılamadığı görünmeli
+    console.warn(`[api] ${path} ulaşılamadı:`, (error as Error).message);
     return null;
   }
 }
 
-export const getVehicleTypes = () => get<VehicleType[]>('/vehicle-types');
+/**
+ * Araç filosu. API ulaşılamazsa yedek listeye düşüyor — pazarlama sayfası
+ * backend olmadan da tasarlandığı gibi görünmeli (bkz. fallback-fleet.ts).
+ */
+export async function getVehicleTypes(): Promise<VehicleType[]> {
+  const fromApi = await get<VehicleType[]>('/vehicle-types');
+  if (fromApi && fromApi.length > 0) return fromApi;
+  console.warn('[api] araç filosu yedek listeden okundu');
+  return FALLBACK_FLEET;
+}
 export const getCargoCategories = () => get<CargoCategory[]>('/cargo-categories');
 export const getCargoItems = () => get<CargoItem[]>('/cargo-items');
 export const getCargoPresets = () => get<CargoPreset[]>('/cargo-presets');

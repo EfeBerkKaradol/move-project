@@ -11,6 +11,17 @@ import {
   getVehicleTypes,
 } from '@/lib/api';
 
+/**
+ * Bu sayfa etkileşimli bir araç, pazarlama sayfası değil: katalog, ilçe listesi ve
+ * tarife API'den geliyor ve kullanıcının seçimine göre değişiyor.
+ *
+ * <p>Derleme sırasında statik üretilmesi iki soruna yol açıyordu: API'nin
+ * bulunmadığı ortamlarda build 60 saniyelik sayfa üretim bütçesini doldurup
+ * düşüyordu, ve üretilse bile "katalog yüklenemedi" hâli bir saat boyunca
+ * önbellekten servis ediliyordu. İstek anında render ediliyor.
+ */
+export const dynamic = 'force-dynamic';
+
 export const metadata: Metadata = {
   title: 'Fiyat hesapla',
   description:
