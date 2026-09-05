@@ -54,3 +54,19 @@ export function formatPrice(amount: string | number): string {
 export function formatVolume(m3: number): string {
   return `${m3.toLocaleString('tr-TR', { maximumFractionDigits: 2 })} m³`;
 }
+
+/**
+ * Tarife fiyatından tahmini teklif aralığı üretir (docs/11 §2: platform aralık önerir,
+ * kesin fiyatı araç sahibi teklifle verir).
+ *
+ * ⚠️ GEÇİCİ BAND — docs/11 açık soru #2. Geçmiş teklif verisi birikince band
+ * gerçek teklif dağılımından türetilecek; o güne kadar tarifenin ±%10 civarı.
+ */
+export const ESTIMATE_BAND = { low: 0.92, high: 1.12 } as const;
+
+export function estimateRange(tariffTotal: string | number): { low: number; high: number } {
+  const t = typeof tariffTotal === 'string' ? Number(tariffTotal) : tariffTotal;
+  // 10 TL'ye yuvarla — kuruşlu bir "tahmin" kesinlik yanılsaması verir
+  const round10 = (x: number) => Math.round(x / 10) * 10;
+  return { low: round10(t * ESTIMATE_BAND.low), high: round10(t * ESTIMATE_BAND.high) };
+}
