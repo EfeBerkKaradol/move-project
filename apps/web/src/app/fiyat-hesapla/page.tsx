@@ -1,4 +1,5 @@
 import type { Metadata } from 'next';
+import Link from 'next/link';
 import { EstimateFlow } from '@/components/estimate/EstimateFlow';
 import { Footer } from '@/components/site/Footer';
 import { Header } from '@/components/site/Header';
@@ -75,12 +76,38 @@ export default async function EstimatePage({ searchParams }: { searchParams: Sea
                 initial={{ from: first(params.nereden), to: first(params.nereye), vehicleCode }}
               />
             ) : (
+              /*
+               * Ziyaretçiye teknik ayrıntı ya da geliştirme komutu gösterilmiyor:
+               * bu ekran canlıda gerçek kullanıcıların önüne çıkıyor. Geliştirme
+               * ipucu yalnızca yerel ortamda görünür.
+               */
               <div className="rounded-card border border-line bg-surface p-6">
-                <p className="font-semibold">Fiyat motoruna ulaşılamadı.</p>
-                <p className="mt-2 text-sm text-muted">
-                  API çalışmıyor olabilir. Geliştirmede <code>pnpm infra:up</code> ve{' '}
-                  <code>pnpm api</code> ile ayağa kaldırabilirsin.
+                <p className="font-semibold">Fiyat hesaplama şu an kullanılamıyor.</p>
+                <p className="mt-2 max-w-md text-sm text-muted">
+                  Kısa süreli bir aksaklık olabilir; birazdan tekrar deneyin. Acil taşımanız
+                  varsa yükünüzü ilan olarak yayınlayabilirsiniz, araç sahipleri size teklif
+                  versin.
                 </p>
+                <div className="mt-5 flex flex-wrap gap-3">
+                  <Link
+                    href="/yuk-ver"
+                    className="rounded-field bg-amber px-5 py-3 text-sm font-bold text-[var(--amber-ink)]"
+                  >
+                    Yük ilanı ver
+                  </Link>
+                  <Link
+                    href="/"
+                    className="rounded-field border border-line px-5 py-3 text-sm font-semibold"
+                  >
+                    Ana sayfaya dön
+                  </Link>
+                </div>
+                {process.env.NODE_ENV !== 'production' && (
+                  <p className="mt-5 border-t border-line pt-4 text-sm text-muted">
+                    Geliştirme notu: API ulaşılamıyor. <code>pnpm infra:up</code> ve{' '}
+                    <code>pnpm api</code> ile ayağa kaldırabilirsin.
+                  </p>
+                )}
               </div>
             )}
           </div>
