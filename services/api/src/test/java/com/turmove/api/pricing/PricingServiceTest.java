@@ -90,7 +90,8 @@ class PricingServiceTest extends IntegrationTestBase {
         // Aynı ilçeden aynı ilçeye: mesafe sıfıra yakın, taban + süre minimumun altında kalır
         var quote = pricing.quote(request("34", "kadikoy", "kadikoy", "MOTOKURYE"));
 
-        assertThat(quote.totalAmount().amount()).isGreaterThanOrEqualTo(new BigDecimal("195.50"));
+        // İstanbul motokurye minimumu: 195 × 1,08 (V6)
+        assertThat(quote.totalAmount().amount()).isGreaterThanOrEqualTo(new BigDecimal("210.60"));
     }
 
     @Test
@@ -184,7 +185,8 @@ class PricingServiceTest extends IntegrationTestBase {
         assertThat(acikca.breakdown())
                 .filteredOn(l -> l.code().equals("NO_ELEVATOR"))
                 .singleElement()
-                .satisfies(l -> assertThat(l.amount().amount()).isEqualByComparingTo("120.00"));
+                // 4 kat × 120 ₺ (V6 ek hizmet tarifesi)
+                .satisfies(l -> assertThat(l.amount().amount()).isEqualByComparingTo("480.00"));
     }
 
     /** Bekleme süresi taşıma bitince belli olur; teklif anında ücretlendirilmemeli. */

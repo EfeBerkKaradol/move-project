@@ -53,6 +53,8 @@ seçer, sistem uygun aracı önerir ve kullanıcı isterse **pazarlık** başlat
 | [08 — Yük Kategorileri ve Araç Önerisi](docs/08-yuk-kategorileri-ve-arac-onerisi.md) | Kategori paneli, eşya kataloğu, öneri motoru |
 | [09 — Güven Panosu](docs/09-guven-panosu.md) | Herkese açık sipariş akışı, gizlilik tasarımı |
 | [10 — Pazarlık](docs/10-pazarlik.md) | Müşteri ↔ nakliyeci fiyat müzakeresi |
+| [11 — Konvoy Model Değişikliği](docs/11-konvoy-model-degisikligi.md) | Teklif pazarı, 81 il, boş dönüş — tasarımın önceki plandan neyi değiştirdiği |
+| [12 — Fiyat Araştırması](docs/12-fiyat-arastirmasi.md) | Eylül 2026 piyasa verisi, kaynaklar ve V6 tarifesinin kalibrasyonu |
 | [ADR'ler](docs/adr/) | Kalıcı mimari kararlar ve gerekçeleri |
 | [🔑 Anahtarlar](ANAHTARLAR.md) | Sağlanması gereken API anahtarları ve hesaplar — ilerleme listesi |
 
