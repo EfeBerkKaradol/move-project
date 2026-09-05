@@ -12,7 +12,35 @@ import type {
 } from '@turmove/contracts';
 import { FALLBACK_FLEET } from './fallback-fleet';
 
-export const API_URL = process.env.NEXT_PUBLIC_API_URL ?? 'http://localhost:8080';
+const DEFAULT_API_URL = 'http://localhost:8080';
+
+/**
+ * API adresini çözer.
+ *
+ * <p>`??` yeterli değil: ortam değişkeni <em>boş string</em> olarak tanımlıysa
+ * (Vercel'de değeri silinmiş bir değişken böyle gelir) `??` varsayılana düşmez.
+ * O durumda istek adresi "/api/v1/public/..." gibi göreli kalıyor ve sunucu
+ * tarafındaki fetch bunu ayrıştıramıyordu.
+ *
+ * <p>Sunucudan yapılan istekler mutlak adres gerektirir; göreli bir değer
+ * verilmişse de varsayılana dönülüyor ve log'a yazılıyor.
+ */
+function resolveApiUrl(): string {
+  const raw = process.env.NEXT_PUBLIC_API_URL?.trim();
+  if (!raw) return DEFAULT_API_URL;
+
+  if (!/^https?:\/\//i.test(raw)) {
+    console.warn(
+      `[api] NEXT_PUBLIC_API_URL mutlak bir adres olmalı (http:// veya https://), ` +
+        `alınan: ${JSON.stringify(raw)} — varsayılana dönülüyor`,
+    );
+    return DEFAULT_API_URL;
+  }
+
+  return raw.replace(/\/+$/, '');
+}
+
+export const API_URL = resolveApiUrl();
 
 /**
  * Sunucu tarafı isteklerin üst sınırı.
