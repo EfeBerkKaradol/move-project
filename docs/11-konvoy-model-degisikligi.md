@@ -158,9 +158,9 @@ En büyük operasyonel değişiklik. Etkiler:
 
 ## 6. Açık sorular
 
-1. **Pazarlık kalıyor mu?** Tasarım "pazarlığa girmenize gerek yok" diyor. docs/10'daki
-   çok turlu pazarlık modeli bununla çelişiyor. Tek turlu teklif mi, yoksa teklif +
-   isteğe bağlı tek karşı teklif mi?
+1. ~~**Pazarlık kalıyor mu?**~~ **Karar: tek turlu teklif** (tasarım metni esas alındı).
+   Bir taşıyıcı bir ilana tek fiyat verir; karşı teklif yok, geri çekip yeniden verebilir.
+   docs/10 çok turlu pazarlık askıya alındı.
 2. **Tahmini fiyat aralığı nasıl üretilecek?** Kesin fiyat taşıyıcıdan geliyorsa,
    platformun gösterdiği aralık neye dayanacak — tarife mi, geçmiş teklif ortalaması mı?
 3. **81 il aynı anda mı açılacak?** Arz olmayan illerde ilan açık kalıp teklif almazsa

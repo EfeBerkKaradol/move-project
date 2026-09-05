@@ -231,6 +231,26 @@ POST /api/v1/uploads/presign                      { fileName, contentType, purpo
 }
 ```
 
+## 4b. Teklif pazarı  ✅ kuruldu (V9)
+
+```
+# Yük veren
+POST /api/v1/listings                             ilan yayınla (tarife sunucuda snapshot'lanır)
+GET  /api/v1/listings                             ilanlarım
+GET  /api/v1/listings/{id}
+POST /api/v1/listings/{id}/cancel                 { reason }  → bekleyen teklifler reddedilir
+GET  /api/v1/listings/{id}/offers                 gelen teklifler (yalnızca sahip)
+POST /api/v1/listings/{id}/offers/{offerId}/accept → AWARDED, diğerleri REJECTED
+
+# Araç sahibi (ROLE_DRIVER)
+GET  /api/v1/driver/listings/open?vehicleType=&city=   açık ilanlar (sahip kimliği gizli)
+POST /api/v1/driver/listings/{id}/offers          { amount, note?, estimatedPickupAt? } tek tur
+GET  /api/v1/driver/offers                        tekliflerim
+POST /api/v1/driver/offers/{id}/withdraw
+```
+Kurallar: (ilan, taşıyıcı) başına tek teklif; geri çekilen yeniden verilebilir. Anlık ilan 6 saat,
+planlı ilan alış penceresine kadar açık. Kabul optimistic lock ile korunur (yarışta 409).
+
 ## 5. Sürücü uçları
 
 ```

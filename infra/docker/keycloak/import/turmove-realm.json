@@ -4,16 +4,34 @@
   "displayName": "Taşıyoruz",
   "defaultLocale": "tr",
   "internationalizationEnabled": true,
-  "supportedLocales": ["tr", "en"],
+  "supportedLocales": [
+    "tr",
+    "en"
+  ],
   "accessTokenLifespan": 900,
   "ssoSessionIdleTimeout": 2592000,
   "roles": {
     "realm": [
-      { "name": "CUSTOMER",       "description": "Yük sahibi" },
-      { "name": "DRIVER",         "description": "Nakliyeci / sürücü" },
-      { "name": "FLEET_MANAGER",  "description": "Filo yöneticisi" },
-      { "name": "OPS_AGENT",      "description": "Operasyon ajanı" },
-      { "name": "ADMIN",          "description": "Sistem yöneticisi" }
+      {
+        "name": "CUSTOMER",
+        "description": "Yük sahibi"
+      },
+      {
+        "name": "DRIVER",
+        "description": "Nakliyeci / sürücü"
+      },
+      {
+        "name": "FLEET_MANAGER",
+        "description": "Filo yöneticisi"
+      },
+      {
+        "name": "OPS_AGENT",
+        "description": "Operasyon ajanı"
+      },
+      {
+        "name": "ADMIN",
+        "description": "Sistem yöneticisi"
+      }
     ]
   },
   "clients": [
@@ -22,35 +40,57 @@
       "name": "Taşıyoruz Web",
       "publicClient": true,
       "standardFlowEnabled": true,
-      "directAccessGrantsEnabled": false,
-      "redirectUris": ["http://localhost:3000/*"],
-      "webOrigins": ["http://localhost:3000"],
-      "attributes": { "pkce.code.challenge.method": "S256" }
+      "directAccessGrantsEnabled": true,
+      "redirectUris": [
+        "http://localhost:3000/*"
+      ],
+      "webOrigins": [
+        "http://localhost:3000"
+      ],
+      "attributes": {
+        "pkce.code.challenge.method": "S256"
+      }
     },
     {
       "clientId": "tasiyoruz-admin-web",
       "name": "Taşıyoruz Admin",
       "publicClient": true,
       "standardFlowEnabled": true,
-      "redirectUris": ["http://localhost:3001/*"],
-      "webOrigins": ["http://localhost:3001"],
-      "attributes": { "pkce.code.challenge.method": "S256" }
+      "redirectUris": [
+        "http://localhost:3001/*"
+      ],
+      "webOrigins": [
+        "http://localhost:3001"
+      ],
+      "attributes": {
+        "pkce.code.challenge.method": "S256"
+      }
     },
     {
       "clientId": "tasiyoruz-customer-app",
       "name": "Taşıyoruz Müşteri Uygulaması",
       "publicClient": true,
       "standardFlowEnabled": true,
-      "redirectUris": ["tasiyoruz://*"],
-      "attributes": { "pkce.code.challenge.method": "S256" }
+      "redirectUris": [
+        "tasiyoruz://*"
+      ],
+      "attributes": {
+        "pkce.code.challenge.method": "S256"
+      },
+      "directAccessGrantsEnabled": true
     },
     {
       "clientId": "tasiyoruz-driver-app",
       "name": "Taşıyoruz Nakliyeci Uygulaması",
       "publicClient": true,
       "standardFlowEnabled": true,
-      "redirectUris": ["tasiyoruz-driver://*"],
-      "attributes": { "pkce.code.challenge.method": "S256" }
+      "redirectUris": [
+        "tasiyoruz-driver://*"
+      ],
+      "attributes": {
+        "pkce.code.challenge.method": "S256"
+      },
+      "directAccessGrantsEnabled": true
     },
     {
       "clientId": "tasiyoruz-api",
@@ -67,8 +107,16 @@
       "lastName": "Müşteri",
       "enabled": true,
       "emailVerified": true,
-      "credentials": [{ "type": "password", "value": "tasiyoruz", "temporary": false }],
-      "realmRoles": ["CUSTOMER"]
+      "credentials": [
+        {
+          "type": "password",
+          "value": "tasiyoruz",
+          "temporary": false
+        }
+      ],
+      "realmRoles": [
+        "CUSTOMER"
+      ]
     },
     {
       "username": "nakliyeci@tasiyoruz.local",
@@ -77,8 +125,16 @@
       "lastName": "Nakliyeci",
       "enabled": true,
       "emailVerified": true,
-      "credentials": [{ "type": "password", "value": "tasiyoruz", "temporary": false }],
-      "realmRoles": ["DRIVER"]
+      "credentials": [
+        {
+          "type": "password",
+          "value": "tasiyoruz",
+          "temporary": false
+        }
+      ],
+      "realmRoles": [
+        "DRIVER"
+      ]
     },
     {
       "username": "operasyon@tasiyoruz.local",
@@ -87,8 +143,17 @@
       "lastName": "Operasyon",
       "enabled": true,
       "emailVerified": true,
-      "credentials": [{ "type": "password", "value": "tasiyoruz", "temporary": false }],
-      "realmRoles": ["OPS_AGENT", "ADMIN"]
+      "credentials": [
+        {
+          "type": "password",
+          "value": "tasiyoruz",
+          "temporary": false
+        }
+      ],
+      "realmRoles": [
+        "OPS_AGENT",
+        "ADMIN"
+      ]
     }
   ]
 }
