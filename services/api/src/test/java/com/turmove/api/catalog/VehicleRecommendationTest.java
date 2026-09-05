@@ -33,18 +33,18 @@ class VehicleRecommendationTest extends IntegrationTestBase {
         var result = service.recommend(request);
 
         // Buzdolabı 0,80 + çamaşır 0,35 + 8 standart koli 0,96 = 2,11 m³
-        // istifleme payıyla (×1,25) 2,64 m³ → Transporter'ın 6,5 m³ kasasının ~%41'i
+        // istifleme payıyla (×1,25) 2,64 m³ → panelvanın 5 m³ kasasının ~yarısı
         assertThat(result.primary().vehicleTypeCode()).isEqualTo("PANELVAN");
         assertThat(result.estimate().volumeM3()).isEqualByComparingTo("2.64");
         assertThat(result.estimate().longestEdgeCm()).isEqualTo(180);
-        assertThat(result.primary().fillRatePercent()).isEqualTo(33);
-        // Doblo hacim olarak yeterdi ama 180 cm'lik buzdolabı 170 cm kasaya girmiyor
-        assertThat(result.primary().whyNotSmaller().vehicleTypeCode()).isEqualTo("MOTOKURYE");
+        assertThat(result.primary().fillRatePercent()).isEqualTo(53);
+        // Mini panelvan hacim olarak da yetmiyor: 2,50 m³ < 2,64 m³
+        assertThat(result.primary().whyNotSmaller().vehicleTypeCode()).isEqualTo("MINI_PANELVAN");
     }
 
     @Test
     void enUzunKenarSigmiyorsaBirUstAraciOnerirVeSebebiniAciklar() {
-        // Çift yatak 200 cm — hacmi Doblo'ya (3 m³) sığar ama 170 cm'lik kasaya girmez
+        // Çift yatak 200 cm — hacmi mini panelvana (2,5 m³) sığar ama 150 cm'lik kasaya girmez
         var request = new CargoDeclarationRequest(
                 "TEKIL_ESYA",
                 List.of(new CargoDeclarationRequest.Item("YATAK_CIFT", 1)),
@@ -54,18 +54,18 @@ class VehicleRecommendationTest extends IntegrationTestBase {
 
         assertThat(result.primary().vehicleTypeCode()).isEqualTo("PANELVAN");
         assertThat(result.primary().whyNotSmaller()).isNotNull();
-        assertThat(result.primary().whyNotSmaller().vehicleTypeCode()).isEqualTo("MOTOKURYE");
+        assertThat(result.primary().whyNotSmaller().vehicleTypeCode()).isEqualTo("MINI_PANELVAN");
         assertThat(result.primary().whyNotSmaller().reason())
-                .isEqualTo("200 cm'lik parça, Motokurye kasasına (45 cm) sığmıyor.");
+                .isEqualTo("200 cm'lik parça, Mini panelvan kasasına (150 cm) sığmıyor.");
     }
 
     @Test
-    void kucukPaketIcinMotokuryeOnerir() {
+    void kucukPaketIcinMotorOnerir() {
         var request = new CargoDeclarationRequest("BELGE_PAKET", List.of(), null, 1, List.of());
 
         var result = service.recommend(request);
 
-        assertThat(result.primary().vehicleTypeCode()).isEqualTo("MOTOKURYE");
+        assertThat(result.primary().vehicleTypeCode()).isEqualTo("MOTOR");
     }
 
     @Test

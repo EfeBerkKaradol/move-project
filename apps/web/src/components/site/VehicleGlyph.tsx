@@ -1,7 +1,30 @@
 /**
  * Araç ikonları. Tasarımdaki çizgisel dil: tek ağırlıkta stroke, yuvarlak uçlar,
- * araç büyüdükçe artan aks sayısı.
+ * araç büyüdükçe uzayan kasa ve artan aks sayısı.
+ *
+ * <p>Kasa solda, kabin sağda. Ön aks kabinin altına denk gelir. Van sınıfında kasa
+ * kabinle aynı yükseklikte (tek gövde), kamyon sınıfında kasa daha alçak başlar.
  */
+
+type Spec = {
+  /** Kasanın bittiği x — kabin buradan başlar ve 6 birim yer kaplar (viewBox 32). */
+  boxEnd: number;
+  /** Kasa tavanı: van sınıfı tek gövde (6), kamyon sınıfı ayrı kasa (4.5). */
+  top: number;
+  axles: number[];
+};
+
+const SPECS: Record<string, Spec> = {
+  MINI_PANELVAN: { boxEnd: 15, top: 6, axles: [6, 17] },
+  PANELVAN: { boxEnd: 18, top: 6, axles: [6, 20] },
+  MINIVAN: { boxEnd: 21, top: 6, axles: [6, 23] },
+  KAMYONET: { boxEnd: 23, top: 4.5, axles: [6, 25] },
+  KAMYON: { boxEnd: 25, top: 4.5, axles: [6, 19, 27] },
+  TIR: { boxEnd: 26, top: 4.5, axles: [5, 9, 19, 23, 28] },
+};
+
+const FALLBACK: Spec = SPECS.KAMYONET;
+
 export function VehicleGlyph({ code, className }: { code: string; className?: string }) {
   const common = {
     fill: 'none',
@@ -11,9 +34,11 @@ export function VehicleGlyph({ code, className }: { code: string; className?: st
     strokeLinejoin: 'round' as const,
   };
 
+  const spec = SPECS[code] ?? FALLBACK;
+
   return (
     <svg viewBox="0 0 32 20" className={className} aria-hidden {...common}>
-      {code === 'MOTOKURYE' ? (
+      {code === 'MOTOR' ? (
         <>
           <circle cx="6" cy="14" r="3.4" />
           <circle cx="25" cy="14" r="3.4" />
@@ -23,44 +48,15 @@ export function VehicleGlyph({ code, className }: { code: string; className?: st
       ) : (
         <>
           {/* Kasa */}
-          <path d={boxPath(code)} />
+          <path d={`M2 ${spec.top}h${spec.boxEnd - 2}v${15.4 - spec.top - 2.2}H2z`} />
           {/* Kabin */}
-          <path d={cabPath(code)} />
+          <path d={`M${spec.boxEnd} 9h3.4l2.6 3v2.2H${spec.boxEnd}z`} />
           {/* Akslar */}
-          {axles(code).map((cx) => (
+          {spec.axles.map((cx) => (
             <circle key={cx} cx={cx} cy="15.4" r="2.2" />
           ))}
         </>
       )}
     </svg>
   );
-}
-
-/** Kasa uzunluğu araç tipiyle birlikte büyür. */
-function boxPath(code: string) {
-  const right = { PANELVAN: 20, KAMYONET: 23, KAMYON: 26, KIRKAYAK: 28, TIR: 29 }[code] ?? 23;
-  const top = code === 'PANELVAN' ? 6 : 4.5;
-  return `M2 ${top}h${right - 2}v${15.4 - top - 2.2}H2z`;
-}
-
-function cabPath(code: string) {
-  const start = { PANELVAN: 20, KAMYONET: 23, KAMYON: 26, KIRKAYAK: 28, TIR: 29 }[code] ?? 23;
-  return `M${start} 9h3.4l2.6 3v2.2H${start}z`;
-}
-
-function axles(code: string): number[] {
-  switch (code) {
-    case 'PANELVAN':
-      return [6, 22];
-    case 'KAMYONET':
-      return [6, 25];
-    case 'KAMYON':
-      return [6, 21, 25.5];
-    case 'KIRKAYAK':
-      return [6, 10, 22, 26.5];
-    case 'TIR':
-      return [5, 9, 20, 24, 28];
-    default:
-      return [6, 24];
-  }
 }

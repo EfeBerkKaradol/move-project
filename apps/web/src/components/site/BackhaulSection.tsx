@@ -47,7 +47,7 @@ function CorridorCard() {
   return (
     <figure className="mt-10 rounded-card border border-line bg-surface p-5 sm:p-6 lg:mt-0">
       <figcaption className="flex flex-wrap items-center justify-between gap-2">
-        <span className="label-mono text-muted">34 ABC 123 · Kırkayak</span>
+        <span className="label-mono text-muted">34 ABC 123 · Kamyon</span>
         <span className="label-mono text-muted">Salı, 12 Mart</span>
       </figcaption>
 

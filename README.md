@@ -37,7 +37,7 @@ seçer, sistem uygun aracı önerir ve kullanıcı isterse **pazarlık** başlat
 
 ## Araç filosu
 
-`Motor` · `Doblo` · `Transporter` · `Transit` · `Kamyonet` · `Kamyon` · `Tır`
+`Motor` · `Mini panelvan` · `Panelvan` · `Minivan` · `Kamyonet` · `Kamyon` · `TIR` (yakında)
 
 ## Dokümantasyon
 

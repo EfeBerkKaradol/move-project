@@ -19,7 +19,7 @@ export default async function HomePage() {
         <section className="theme-dark bg-bg pb-16 pt-14 lg:pb-24 lg:pt-20">
           <div className="mx-auto grid max-w-6xl gap-12 px-6 lg:grid-cols-[minmax(0,1.25fr)_minmax(0,1fr)] lg:items-start">
             <div>
-              <p className="label-mono text-amber">81 il · Motosikletten kırkayağa</p>
+              <p className="label-mono text-amber">81 il · Motordan kamyona</p>
 
               <h1 className="mt-5 text-[clamp(2.1rem,5.2vw,4.25rem)] leading-[1.02]">
                 Yükünüz için doğru aracı dakikalar içinde bulun.

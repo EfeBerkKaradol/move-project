@@ -88,9 +88,9 @@ class PricingServiceTest extends IntegrationTestBase {
     @Test
     void cokKisaMesafedeMinimumUcretUygulanir() {
         // Aynı ilçeden aynı ilçeye: mesafe sıfıra yakın, taban + süre minimumun altında kalır
-        var quote = pricing.quote(request("34", "kadikoy", "kadikoy", "MOTOKURYE"));
+        var quote = pricing.quote(request("34", "kadikoy", "kadikoy", "MOTOR"));
 
-        // İstanbul motokurye minimumu: 195 × 1,08 (V6)
+        // İstanbul motor minimumu: 195 × 1,08 (V7)
         assertThat(quote.totalAmount().amount()).isGreaterThanOrEqualTo(new BigDecimal("210.60"));
     }
 

@@ -1,8 +1,12 @@
 # 12 — Fiyat Araştırması ve Tarife Kalibrasyonu
 
-> Tarih: 5 Eylül 2026. Tarife: `V6__market_rate_cards.sql`. Önceki tarife (V5) "geçici"
-> işaretliydi ve piyasanın 3–5 kat altındaydı; bu doküman yeni değerlerin nereden geldiğini
-> kaydeder. Firma birim fiyat görüşmeleri sonuçlanınca V7 ile güncellenir.
+> Tarih: 5 Eylül 2026. Tarife: `V6__market_rate_cards.sql`, filo revizyonuyla birlikte
+> `V7__fleet_revision.sql`. Önceki tarife (V5) "geçici" işaretliydi ve piyasanın 3–5 kat
+> altındaydı; bu doküman yeni değerlerin nereden geldiğini kaydeder. Firma birim fiyat
+> görüşmeleri sonuçlanınca güncellenir.
+>
+> **V7 filo revizyonu:** tek "panelvan" basamağı üçe bölündü (mini panelvan · panelvan ·
+> minivan), kırkayak kaldırıldı. Aşağıdaki §3–4 tabloları V7 filosunu gösteriyor.
 
 ## 1. Yöntem
 
@@ -43,9 +47,18 @@ alındı, rakamlar yük/kurye pazarından.
 - Şehirlerarası 10 teker (5–12 t) İstanbul–Ankara **9.000–14.000** spot ([Yük Yükle](https://yukyukle.tr/bloglar/ankara-istanbul-arasi-yuk-tasima-navlun-fiyatlari-2026)); firma tarifesi 6 teker 35–50 ₺/km, 10 teker 55–75 ₺/km ([Ateşnak](https://www.atesnak.com/kamyon-nakliye-km-fiyati))
 - Şehir içi "yalnız kamyon/kamyonet" evden eve **7.599'dan** ([İstanbul Nakliyat](https://www.istanbulnakliyat.ist/nakliyat-fiyatlari/)); firma tam hizmet İstanbul–Ankara 21 m³ 44.000 ([Atacan](https://www.atacannakliyat.com/blog/kamyon-km-nakliye-fiyati.html))
 
-### Kırkayak (18 t) ve TIR (24 t)
+### Mini panelvan ve panelvan (van sınıfının alt basamakları)
+- Hafif ticari (Fiorino/Courier/Doblo sınıfı) şehir içi **900–1.200** ([Ateşnak](https://www.atesnak.com/kucuk-nakliye-fiyatlari-hesapla))
+- Kapasite: Fiorino Cargo **2,5 m³ / 610 kg** ([Parkers](https://www.parkers.co.uk/vans-pickups/fiat/fiorino/2008-dimensions/)); Doblo/Connect sınıfı ~5 m³ / 1 t
+- V7'de mini panelvan bu bandın altına, panelvan tam ortasına oturtuldu.
+
+### TIR (24 t)
 - Komple tır İstanbul–Ankara **18.000–28.000** ([Yük Yükle](https://yukyukle.tr/bloglar/ankara-istanbul-arasi-yuk-tasima-fiyatlari-ne-kadar-2026)); firma 80–110 ₺/km ([Ateşnak](https://www.atesnak.com/kamyon-nakliye-km-fiyati)); Armut 10.000–68.000 ([Armut](https://armut.com/fiyatlari/tir-nakliye_92982))
-- Kırkayak için doğrudan veri yok; kamyon ile tır arasına yerleştirildi.
+- Hizmete açılmadı; arayüzde "Yakında". Tarifesi hazır bekliyor.
+
+> **Kırkayak (18 t) V7'de kaldırıldı.** Ne arz verisi ne fiyat kaynağı bulunabildi; kamyon
+> ile tır arasına tahminle yerleştirilmişti. Kamyon 10 t ile TIR 24 t arasındaki boşluk,
+> TIR hizmete açılınca gerçek talep verisiyle yeniden değerlendirilecek.
 
 ### Ek hizmetler
 - Ambalaj/taşıma desteği +1.750–3.500 ([Armut](https://armut.com/fiyatlari/kamyonet-nakliye_1150)); taşıma asansörü 2.000–4.000 ([Taşınırken](https://tasinirken.com/esya-tasima-asansoru-kiralama-fiyatlari/), [Nursoy](https://www.nursoynakliyat.com.tr/asansorlu-nakliyat-fiyatlari/))
@@ -53,14 +66,15 @@ alındı, rakamlar yük/kurye pazarından.
 
 ## 3. Türetilen tarife (Ankara ×1,00; İstanbul ×1,08; Hatay ×0,95)
 
-| Araç | Taban | Dahil km | ₺/km | ₺/dk | Minimum | Bekleme |
-|---|---|---|---|---|---|---|
-| Motokurye | 125 | 2 | 11 | 1,00 | 195 | 5 dk ücretsiz, 9 ₺/dk |
-| Panelvan | 900 | 3 | 24 | 2,20 | 1.300 | 30 dk, 4,4 ₺/dk |
-| Kamyonet | 2.300 | 3 | 34 | 3,50 | 3.300 | 30 dk, 7 ₺/dk |
-| Kamyon | 3.500 | 3 | 46 | 5,00 | 5.600 | 30 dk, 10 ₺/dk |
-| Kırkayak | 4.700 | 3 | 56 | 6,00 | 7.600 | 30 dk, 12 ₺/dk |
-| TIR | 5.900 | 3 | 70 | 7,00 | 9.600 | 30 dk, 14 ₺/dk |
+| Araç | Kapasite | Taban | Dahil km | ₺/km | ₺/dk | Minimum | Bekleme |
+|---|---|---|---|---|---|---|---|
+| Motor | 30 kg · 0,10 m³ | 125 | 2 | 11 | 1,00 | 195 | 5 dk ücretsiz, 9 ₺/dk |
+| Mini panelvan | 600 kg · 2,5 m³ | 480 | 3 | 15 | 1,40 | 720 | 30 dk, 3,0 ₺/dk |
+| Panelvan | 1 t · 5 m³ | 640 | 3 | 19 | 1,70 | 950 | 30 dk, 3,6 ₺/dk |
+| Minivan | 1,3 t · 8 m³ | 900 | 3 | 24 | 2,20 | 1.300 | 30 dk, 4,4 ₺/dk |
+| Kamyonet | 3,5 t · 18 m³ | 2.300 | 3 | 34 | 3,50 | 3.300 | 30 dk, 7 ₺/dk |
+| Kamyon | 10 t · 45 m³ | 3.500 | 3 | 46 | 5,00 | 5.600 | 30 dk, 10 ₺/dk |
+| TIR *(yakında)* | 24 t · 90 m³ | 5.900 | 3 | 70 | 7,00 | 9.600 | 30 dk, 14 ₺/dk |
 
 Kademeli km: **0–25 km tam · 25–150 km %70 · 150+ km %38.** Taban ücret 30 dk yükleme/boşaltmayı
 kapsar; bu yüzden "bekleme" 30 dk sonra başlar (motokuryede 5 dk).
@@ -74,11 +88,12 @@ Fiyat motoru formülüyle (`DefaultPricingService`) hesaplandı; takribî rota s
 
 | Araç | 5 km | 12 km | 20 km | 35 km | 60 km | Piyasa bandı |
 |---|---|---|---|---|---|---|
-| Motokurye | 211 | 289 | 404 | 591 | 861 | 150–500 |
-| Panelvan | 1.404 | 1.404 | 1.534 | 1.951 | 2.540 | 1.200–2.500 |
+| Motor | 211 | 289 | 404 | 591 | 861 | 150–500 |
+| Mini panelvan | 778 | 778 | 871 | 1.133 | 1.502 | 900–1.200 |
+| Panelvan | 1.026 | 1.026 | 1.134 | 1.463 | 1.926 | 900–1.200 |
+| Minivan | 1.404 | 1.404 | 1.534 | 1.951 | 2.540 | 1.200–2.500 |
 | Kamyonet | 3.564 | 3.564 | 3.564 | 3.907 | 4.765 | 3.500–7.000 |
 | Kamyon | 6.048 | 6.048 | 6.048 | 6.048 | 6.907 | 7.600'dan (tam gün) |
-| Kırkayak | 8.208 | 8.208 | 8.208 | 8.208 | 8.869 | — |
 | TIR | 10.368 | 10.368 | 10.368 | 10.368 | 11.037 | 10.000+ (Armut alt bant) |
 
 **Şehirlerarası, İstanbul–Ankara 455 km (₺)** — 65 km/sa varsayımıyla; şehirlerarası kısıt
@@ -86,16 +101,21 @@ kaldırılıp (docs/11 §5 #3) rota sağlayıcısı otoyol hızını tanıyınca
 
 | Araç | Tarife | Spot (Yük Yükle) | Firma (Ateşnak) |
 |---|---|---|---|
-| Panelvan | 7.289 | 4.500–7.000 | 9.100–13.650 |
+| Mini panelvan | 4.484 | — | — |
+| Panelvan | 5.680 | 4.500–7.000 | 9.100–13.650 |
+| Minivan | 7.289 | 4.500–7.000 | 9.100–13.650 |
 | Kamyonet | 11.514 | — | 9.100–13.650 |
 | Kamyon | 16.079 | 9.000–14.000 | 15.900–22.750 |
-| Kırkayak | 19.977 | — | — |
 | TIR | 24.783 | 18.000–28.000 | 36.400–50.000 |
 
 Hepsi spot ile firma arasında; TIR spot bandının içinde.
 
 ## 5. Sınırlar ve sıradaki adımlar
 
+0. **Van sınıfının basamak sırası doğrulanmalı.** Türkçe nakliye dilinde "panelvan" ve
+   "minivan" tutarlı kullanılmıyor; kaynaklar ikisini yer yer eşanlamlı sayıyor. V7'de
+   mini panelvan < panelvan < minivan sırası benimsendi. Firma görüşmelerinde bu adlandırma
+   teyit edilmeli — sıralama değişirse yalnızca iki satırın kapasite ve tarife değeri değişir.
 1. **Tek günlük tarama, kaynaklar pazarlama sayfaları.** Firma görüşmeleri (README: "görüşmeler
    sürüyor") sonuçlanınca sözleşmeli birim fiyatlar bu tabloyu ezer.
 2. **Tahmin bandı** (`ESTIMATE_BAND`, ±%10) hâlâ varsayım. Teklifler birikince band, gerçek

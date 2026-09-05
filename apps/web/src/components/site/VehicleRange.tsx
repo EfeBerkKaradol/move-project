@@ -15,7 +15,7 @@ export function VehicleRange({ vehicles }: { vehicles: VehicleType[] }) {
           <div>
             <p className="label-mono text-[#8a5c10]">Araç yelpazesi</p>
             <h2 className="mt-3 text-[clamp(1.9rem,4vw,3.25rem)] leading-[1.06]">
-              Zarftan 24 tona. Yükünüze göre araç, aracınıza göre yük.
+              Zarftan 10 tona. Yükünüze göre araç, aracınıza göre yük.
             </h2>
           </div>
           <p className="mt-5 max-w-md text-muted lg:mt-0 lg:pb-2">
