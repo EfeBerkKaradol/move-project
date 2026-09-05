@@ -154,7 +154,7 @@ En büyük operasyonel değişiklik. Etkiler:
 | 5 | `LoadListing` + `CarrierOffer` (teklif pazarı) | ⏳ sıradaki |
 | 6 | `Corridor` + `CorridorMatch` (boş dönüş) | ⏳ |
 | 7 | Taşıyıcı belge yükleme (kamerayla) | ⏳ |
-| 8 | Teslimatta onay + e-irsaliye | ⏳ Faz 6 |
+| 8 | Teslimatta onay + e-irsaliye | ✅ aşama makinesi + POD + onay (V10) · ⏳ fotoğraf, e-irsaliye |
 
 ## 6. Açık sorular
 

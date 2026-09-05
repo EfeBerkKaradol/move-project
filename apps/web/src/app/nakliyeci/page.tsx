@@ -29,7 +29,10 @@ export default async function DriverPage() {
     <Shell eyebrow="Araç sahibi" title="Açık ilanlar">
       <div className="flex items-center justify-between gap-4">
         <p className="text-sm text-muted">{session.user?.name ?? session.user?.email}</p>
-        <Link href="/nakliyeci/teklifler" className="text-sm font-semibold underline underline-offset-4">Tekliflerim</Link>
+        <span className="flex gap-4 text-sm font-semibold underline underline-offset-4">
+          <Link href="/nakliyeci/isler">İşlerim</Link>
+          <Link href="/nakliyeci/teklifler">Tekliflerim</Link>
+        </span>
       </div>
 
       {listings.length === 0 ? (

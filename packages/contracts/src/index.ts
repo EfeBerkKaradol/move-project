@@ -195,3 +195,39 @@ export type CreateListingRequest = {
   pickupWindowStart?: string | null;
   pickupWindowEnd?: string | null;
 };
+
+
+// ── Taşıma yürütme (docs/04 §3.1) ───────────────────────────────────
+
+export type TripStage =
+  | 'DRIVER_ASSIGNED' | 'EN_ROUTE_TO_PICKUP' | 'ARRIVED_AT_PICKUP' | 'LOADING' | 'IN_TRANSIT'
+  | 'ARRIVED_AT_DROPOFF' | 'UNLOADING' | 'DELIVERED' | 'COMPLETED';
+
+export const TRIP_STAGE_LABELS: Record<TripStage, string> = {
+  DRIVER_ASSIGNED: 'Taşıyıcı atandı',
+  EN_ROUTE_TO_PICKUP: 'Alış noktasına yolda',
+  ARRIVED_AT_PICKUP: 'Alış noktasında',
+  LOADING: 'Yükleniyor',
+  IN_TRANSIT: 'Yolda',
+  ARRIVED_AT_DROPOFF: 'Teslim noktasında',
+  UNLOADING: 'Boşaltılıyor',
+  DELIVERED: 'Teslim edildi',
+  COMPLETED: 'Tamamlandı',
+};
+
+export type TripView = {
+  id: string;
+  listingId: string;
+  shipperId: string;
+  carrierId: string;
+  carrierDisplayName: string | null;
+  agreedAmount: Money;
+  stage: TripStage;
+  /** Taşıyıcının geçebileceği sonraki aşama; DELIVERED/COMPLETED'da null. */
+  nextStage: TripStage | null;
+  events: { stage: TripStage; occurredAt: string; source: 'DRIVER' | 'SHIPPER' | 'SYSTEM'; note: string | null }[];
+  proofOfDelivery: { receivedByName: string; note: string | null; photoKey: string | null } | null;
+  startedAt: string;
+  deliveredAt: string | null;
+  completedAt: string | null;
+};

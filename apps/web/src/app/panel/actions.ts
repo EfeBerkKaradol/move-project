@@ -55,3 +55,14 @@ export async function cancelListing(listingId: string): Promise<ActionState> {
   revalidatePath('/panel');
   return {};
 }
+
+export async function confirmDelivery(tripId: string, listingId: string): Promise<ActionState> {
+  try {
+    await apiFetch(`/trips/${tripId}/confirm-delivery`, { method: 'POST' });
+  } catch (e) {
+    return { error: e instanceof ApiError ? e.message : 'Teslimat onaylanamadı.' };
+  }
+  revalidatePath(`/panel/ilan/${listingId}`);
+  revalidatePath('/panel');
+  return {};
+}

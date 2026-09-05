@@ -251,6 +251,24 @@ POST /api/v1/driver/offers/{id}/withdraw
 Kurallar: (ilan, taşıyıcı) başına tek teklif; geri çekilen yeniden verilebilir. Anlık ilan 6 saat,
 planlı ilan alış penceresine kadar açık. Kabul optimistic lock ile korunur (yarışta 409).
 
+## 4c. Taşıma yürütme  ✅ kuruldu (V10)
+
+```
+# Araç sahibi (ROLE_DRIVER)
+GET  /api/v1/driver/trips                         işlerim
+GET  /api/v1/driver/trips/{id}
+POST /api/v1/driver/trips/{id}/advance            { stage? } sıradaki aşama; eskimişse 409
+POST /api/v1/driver/trips/{id}/proof-of-delivery  { receivedByName, note?, photoKey? } → DELIVERED
+
+# Yük veren
+GET  /api/v1/trips                                işlerim
+GET  /api/v1/trips/by-listing/{listingId}
+GET  /api/v1/trips/{id}
+POST /api/v1/trips/{id}/confirm-delivery          teslimatta onay → COMPLETED
+```
+İş, `ListingAwarded` olayıyla (event_publication üzerinden, async) açılır. Aşamalar atlanamaz;
+DELIVERED teslim kanıtı ister; COMPLETED yalnızca müşteri onayıyla.
+
 ## 5. Sürücü uçları
 
 ```

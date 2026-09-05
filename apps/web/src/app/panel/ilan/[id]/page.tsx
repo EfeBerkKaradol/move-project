@@ -1,4 +1,5 @@
-import type { ListingView, OfferView } from '@tasiyoruz/contracts';
+import type { ListingView, OfferView, TripView } from '@tasiyoruz/contracts';
+import { TRIP_STAGE_LABELS } from '@tasiyoruz/contracts';
 import { formatPrice } from '@tasiyoruz/shared';
 import type { Metadata } from 'next';
 import { notFound, redirect } from 'next/navigation';
@@ -6,8 +7,9 @@ import { auth, isCustomer } from '@/auth';
 import { RouteLine } from '@/components/app/RouteLine';
 import { Shell } from '@/components/app/Shell';
 import { StatusPill } from '@/components/app/StatusPill';
+import { TripTimeline } from '@/components/app/TripTimeline';
 import { ApiError, apiFetch } from '@/lib/api-server';
-import { acceptOffer, cancelListing } from '../../actions';
+import { acceptOffer, cancelListing, confirmDelivery } from '../../actions';
 
 export const metadata: Metadata = { title: 'İlan' };
 export const dynamic = 'force-dynamic';
@@ -27,6 +29,10 @@ export default async function ListingPage({ params }: { params: Promise<{ id: st
   }
   const open = listing.status === 'OPEN';
   const pending = offers.filter((o) => o.status === 'SUBMITTED');
+  // İş, kabul olayından hemen sonra async açılır; birkaç yüz ms gecikebilir
+  const trip = listing.status === 'AWARDED'
+    ? await apiFetch<TripView>(`/trips/by-listing/${listing.id}`).catch(() => null)
+    : null;
 
   return (
     <Shell eyebrow={listing.listingNumber} title={open ? 'Teklifler toplanıyor' : 'İlan'}>
@@ -69,8 +75,24 @@ export default async function ListingPage({ params }: { params: Promise<{ id: st
           <p className="label-mono text-muted">Durum</p>
           {open ? (
             <p className="mt-2">{pending.length} teklif bekliyor. İlan {new Date(listing.expiresAt).toLocaleString('tr-TR')} tarihine kadar açık.</p>
+          ) : listing.status === 'AWARDED' && trip ? (
+            <>
+              <p className="mt-2">
+                <span className="font-bold">{trip.carrierDisplayName ?? 'Taşıyıcı'}</span> · {TRIP_STAGE_LABELS[trip.stage]}
+              </p>
+              <div className="mt-4"><TripTimeline trip={trip} /></div>
+              {trip.stage === 'DELIVERED' && (
+                <div className="mt-4 rounded-field bg-[var(--amber-soft)] p-3">
+                  <p className="text-sm">Taşıyıcı teslimi bildirdi{trip.proofOfDelivery ? ` — teslim alan: ${trip.proofOfDelivery.receivedByName.replace(/\.$/, '')}` : ''}. Yükünüzü aldıysanız onaylayın.</p>
+                  <form action={async () => { 'use server'; await confirmDelivery(trip.id, listing.id); }} className="mt-3">
+                    <button type="submit" className="rounded-field bg-amber px-4 py-2.5 text-sm font-bold text-[var(--amber-ink)]">Teslimatı onayla</button>
+                  </form>
+                </div>
+              )}
+              {trip.stage === 'COMPLETED' && <p className="mt-3 text-sm font-semibold text-[#1f6b45]">Taşıma tamamlandı. Teşekkürler.</p>}
+            </>
           ) : listing.status === 'AWARDED' ? (
-            <p className="mt-2">Taşıyıcı seçildi. Canlı takip ve teslimatta onay bir sonraki adımda geliyor.</p>
+            <p className="mt-2">Taşıyıcı seçildi, iş açılıyor… Sayfayı yenileyin.</p>
           ) : (
             <p className="mt-2 text-muted">Bu ilan kapalı.</p>
           )}
