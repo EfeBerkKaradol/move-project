@@ -10,19 +10,21 @@ import { VehicleGlyph } from './VehicleGlyph';
 export function VehicleRange({ vehicles }: { vehicles: VehicleType[] }) {
   return (
     <section id="araclar" className="theme-cream bg-bg py-20">
-      <div className="mx-auto max-w-3xl px-6">
-        <Reveal>
-          <p className="label-mono text-[#8a5c10]">Araç yelpazesi</p>
-          <h2 className="mt-3 text-[clamp(1.9rem,5vw,2.6rem)] leading-[1.08]">
-            Zarftan 24 tona. Yükünüze göre araç, aracınıza göre yük.
-          </h2>
-          <p className="mt-5 max-w-md text-muted">
+      <div className="mx-auto max-w-6xl px-6">
+        <Reveal className="lg:grid lg:grid-cols-[minmax(0,1.4fr)_minmax(0,1fr)] lg:items-end lg:gap-14">
+          <div>
+            <p className="label-mono text-[#8a5c10]">Araç yelpazesi</p>
+            <h2 className="mt-3 text-[clamp(1.9rem,4vw,3.25rem)] leading-[1.06]">
+              Zarftan 24 tona. Yükünüze göre araç, aracınıza göre yük.
+            </h2>
+          </div>
+          <p className="mt-5 max-w-md text-muted lg:mt-0 lg:pb-2">
             Kapasiteyi tonaj yerine gerçek örneklerle gösteriyoruz — çünkü kimse yükünün
             kaç m³ olduğunu bilmiyor.
           </p>
         </Reveal>
 
-        <div className="mt-8 grid gap-3 sm:grid-cols-2">
+        <div className="mt-10 grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
           {vehicles.map((v, i) => {
             const soon = !v.active;
             return (

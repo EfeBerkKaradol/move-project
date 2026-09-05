@@ -11,10 +11,11 @@ import { Reveal } from './Reveal';
 export function BackhaulSection() {
   return (
     <section id="bos-donus" className="theme-dark bg-bg py-20">
-      <div className="mx-auto max-w-3xl px-6">
+      <div className="mx-auto max-w-6xl px-6 lg:grid lg:grid-cols-[minmax(0,1fr)_minmax(0,1.15fr)] lg:items-center lg:gap-16">
+        <div>
         <Reveal>
           <p className="label-mono text-amber">Farkımız</p>
-          <h2 className="mt-3 text-[clamp(2rem,5.5vw,2.8rem)]">Boş dönme.</h2>
+          <h2 className="mt-3 text-[clamp(2rem,4.5vw,3.5rem)]">Boş dönme.</h2>
           <p className="mt-5 max-w-lg text-muted">
             Yükünü bıraktığın şehirde geri dönüş rotanı kaydet. Koridoruna düşen yükleri
             sana biz getirelim — hem sen boş yol yakmayasın, hem yük sahibi daha uygun
@@ -31,6 +32,7 @@ export function BackhaulSection() {
             </p>
           </div>
         </Reveal>
+        </div>
 
         <Reveal delay={140}>
           <CorridorCard />
@@ -43,7 +45,7 @@ export function BackhaulSection() {
 /** Bir seferin yükleme → teslimat → boş dönüş hattı ve dönüşe uyan ilanlar. */
 function CorridorCard() {
   return (
-    <figure className="mt-10 rounded-card border border-line bg-surface p-5 sm:p-6">
+    <figure className="mt-10 rounded-card border border-line bg-surface p-5 sm:p-6 lg:mt-0">
       <figcaption className="flex flex-wrap items-center justify-between gap-2">
         <span className="label-mono text-muted">34 ABC 123 · Kırkayak</span>
         <span className="label-mono text-muted">Salı, 12 Mart</span>

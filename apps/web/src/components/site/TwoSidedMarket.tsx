@@ -9,7 +9,7 @@ const SHIPPER = {
     ['Teklifleri karşılaştırın', 'Puan, tamamlanan iş ve araç bilgisi yan yana.'],
     ['Takip edin, teslimatta onaylayın', 'Canlı konum, teslim fotoğrafı ve e-irsaliye.'],
   ],
-  cta: { href: '/yuk-ver', label: 'Ücretsiz fiyat al' },
+  cta: { href: '/fiyat-hesapla', label: 'Ücretsiz fiyat al' },
 };
 
 const CARRIER = {
@@ -26,18 +26,20 @@ const CARRIER = {
 export function TwoSidedMarket() {
   return (
     <section id="nasil-calisir" className="theme-cream bg-bg pb-20">
-      <div className="mx-auto max-w-3xl px-6">
+      <div className="mx-auto max-w-6xl px-6">
         <Reveal>
-          <h2 className="text-[clamp(1.9rem,5vw,2.6rem)]">Tek pazar, iki taraf.</h2>
+          <h2 className="text-[clamp(1.9rem,4vw,3.25rem)]">Tek pazar, iki taraf.</h2>
         </Reveal>
 
-        <Reveal delay={80} className="mt-7">
-          <SideCard {...SHIPPER} variant="light" />
-        </Reveal>
+        <div className="mt-7 grid gap-4 lg:grid-cols-2">
+          <Reveal delay={80}>
+            <SideCard {...SHIPPER} variant="light" />
+          </Reveal>
 
-        <Reveal delay={140} className="mt-4">
-          <SideCard {...CARRIER} variant="dark" />
-        </Reveal>
+          <Reveal delay={140}>
+            <SideCard {...CARRIER} variant="dark" />
+          </Reveal>
+        </div>
       </div>
     </section>
   );
@@ -60,7 +62,7 @@ function SideCard({
   return (
     <div
       className={[
-        'rounded-card p-6 sm:p-8',
+        'h-full rounded-card p-6 sm:p-8',
         dark ? 'theme-dark bg-bg' : 'border border-line bg-surface',
       ].join(' ')}
     >

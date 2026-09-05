@@ -4,7 +4,7 @@ const COLUMNS = [
   {
     title: 'Yük veren',
     links: [
-      { href: '/yuk-ver', label: 'Fiyat al' },
+      { href: '/fiyat-hesapla', label: 'Fiyat al' },
       { href: '/#araclar', label: 'Araç tipleri' },
       { href: '/#nasil-calisir', label: 'Nasıl çalışır' },
     ],
@@ -30,7 +30,7 @@ const COLUMNS = [
 export function Footer() {
   return (
     <footer className="theme-dark border-t border-line bg-bg">
-      <div className="mx-auto max-w-3xl px-6 py-14">
+      <div className="mx-auto max-w-6xl px-6 py-14">
         <div className="grid gap-8 sm:grid-cols-3">
           {COLUMNS.map((col) => (
             <div key={col.title}>
