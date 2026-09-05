@@ -25,8 +25,6 @@ export function EstimatePanel({
   ready: boolean;
   vehicleName: string | null;
 }) {
-  const interCity = error?.includes('Şehirler arası') ?? false;
-
   return (
     <aside
       aria-live="polite"
@@ -72,14 +70,8 @@ export function EstimatePanel({
         </>
       ) : error ? (
         <div className="mt-3">
-          <p className="text-sm font-semibold">
-            {interCity ? 'Şehirlerarası tahmin yakında.' : 'Tahmin hesaplanamadı.'}
-          </p>
-          <p className="mt-1 text-sm text-muted">
-            {interCity
-              ? 'Bu rota için tarife henüz tanımlı değil; ilanı yine de yayınlayabilir, araç sahiplerinden doğrudan teklif alabilirsin.'
-              : error}
-          </p>
+          <p className="text-sm font-semibold">Tahmin hesaplanamadı.</p>
+          <p className="mt-1 text-sm text-muted">{error}</p>
         </div>
       ) : (
         <p className="mt-3 text-sm text-muted">

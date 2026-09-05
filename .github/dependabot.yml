@@ -1,0 +1,31 @@
+# Güvenlik yamaları için otomatik PR. Next.js'te 8 ayda 35 açık birikti;
+# bir daha elle yakalamak yerine haftalık tarama.
+version: 2
+updates:
+  - package-ecosystem: npm
+    directory: /
+    schedule:
+      interval: weekly
+      day: monday
+    groups:
+      # Küçük yamaları tek PR'da topla; majör sürümler ayrı gelsin
+      minor-and-patch:
+        update-types: [minor, patch]
+    ignore:
+      # Next 16 majör geçişi bilinçli bir karar olmalı
+      - dependency-name: next
+        update-types: [version-update:semver-major]
+
+  - package-ecosystem: gradle
+    directory: /services/api
+    schedule:
+      interval: weekly
+      day: monday
+    groups:
+      minor-and-patch:
+        update-types: [minor, patch]
+
+  - package-ecosystem: github-actions
+    directory: /
+    schedule:
+      interval: monthly

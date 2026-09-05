@@ -14,8 +14,3 @@ class OutOfServiceAreaException extends RuntimeException {
     }
 }
 
-class InterCityNotSupportedException extends RuntimeException {
-    InterCityNotSupportedException() {
-        super("Şehirler arası taşıma henüz desteklenmiyor. Alış ve teslim aynı ilde olmalı.");
-    }
-}

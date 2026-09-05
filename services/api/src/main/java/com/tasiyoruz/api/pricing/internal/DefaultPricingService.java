@@ -30,6 +30,9 @@ class DefaultPricingService implements PricingService {
     private static final Duration QUOTE_TTL = Duration.ofMinutes(15);
 
     /** Pazarlıkta müşterinin inebileceği taban — referans fiyatın %70'i (docs/10). */
+    /** Tarifesi tanımlı olmayan iller için ulusal varsayılan tarife kodu (V8). */
+    private static final String NATIONAL_CITY_CODE = "00";
+
     private static final BigDecimal NEGOTIATION_FLOOR_PERCENT = new BigDecimal("0.70");
 
     private final RateCardRepository rateCards;
@@ -62,9 +65,14 @@ class DefaultPricingService implements PricingService {
         var route = routeProvider.estimate(
                 stops.stream().map(d -> new GeoPoint(d.lat(), d.lng())).toList());
 
+        // Önce ilin kendi tarifesi; yoksa ulusal varsayılan ('00'). İl çarpanı
+        // yalnızca büyükşehirlerde tanımlı, diğer 78 il varsayılanı kullanıyor.
         var card = rateCards
                 .findFirstByCityCodeAndVehicleTypeCodeAndServiceModelAndCarrierIdIsNullAndActiveTrueOrderByVersionDesc(
                         cityCode, request.vehicleTypeCode(), request.serviceModel())
+                .or(() -> rateCards
+                        .findFirstByCityCodeAndVehicleTypeCodeAndServiceModelAndCarrierIdIsNullAndActiveTrueOrderByVersionDesc(
+                                NATIONAL_CITY_CODE, request.vehicleTypeCode(), request.serviceModel()))
                 .orElseThrow(() -> new NoRateCardException(cityCode, request.vehicleTypeCode()));
 
         var lines = new ArrayList<Quote.BreakdownLine>();
@@ -162,11 +170,8 @@ class DefaultPricingService implements PricingService {
                         .orElseThrow(() -> new OutOfServiceAreaException(s.districtId())))
                 .toList();
 
-        var cityCode = resolved.getFirst().cityCode();
-        if (resolved.stream().anyMatch(d -> !d.cityCode().equals(cityCode))) {
-            // Şehirlerarası taşıma MVP kapsamı dışında (docs/01 §3)
-            throw new InterCityNotSupportedException();
-        }
+        // Şehirlerarası taşıma ürünün ana kullanımı (docs/11 §4); tarife alış
+        // noktasının iline göre seçilir, mesafe kademeleri uzun yolu ucuzlatır.
         return resolved;
     }
 

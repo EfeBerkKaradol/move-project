@@ -137,8 +137,9 @@ En büyük operasyonel değişiklik. Etkiler:
 | Şehirlerarası reddi | `InterCityNotSupportedException` **kaldırılmalı** — artık ana kullanım bu. |
 | Eşleştirme | Anlık dispatch yarıçapı anlamsız; koridor ve ilan modeli geçerli. |
 
-> ⚠️ Kodda şu an şehirlerarası taşıma **açıkça reddediliyor** (docs/05, `PricingServiceTest`).
-> Bu, yeni modelde ilk kaldırılması gereken kısıt.
+> ✅ Şehirlerarası kısıt kaldırıldı (V8). Rota sağlayıcısı 40 km üstü bacaklarda otoyol
+> modeli kullanıyor (dolambaç ×1,22, 70 km/sa); tarife alış ilinden, yoksa ulusal
+> varsayılandan ('00') seçiliyor.
 
 ---
 
@@ -148,9 +149,9 @@ En büyük operasyonel değişiklik. Etkiler:
 |---|---|---|
 | 1 | Marka, tasarım sistemi, ana sayfa | ✅ tamam |
 | 2 | Araç filosu (motokurye → tır, TIR "yakında") | ✅ tamam |
-| 3 | Şehirlerarası kısıtını kaldır, 81 il verisi | ⏳ sıradaki |
-| 4 | Tarife modelini mesafe kademeli hâle getir | ⏳ |
-| 5 | `LoadListing` + `CarrierOffer` (teklif pazarı) | ⏳ |
+| 3 | Şehirlerarası kısıtını kaldır, 81 il verisi | ✅ tamam (V8; il merkezleri geçici, ilçeler 3 ilde) |
+| 4 | Tarife modelini mesafe kademeli hâle getir | ✅ V6 kademeler + V8 ulusal varsayılan tarife |
+| 5 | `LoadListing` + `CarrierOffer` (teklif pazarı) | ⏳ sıradaki |
 | 6 | `Corridor` + `CorridorMatch` (boş dönüş) | ⏳ |
 | 7 | Taşıyıcı belge yükleme (kamerayla) | ⏳ |
 | 8 | Teslimatta onay + e-irsaliye | ⏳ Faz 6 |

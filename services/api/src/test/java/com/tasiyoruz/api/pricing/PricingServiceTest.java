@@ -129,19 +129,38 @@ class PricingServiceTest extends IntegrationTestBase {
         assertThat(uzunKmBasi).isLessThan(kisaKmBasi);
     }
 
+    /**
+     * Şehirlerarası taşıma ürünün ana kullanımı (docs/11). Kademeli mesafe ücreti
+     * uzun yolda km başı maliyeti il içine göre belirgin düşürmeli.
+     */
     @Test
-    void sehirlerarasiTasimaReddedilir() {
-        var request = new QuoteRequest(
-                "INSTANT",
-                "KAMYONET",
+    void sehirlerarasiTasimaFiyatlanirVeKmBasiUcretDuser() {
+        var uzun = pricing.quote(new QuoteRequest(
+                "INSTANT", "KAMYONET",
                 List.of(
                         new QuoteRequest.Stop(districtId("34", "kadikoy"), 0, true),
                         new QuoteRequest.Stop(districtId("06", "cankaya"), 0, true)),
-                List.of(),
-                null);
+                List.of(), null));
+        var kisa = pricing.quote(request("34", "kadikoy", "besiktas", "KAMYONET"));
 
-        assertThatThrownBy(() -> pricing.quote(request))
-                .hasMessageContaining("Şehirler arası taşıma henüz desteklenmiyor");
+        // İstanbul→Ankara kuş uçuşu ~350 km; otoyol katsayısıyla 380-520 km arası
+        assertThat(uzun.distanceMeters()).isBetween(380_000, 520_000);
+        // 70 km/sa modeliyle 5-9 saat; şehir içi hızıyla 18 saat çıkardı
+        assertThat(uzun.durationSeconds()).isBetween(5 * 3600, 9 * 3600);
+        assertThat(uzun.totalAmount().amount()).isGreaterThan(kisa.totalAmount().amount());
+
+        var uzunKmBasi = uzun.totalAmount().amount().doubleValue() / (uzun.distanceMeters() / 1000.0);
+        var kisaKmBasi = kisa.totalAmount().amount().doubleValue() / (kisa.distanceMeters() / 1000.0);
+        assertThat(uzunKmBasi).isLessThan(kisaKmBasi);
+    }
+
+    /** Tarifesi tanımlı olmayan il (Konya) ulusal varsayılana düşmeli, hata vermemeli. */
+    @Test
+    void tarifesizIlUlusalVarsayilanaDuser() {
+        var quote = pricing.quote(request("42", "merkez", "merkez", "PANELVAN"));
+
+        assertThat(quote.totalAmount().amount()).isPositive();
+        assertThat(quote.breakdown()).anyMatch(l -> l.code().equals("BASE_FARE"));
     }
 
     @Test

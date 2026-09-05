@@ -24,8 +24,15 @@ class GeoServiceTest extends IntegrationTestBase {
         var first = geo.districts();
         var second = geo.districts();
 
-        assertThat(first).hasSize(51);
+        assertThat(first).hasSize(51 + 78); // 3 ilin ilçeleri + 78 il merkezi (V8)
         assertThat(second).isSameAs(first); // aynı örnek → cache devrede
+    }
+
+    @Test
+    void seksenBirIlinHepsiTanimli() {
+        var cities = geo.districts().stream().map(d -> d.cityCode()).distinct().count();
+        assertThat(cities).isEqualTo(81);
+        assertThat(geo.districtsOf("42")).extracting("slug").contains("merkez"); // Konya
     }
 
     @Test
@@ -40,10 +47,13 @@ class GeoServiceTest extends IntegrationTestBase {
         assertThat(geo.district("bu-bir-uuid-degil")).isEmpty();
     }
 
+    /** 81 il ile Türkiye'nin tamamı hizmet bölgesi; sınır dışı nokta reddedilmeli. */
     @Test
     void hizmetBolgesiDisindakiNoktaReddedilir() {
         assertThat(geo.inServiceArea(new GeoPoint(41.0082, 28.9784))).isTrue();  // İstanbul
-        assertThat(geo.inServiceArea(new GeoPoint(38.4237, 27.1428))).isFalse(); // İzmir
+        assertThat(geo.inServiceArea(new GeoPoint(38.4237, 27.1428))).isTrue();  // İzmir (V8)
+        assertThat(geo.inServiceArea(new GeoPoint(37.9838, 23.7275))).isFalse(); // Atina
+        assertThat(geo.inServiceArea(new GeoPoint(42.6977, 23.3219))).isFalse(); // Sofya
     }
 
     @Test

@@ -28,6 +28,16 @@ class ApproximateRouteProvider implements RouteProvider {
      */
     private static final double DETOUR_FACTOR = 1.35;
 
+    /**
+     * Şehirlerarası bacaklar için ayrı model. Uzun mesafede yol kuş uçuşuna daha
+     * yakın seyreder (otoyol) ve ortalama hız şehir içinin üç katına çıkar. Tek bir
+     * şehir içi katsayı kullanılsaydı İstanbul→Ankara 18 saat gibi hesaplanır,
+     * süre kalemi tarifeyi anlamsızlaştırırdı.
+     */
+    private static final double INTERCITY_THRESHOLD_METERS = 40_000;
+    private static final double INTERCITY_DETOUR_FACTOR = 1.22;
+    private static final double INTERCITY_SPEED_KMH = 70;
+
     /** Ortalama şehir içi hız (km/sa) — trafik dahil kaba tahmin. */
     private static final double AVERAGE_SPEED_KMH = 26;
 
@@ -40,15 +50,18 @@ class ApproximateRouteProvider implements RouteProvider {
             throw new IllegalArgumentException("Rota için en az iki durak gerekiyor");
         }
 
-        double straightLine = 0;
+        double distanceMeters = 0;
+        double drivingSeconds = 0;
         for (int i = 0; i < stops.size() - 1; i++) {
-            straightLine += Haversine.meters(stops.get(i), stops.get(i + 1));
+            double straight = Haversine.meters(stops.get(i), stops.get(i + 1));
+            boolean intercity = straight > INTERCITY_THRESHOLD_METERS;
+            double leg = straight * (intercity ? INTERCITY_DETOUR_FACTOR : DETOUR_FACTOR);
+            double speed = intercity ? INTERCITY_SPEED_KMH : AVERAGE_SPEED_KMH;
+            distanceMeters += leg;
+            drivingSeconds += leg / 1000.0 / speed * 3600;
         }
+        int durationSeconds = (int) Math.round(drivingSeconds) + (stops.size() - 1) * STOP_OVERHEAD_SECONDS;
 
-        int distanceMeters = (int) Math.round(straightLine * DETOUR_FACTOR);
-        int drivingSeconds = (int) Math.round(distanceMeters / 1000.0 / AVERAGE_SPEED_KMH * 3600);
-        int durationSeconds = drivingSeconds + (stops.size() - 2 + 1) * STOP_OVERHEAD_SECONDS;
-
-        return new RouteEstimate(distanceMeters, durationSeconds, null, true);
+        return new RouteEstimate((int) Math.round(distanceMeters), durationSeconds, null, true);
     }
 }
