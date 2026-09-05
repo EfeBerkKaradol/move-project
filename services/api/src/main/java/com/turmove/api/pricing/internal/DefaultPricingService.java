@@ -90,7 +90,18 @@ class DefaultPricingService implements PricingService {
 
         var subtotal = sum(lines);
 
-        // 4) Ek hizmetler
+        // 4) Minimum ücret — taşımanın kendisine (taban + mesafe + süre) uygulanır.
+        //
+        // Ek hizmetlerden ÖNCE gelmesi şart: kısa bir taşımada asansörsüz 4 katın ücreti
+        // minimum farkının içinde eriyip sıfıra iniyordu — müşteri gerçek bir emek için
+        // ödemiyor, nakliyeci karşılığını almıyordu.
+        if (subtotal.compareTo(card.getMinimumFare()) < 0) {
+            lines.add(line("MINIMUM_FARE_ADJUSTMENT", "Minimum ücret farkı",
+                    card.getMinimumFare().subtract(subtotal), null));
+            subtotal = card.getMinimumFare();
+        }
+
+        // 5) Ek hizmetler
         //
         // Asansörsüz kat, kullanıcı açıkça seçmese de duraklardan türetilir. İki yol
         // aynı hesaba çıkmalı: aksi hâlde isteğe "NO_ELEVATOR" eklemek ücreti kat
@@ -114,14 +125,7 @@ class DefaultPricingService implements PricingService {
             lines.add(line(code, label, extraCost(svc, subtotal, units), null));
         }
 
-        // 6) Minimum ücret kontrolü
-        var beforeMinimum = sum(lines);
-        if (beforeMinimum.compareTo(card.getMinimumFare()) < 0) {
-            lines.add(line("MINIMUM_FARE_ADJUSTMENT", "Minimum ücret farkı",
-                    card.getMinimumFare().subtract(beforeMinimum), null));
-        }
-
-        // 7) Platform komisyonu — %0 olsa bile satır olarak görünür (FR-5.8)
+        // 6) Platform komisyonu — %0 olsa bile satır olarak görünür (FR-5.8)
         var commissionPercent = commissions.findActive(Instant.now())
                 .map(c -> c.getPercent())
                 .orElse(BigDecimal.ZERO);
