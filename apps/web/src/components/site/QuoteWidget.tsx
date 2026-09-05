@@ -1,8 +1,10 @@
 'use client';
 
 import type { VehicleType } from '@turmove/contracts';
+import { useRouter } from 'next/navigation';
 import { useState } from 'react';
-import { VehicleGlyph } from './VehicleGlyph';
+import { VehiclePicker } from '@/components/estimate/VehiclePicker';
+import { PlaceSearch } from './PlaceSearch';
 
 type Side = 'SHIPPER' | 'CARRIER';
 
@@ -13,8 +15,17 @@ type Side = 'SHIPPER' | 'CARRIER';
  * tahmini fiyat alıyor, araç sahibi ise koridorunu tanımlayıp kendisine düşecek
  * ilanları görüyor. Kayıt istenmeden fiyat gösterilmesi bilinçli — kullanıcıyı
  * kaydolmadan önce ikna eden tek ekran bu.
+ *
+ * <p>Form gerçek bir GET formu: JS yokken de tarayıcı alanları sorgu dizesiyle
+ * hedefe taşır. JS varken aynı işi boş alanları atlayarak yapıyoruz.
  */
+const TARGET: Record<Side, string> = {
+  SHIPPER: '/fiyat-hesapla',
+  CARRIER: '/sofor-ol',
+};
+
 export function QuoteWidget({ vehicles }: { vehicles: VehicleType[] }) {
+  const router = useRouter();
   const [side, setSide] = useState<Side>('SHIPPER');
   const [from, setFrom] = useState('');
   const [to, setTo] = useState('');
@@ -25,8 +36,22 @@ export function QuoteWidget({ vehicles }: { vehicles: VehicleType[] }) {
     setTo(from);
   };
 
+  const submit = (e: React.FormEvent) => {
+    e.preventDefault();
+    const params = new URLSearchParams();
+    if (from.trim()) params.set('nereden', from.trim());
+    if (to.trim()) params.set('nereye', to.trim());
+    if (vehicleCode) params.set('arac', vehicleCode);
+    const query = params.toString();
+    router.push(query ? `${TARGET[side]}?${query}` : TARGET[side]);
+  };
+
   return (
-    <div className="theme-cream mt-10 rounded-card bg-bg p-4 shadow-lift sm:p-5">
+    <form
+      action={TARGET[side]}
+      onSubmit={submit}
+      className="theme-cream mt-10 rounded-card bg-bg p-4 shadow-lift sm:p-5 lg:mt-0"
+    >
       {/* Sekmeler */}
       <div role="tablist" aria-label="Taraf seçimi" className="flex gap-1 rounded-field bg-surface-2 p-1">
         {(
@@ -54,8 +79,9 @@ export function QuoteWidget({ vehicles }: { vehicles: VehicleType[] }) {
         {/* Değiştir butonu iki alanın sınırında duruyor; bu yüzden ikisini de
             saran bir kapsayıcıya göre konumlanıyor. */}
         <div className="relative space-y-4">
-          <Field
+          <PlaceSearch
             id="nereden"
+            name="nereden"
             label="Nereden"
             value={from}
             onChange={setFrom}
@@ -67,8 +93,9 @@ export function QuoteWidget({ vehicles }: { vehicles: VehicleType[] }) {
               </>
             }
           />
-          <Field
+          <PlaceSearch
             id="nereye"
+            name="nereye"
             label="Nereye"
             value={to}
             onChange={setTo}
@@ -90,40 +117,14 @@ export function QuoteWidget({ vehicles }: { vehicles: VehicleType[] }) {
 
         <fieldset>
           <legend className="label-mono text-muted">Araç tipi</legend>
-          <div className="mt-2.5 grid grid-cols-2 gap-2.5 sm:grid-cols-3">
-            {vehicles.map((v) => {
-              const soon = !v.active;
-              const selected = vehicleCode === v.code;
-              return (
-                <button
-                  key={v.code}
-                  type="button"
-                  role="radio"
-                  aria-checked={selected}
-                  disabled={soon}
-                  onClick={() => setVehicleCode(v.code)}
-                  className={[
-                    'rounded-field border p-3 text-left transition',
-                    soon
-                      ? 'cursor-not-allowed border-dashed border-line text-muted'
-                      : selected
-                        ? 'border-amber bg-[var(--amber-soft)]'
-                        : 'border-line bg-surface hover:border-muted',
-                  ].join(' ')}
-                >
-                  <VehicleGlyph code={v.code} className="size-6" />
-                  <span className="mt-2 block text-sm font-semibold">{v.displayName}</span>
-                  <span className={`label-mono mt-0.5 block ${selected ? 'text-[#8a5c10]' : 'text-muted'}`}>
-                    {soon ? 'Yakında' : capacityLabel(v)}
-                  </span>
-                </button>
-              );
-            })}
+          <input type="hidden" name="arac" value={vehicleCode ?? ''} />
+          <div className="mt-2.5">
+            <VehiclePicker vehicles={vehicles} value={vehicleCode} onChange={setVehicleCode} />
           </div>
         </fieldset>
 
         <button
-          type="button"
+          type="submit"
           className="flex w-full items-center justify-center gap-2 rounded-field bg-amber px-6 py-4 font-bold text-[var(--amber-ink)] transition hover:brightness-105"
         >
           {side === 'SHIPPER' ? 'Tahmini fiyatı gör' : 'Koridoruma düşen yükleri gör'}
@@ -137,49 +138,6 @@ export function QuoteWidget({ vehicles }: { vehicles: VehicleType[] }) {
           Kayıt gerekmez · Tahmini aralık · Komisyon dahil
         </p>
       </div>
-    </div>
-  );
-}
-
-function capacityLabel(v: VehicleType) {
-  return v.payloadKg >= 1000
-    ? `${(v.payloadKg / 1000).toLocaleString('tr-TR')} ton`
-    : `${v.payloadKg} kg`;
-}
-
-function Field({
-  id,
-  label,
-  value,
-  onChange,
-  placeholder,
-  icon,
-}: {
-  id: string;
-  label: string;
-  value: string;
-  onChange: (v: string) => void;
-  placeholder: string;
-  icon: React.ReactNode;
-}) {
-  return (
-    <div>
-      <label htmlFor={id} className="label-mono text-muted">
-        {label}
-      </label>
-      <div className="mt-1.5 flex items-center gap-2.5 rounded-field border border-line bg-surface-2 px-3.5">
-        <svg viewBox="0 0 16 16" className="size-4 shrink-0 text-muted" fill="none" stroke="currentColor"
-          strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round" aria-hidden>
-          {icon}
-        </svg>
-        <input
-          id={id}
-          value={value}
-          onChange={(e) => onChange(e.target.value)}
-          placeholder={placeholder}
-          className="w-full bg-transparent py-3.5 pr-12 text-[15px] outline-none placeholder:text-muted"
-        />
-      </div>
-    </div>
+    </form>
   );
 }
