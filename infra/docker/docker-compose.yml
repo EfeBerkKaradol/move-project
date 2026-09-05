@@ -1,29 +1,29 @@
-name: turmove
+name: tasiyoruz
 
 services:
   postgres:
     image: postgis/postgis:16-3.4
-    container_name: turmove-postgres
+    container_name: tasiyoruz-postgres
     environment:
-      POSTGRES_USER: turmove
-      POSTGRES_PASSWORD: turmove
-      POSTGRES_DB: turmove
+      POSTGRES_USER: tasiyoruz
+      POSTGRES_PASSWORD: tasiyoruz
+      POSTGRES_DB: tasiyoruz
     ports: ["5432:5432"]
     volumes:
-      - turmove_pg:/var/lib/postgresql/data
+      - tasiyoruz_pg:/var/lib/postgresql/data
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U turmove"]
+      test: ["CMD-SHELL", "pg_isready -U tasiyoruz"]
       interval: 5s
       timeout: 5s
       retries: 10
 
   redis:
     image: redis:7-alpine
-    container_name: turmove-redis
+    container_name: tasiyoruz-redis
     command: ["redis-server", "--appendonly", "yes"]
     ports: ["6379:6379"]
     volumes:
-      - turmove_redis:/data
+      - tasiyoruz_redis:/data
     healthcheck:
       test: ["CMD", "redis-cli", "ping"]
       interval: 5s
@@ -32,7 +32,7 @@ services:
 
   keycloak:
     image: quay.io/keycloak/keycloak:26.0
-    container_name: turmove-keycloak
+    container_name: tasiyoruz-keycloak
     command: ["start-dev", "--import-realm"]
     environment:
       KC_BOOTSTRAP_ADMIN_USERNAME: admin
@@ -44,21 +44,21 @@ services:
 
   minio:
     image: minio/minio:latest
-    container_name: turmove-minio
+    container_name: tasiyoruz-minio
     command: ["server", "/data", "--console-address", ":9001"]
     environment:
-      MINIO_ROOT_USER: turmove
-      MINIO_ROOT_PASSWORD: turmove123
+      MINIO_ROOT_USER: tasiyoruz
+      MINIO_ROOT_PASSWORD: tasiyoruz123
     ports: ["9000:9000", "9001:9001"]
     volumes:
-      - turmove_minio:/data
+      - tasiyoruz_minio:/data
 
   mailhog:
     image: mailhog/mailhog:latest
-    container_name: turmove-mailhog
+    container_name: tasiyoruz-mailhog
     ports: ["1025:1025", "8025:8025"]
 
 volumes:
-  turmove_pg:
-  turmove_redis:
-  turmove_minio:
+  tasiyoruz_pg:
+  tasiyoruz_redis:
+  tasiyoruz_minio:

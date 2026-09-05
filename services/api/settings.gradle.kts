@@ -1,1 +1,1 @@
-rootProject.name = "turmove-api"
+rootProject.name = "tasiyoruz-api"

@@ -1,7 +1,7 @@
 # 01 — Ürün Gereksinimleri
 
 > Durum: Taslak v2 · Kapsam: MVP + yakın vadeli fazlar
-> Marka adı geçici: **TurMove**
+> Marka adı geçici: **Taşıyoruz**
 
 ## 1. Problem ve konumlandırma
 

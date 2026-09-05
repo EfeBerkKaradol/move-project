@@ -1,15 +1,15 @@
-# 11 — Konvoy: Ürün Modeli Değişikliği
+# 11 — Taşıyoruz: Ürün Modeli Değişikliği
 
-> Kaynak: "Konvoy Nakliye Ana Sayfa" tasarımı.
+> Kaynak: "Taşıyoruz Nakliye Ana Sayfa" tasarımı.
 > Bu doküman, tasarımın önceki plandan (docs/01–10) neyi değiştirdiğini kaydeder.
 
 ## 1. Özet: ne değişti
 
 Tasarım yalnızca bir görsel dil getirmiyor; **iş modelini değiştiriyor.**
 
-| | Önceki plan (TurMove) | Tasarım (Konvoy) |
+| | Önceki plan (Taşıyoruz) | Tasarım (Taşıyoruz) |
 |---|---|---|
-| Marka | TurMove | **Konvoy** |
+| Marka | Taşıyoruz | **Taşıyoruz** |
 | Eşleştirme | Sistem fiyat verir → en yakın sürücüye atar (dispatch) | **Araç sahipleri teklif verir → müşteri seçer** |
 | Kapsam | 3 il, şehir içi | **81 il, şehirlerarası** |
 | Giriş noktası | Yük kategorisi paneli → araç önerisi | **Nereden/nereye + araç tipi → tahmini fiyat** |
@@ -33,7 +33,7 @@ pazarlığa girmenize gerek yok" diyor, yani **karşılıklı pazarlık yerine t
 
 ### Akış
 ```
-Yük veren                     Konvoy                      Araç sahipleri
+Yük veren                     Taşıyoruz                      Araç sahipleri
    │                            │                               │
    ├─ rota + araç tipi ────────►│                               │
    │                            ├─ tahmini fiyat aralığı ──────►│

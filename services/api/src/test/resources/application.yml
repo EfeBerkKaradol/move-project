@@ -13,7 +13,7 @@ spring:
           # başlangıçta ağa çıkmaz, yalnızca gerçek bir token doğrulanırken kullanılır.
           jwk-set-uri: http://localhost:59999/.well-known/jwks.json
 
-turmove:
+tasiyoruz:
   maps:
     api-key: test
   commission:
@@ -22,4 +22,4 @@ turmove:
 logging:
   level:
     org.testcontainers: INFO
-    com.turmove: DEBUG
+    com.tasiyoruz: DEBUG

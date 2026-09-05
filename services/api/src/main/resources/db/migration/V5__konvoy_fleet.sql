@@ -1,4 +1,4 @@
--- Araç filosu Konvoy tasarımına göre yeniden tanımlandı.
+-- Araç filosu Taşıyoruz tasarımına göre yeniden tanımlandı.
 --
 -- Önceki filo şehir içi taşımaya göreydi (Doblo, Transporter, Transit). Yeni ürün
 -- şehirlerarası bir yük pazarı olduğu için filo da o dile geçiyor: motokuryeden

@@ -1,8 +1,8 @@
 'use client';
 
-import type { CargoCategory, CargoItem, CargoPreset } from '@turmove/contracts';
+import type { CargoCategory, CargoItem, CargoPreset } from '@tasiyoruz/contracts';
 import type { Dispatch, SetStateAction } from 'react';
-import { formatVolume } from '@turmove/shared';
+import { formatVolume } from '@tasiyoruz/shared';
 import { Stepper } from './Stepper';
 
 export type CargoSelection = {

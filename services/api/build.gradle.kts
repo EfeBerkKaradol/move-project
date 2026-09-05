@@ -4,9 +4,9 @@ plugins {
     id("io.spring.dependency-management") version "1.1.7"
 }
 
-group = "com.turmove"
+group = "com.tasiyoruz"
 version = "0.0.1-SNAPSHOT"
-description = "TurMove — çekirdek API (modüler monolit)"
+description = "Taşıyoruz — çekirdek API (modüler monolit)"
 
 java {
     toolchain { languageVersion = JavaLanguageVersion.of(21) }

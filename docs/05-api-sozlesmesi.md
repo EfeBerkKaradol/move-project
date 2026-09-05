@@ -24,7 +24,7 @@
 
 ```json
 {
-  "type": "https://api.turmove.com/errors/quote-expired",
+  "type": "https://api.tasiyoruz.com/errors/quote-expired",
   "title": "Fiyat teklifi süresi doldu",
   "status": 409,
   "detail": "Bu teklif 15 dakika önce geçerliliğini yitirdi. Lütfen yeni fiyat alın.",
@@ -226,7 +226,7 @@ POST /api/v1/uploads/presign                      { fileName, contentType, purpo
   "orderId": "ord_01J8X...",
   "orderNumber": "MV-2026-000123",
   "status": "SEARCHING_DRIVER",
-  "trackingUrl": "https://turmove.com/t/8fK2...",
+  "trackingUrl": "https://tasiyoruz.com/t/8fK2...",
   "estimatedPickupAt": "2026-09-02T15:05:00Z"
 }
 ```
@@ -323,8 +323,8 @@ GET   /api/v1/admin/audit-log
 
 ## 8. WebSocket kanalları
 
-Bağlantı: `wss://api.turmove.com/ws?token=<JWT>`
-Alıcı takibi için: `wss://api.turmove.com/ws/track/{trackingToken}` (JWT gerekmez)
+Bağlantı: `wss://api.tasiyoruz.com/ws?token=<JWT>`
+Alıcı takibi için: `wss://api.tasiyoruz.com/ws/track/{trackingToken}` (JWT gerekmez)
 
 ### Mesaj zarfı
 ```json

@@ -18,7 +18,7 @@ Tek günlük web taraması, üç kaynak türü:
 | Yük pazarı blogları (Yük Yükle) | Spot navlun; araç sahibinin aldığı | Düşük — boş dönüş, pazarlık |
 | Platform iş kayıtları (Armut) | Gerçekleşmiş işler, tarih ve ilçe ile | Karışık — hizmet kapsamı belirsiz |
 
-Konvoy'da kesin fiyatı **araç sahibi teklifle veriyor**, tarife yalnızca kullanıcıya gösterilen
+Taşıyoruz'da kesin fiyatı **araç sahibi teklifle veriyor**, tarife yalnızca kullanıcıya gösterilen
 tahmini aralığın çapası (docs/11 §2). Bu yüzden hedef: firma fiyatı ile spot fiyatın **ortası**.
 Firma fiyatına yakın olsa ilanlar tekliflerden pahalı görünür ve kullanıcı platforma güvenmez;
 spot'a yakın olsa araç sahipleri ilanı beğenmez.

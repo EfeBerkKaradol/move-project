@@ -1,5 +1,5 @@
 {
-  "name": "@turmove/web",
+  "name": "@tasiyoruz/web",
   "version": "0.0.0",
   "private": true,
   "scripts": {
@@ -10,8 +10,8 @@
     "typecheck": "tsc --noEmit"
   },
   "dependencies": {
-    "@turmove/contracts": "workspace:*",
-    "@turmove/shared": "workspace:*",
+    "@tasiyoruz/contracts": "workspace:*",
+    "@tasiyoruz/shared": "workspace:*",
     "next": "15.1.6",
     "react": "19.0.0",
     "react-dom": "19.0.0"

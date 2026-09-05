@@ -1,7 +1,7 @@
 'use client';
 
-import type { VehicleRecommendation, VehicleType } from '@turmove/contracts';
-import { formatVolume } from '@turmove/shared';
+import type { VehicleRecommendation, VehicleType } from '@tasiyoruz/contracts';
+import { formatVolume } from '@tasiyoruz/shared';
 
 const EXTRA_LABELS: Record<string, string> = {
   PORTERAGE: 'Hamaliye',

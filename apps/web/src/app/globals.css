@@ -1,7 +1,7 @@
 @import "tailwindcss";
 
 /*
- * Konvoy tasarım sistemi — "Konvoy Nakliye Ana Sayfa" tasarımından türetildi.
+ * Taşıyoruz tasarım sistemi — "Taşıyoruz Nakliye Ana Sayfa" tasarımından türetildi.
  *
  * Bu tasarım açık/koyu tema değiştirmiyor: bölümler sabit olarak koyu ya da krem.
  * Bu yüzden prefers-color-scheme yerine BÖLÜM KAPSAMLI tema sınıfları kullanılıyor

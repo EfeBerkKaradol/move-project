@@ -1,7 +1,7 @@
 'use client';
 
-import type { Quote } from '@turmove/contracts';
-import { estimateRange, formatPrice } from '@turmove/shared';
+import type { Quote } from '@tasiyoruz/contracts';
+import { estimateRange, formatPrice } from '@tasiyoruz/shared';
 import Link from 'next/link';
 
 const tl = (n: number) => `${n.toLocaleString('tr-TR')} ₺`;

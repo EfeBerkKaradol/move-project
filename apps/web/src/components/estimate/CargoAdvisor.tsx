@@ -7,7 +7,7 @@ import type {
   CargoPreset,
   VehicleRecommendation,
   VehicleType,
-} from '@turmove/contracts';
+} from '@tasiyoruz/contracts';
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { CargoDetail, type CargoSelection } from '@/components/booking/CargoDetail';
 import { CategoryGrid } from '@/components/booking/CategoryGrid';

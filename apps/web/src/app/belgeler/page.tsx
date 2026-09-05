@@ -3,7 +3,7 @@ import { PlaceholderPage } from '@/components/site/PlaceholderPage';
 
 export const metadata: Metadata = {
   title: 'Gerekli belgeler',
-  description: 'Konvoy’da araç sahibi olmak için hangi belgeler isteniyor.',
+  description: 'Taşıyoruz’da araç sahibi olmak için hangi belgeler isteniyor.',
 };
 
 const DOCUMENTS: [string, string][] = [

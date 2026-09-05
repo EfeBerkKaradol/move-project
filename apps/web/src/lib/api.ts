@@ -9,7 +9,7 @@ import type {
   QuoteRequest,
   VehicleRecommendation,
   VehicleType,
-} from '@turmove/contracts';
+} from '@tasiyoruz/contracts';
 import { FALLBACK_FLEET } from './fallback-fleet';
 
 const DEFAULT_API_URL = 'http://localhost:8080';

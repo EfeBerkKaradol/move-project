@@ -9,7 +9,7 @@ import type {
   Quote,
   QuoteRequest,
   VehicleType,
-} from '@turmove/contracts';
+} from '@tasiyoruz/contracts';
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { PlaceSearch } from '@/components/site/PlaceSearch';
 import { fetchQuote } from '@/lib/api';
@@ -27,7 +27,7 @@ const GROUND: StopDetail = { floor: 0, hasElevator: true };
 const AUTO_EXTRAS = ['NO_ELEVATOR', 'WAITING', 'EXTRA_STOP'];
 
 /**
- * Konvoy fiyat akışı (docs/11 §2): rota + araç tipi → tahmini aralık → ilan.
+ * Taşıyoruz fiyat akışı (docs/11 §2): rota + araç tipi → tahmini aralık → ilan.
  *
  * <p>Sayfa geçişi yok; her seçim değişikliğinde tahmin sağda canlı güncellenir.
  * Aracını bilmeyen kullanıcı için docs/08 öneri motoru "yükümü tarif edeceğim"

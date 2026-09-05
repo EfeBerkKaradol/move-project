@@ -1,6 +1,6 @@
 'use client';
 
-import type { VehicleType } from '@turmove/contracts';
+import type { VehicleType } from '@tasiyoruz/contracts';
 import { useRouter } from 'next/navigation';
 import { useState } from 'react';
 import { VehiclePicker } from '@/components/estimate/VehiclePicker';

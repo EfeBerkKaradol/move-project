@@ -4,7 +4,7 @@
 -- (ör. şehir içi panelvan ~850 ₺; piyasa 1.200-2.500 ₺). Yeni değerler nakliye
 -- firmalarının yayınladığı 2026 tarifeleri, yük pazarı spot fiyatları ve platform
 -- (Armut) iş kayıtlarından türetildi; hedef, firma tam-hizmet fiyatı ile pazar spot
--- fiyatının ortası — çünkü Konvoy'da kesin fiyatı araç sahibi teklifle veriyor,
+-- fiyatının ortası — çünkü Taşıyoruz'da kesin fiyatı araç sahibi teklifle veriyor,
 -- tarife yalnızca tahmini aralığın çapası.
 --
 -- Fiyat motoru formülü (DefaultPricingService):

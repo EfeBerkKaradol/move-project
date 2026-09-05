@@ -47,11 +47,11 @@ ve alıcıya gönderilen takip linki.
 SMS_PROVIDER=netgsm
 SMS_USERNAME=...
 SMS_PASSWORD=...
-SMS_SENDER_HEADER=...     # onaylı başlık, örn. TURMOVE
+SMS_SENDER_HEADER=...     # onaylı başlık, örn. TASIYORUZ
 ```
 
 **Sağlayıcı adayları:** Netgsm · İleti Merkezi · Vatan SMS
-**Not:** Gönderici başlığı ("TURMOVE") BTK onayı gerektiriyor ve **birkaç iş günü sürüyor** —
+**Not:** Gönderici başlığı ("TASIYORUZ") BTK onayı gerektiriyor ve **birkaç iş günü sürüyor** —
 erken başlat. Onay gelene kadar local geliştirmede SMS konsola yazılıyor.
 
 ---
@@ -85,7 +85,7 @@ içinde operatörle çalıştırmak gerekir ve bakım yükü ciddi artar.
 ---
 
 ### [ ] 5. Alan adı
-**Ne için:** `turmove.com` ve/veya `turmove.com.tr` — müsaitliği kontrol edilmedi.
+**Ne için:** `tasiyoruz.com` ve/veya `tasiyoruz.com.tr` — müsaitliği kontrol edilmedi.
 
 **Not:** Marka adı geçici. Faz 1'de pazarlama sayfaları yazılmadan kesinleşmeli;
 sonradan değiştirmek SEO ve mağaza kayıtlarını etkiler.
@@ -141,14 +141,14 @@ Bunlar dış servis değil, **bizim ürettiğimiz** değerler — ama local vars
 oluşturmasını bu engelliyor. Local varsayılanı `local-development-secret` — üretimde
 kalırsa herkes kendi fiyatını imzalayabilir.
 
-**Nereye:** `services/api/.env` → `TURMOVE_QUOTE_SIGNING_SECRET=<rastgele 32+ karakter>`
+**Nereye:** `services/api/.env` → `TASIYORUZ_QUOTE_SIGNING_SECRET=<rastgele 32+ karakter>`
 Üretmek için: `openssl rand -base64 48`
 
 ### [ ] 14. CORS izinli origin listesi
 **Ne için:** API varsayılan olarak yalnızca `localhost:3000/3001`'e izin veriyor.
 Üretim alan adı eklenmezse web uygulaması API'ye hiç ulaşamaz.
 
-**Nereye:** `services/api/.env` → `TURMOVE_CORS_ALLOWED_ORIGINS=https://turmove.com,https://admin.turmove.com`
+**Nereye:** `services/api/.env` → `TASIYORUZ_CORS_ALLOWED_ORIGINS=https://tasiyoruz.com,https://admin.tasiyoruz.com`
 
 ### [ ] 15. Keycloak üretim yönetici parolası
 Local'de `admin/admin`. Üretimde değiştirilmeli ve realm ayarları gözden geçirilmeli.

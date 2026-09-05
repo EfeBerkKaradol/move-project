@@ -17,10 +17,10 @@ importers:
 
   apps/web:
     dependencies:
-      '@turmove/contracts':
+      '@tasiyoruz/contracts':
         specifier: workspace:*
         version: link:../../packages/contracts
-      '@turmove/shared':
+      '@tasiyoruz/shared':
         specifier: workspace:*
         version: link:../../packages/shared
       next:

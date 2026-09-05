@@ -26,8 +26,8 @@ const plexMono = IBM_Plex_Mono({
 
 export const metadata: Metadata = {
   title: {
-    default: 'Konvoy — Yükünüz için doğru aracı dakikalar içinde bulun',
-    template: '%s · Konvoy',
+    default: 'Taşıyoruz — Yükünüz için doğru aracı dakikalar içinde bulun',
+    template: '%s · Taşıyoruz',
   },
   description:
     'Rotanızı girin, doğrulanmış araç sahiplerinden teklif alın. Aracı siz seçin, ' +

@@ -19,7 +19,7 @@ export function Header() {
               <path d="M3 16 L9 8 L15 16 L21 8" />
             </svg>
           </span>
-          Konvoy
+          Taşıyoruz
         </Link>
 
         {/* Mobilde gezinme yok: alt sayfalara footer'dan gidiliyor */}

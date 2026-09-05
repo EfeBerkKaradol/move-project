@@ -191,7 +191,7 @@ marker rotayı takip ederek yumuşak ilerler — algılanan kalite farkı büyü
 Referans siteler turuncu/sarı (Lalamove) ve mavi (Qmove) kullanıyor. Ayrışmak ve
 lojistikte "hız + güven" hissi vermek için **derin petrol (güven) + canlı yeşil
 (hareket, ilerleme, "yolda")** öneriliyor. Yeşil ayrıca pano puanları ve doluluk
-göstergesiyle doğal uyum sağlıyor. Nihai palet TurMove marka kimliği kesinleşince oturur.
+göstergesiyle doğal uyum sağlıyor. Nihai palet Taşıyoruz marka kimliği kesinleşince oturur.
 
 ```css
 /* Tailwind v4 — CSS-first token tanımı */

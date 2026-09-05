@@ -1,10 +1,10 @@
 spring:
   application:
-    name: turmove-api
+    name: tasiyoruz-api
   datasource:
-    url: jdbc:postgresql://localhost:5432/turmove
-    username: turmove
-    password: turmove
+    url: jdbc:postgresql://localhost:5432/tasiyoruz
+    username: tasiyoruz
+    password: tasiyoruz
   jpa:
     hibernate:
       ddl-auto: validate      # şemayı Flyway yönetir, Hibernate değil
@@ -23,7 +23,7 @@ spring:
     oauth2:
       resourceserver:
         jwt:
-          issuer-uri: http://localhost:8081/realms/turmove
+          issuer-uri: http://localhost:8081/realms/tasiyoruz
 
 server:
   port: 8080
@@ -46,17 +46,17 @@ springdoc:
   swagger-ui:
     path: /swagger-ui.html
 
-turmove:
+tasiyoruz:
   # Faz 0'da yer tutucu — gerçek değerler ortam değişkeninden gelir
   maps:
     api-key: ${GOOGLE_MAPS_API_KEY:}
   storage:
     endpoint: http://localhost:9000
-    bucket: turmove-local
+    bucket: tasiyoruz-local
   commission:
     # Komisyonsuz dönem — 2027 ilk çeyreğine kadar
     default-percent: 0
 
 logging:
   level:
-    com.turmove: DEBUG
+    com.tasiyoruz: DEBUG

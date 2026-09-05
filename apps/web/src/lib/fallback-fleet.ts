@@ -1,5 +1,5 @@
-import type { VehicleType } from '@turmove/contracts';
-import type { VehicleTypeCode } from '@turmove/shared';
+import type { VehicleType } from '@tasiyoruz/contracts';
+import type { VehicleTypeCode } from '@tasiyoruz/shared';
 
 /**
  * API ulaşılamazken kullanılan araç filosu.

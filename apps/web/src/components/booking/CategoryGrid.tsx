@@ -1,7 +1,7 @@
 'use client';
 
-import type { CargoCategory } from '@turmove/contracts';
-import { formatVolume } from '@turmove/shared';
+import type { CargoCategory } from '@tasiyoruz/contracts';
+import { formatVolume } from '@tasiyoruz/shared';
 
 /**
  * "Ne taşımak istiyorsunuz?" paneli. Kartlar küçükten büyüğe sıralı ve her biri

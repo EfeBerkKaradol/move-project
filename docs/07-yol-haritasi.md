@@ -230,7 +230,7 @@ komisyona geçmek için altyapının hazır ve 30 günlük duyurunun yapılmış
 ## Karar durumu
 
 **Verilmiş kararlar**
-- Marka adı: **TurMove** (geçici, değiştirilebilir) — alan adı müsaitliği kontrol edilmeli
+- Marka adı: **Taşıyoruz** (geçici, değiştirilebilir) — alan adı müsaitliği kontrol edilmeli
 - Şehirler: İstanbul · Ankara · Hatay
 - Barındırma: **Türkiye** ([ADR-0005](adr/0005-veri-barindirma.md))
 - Komisyon: 2027 ilk çeyreğine kadar **%0**

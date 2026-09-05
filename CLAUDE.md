@@ -1,4 +1,4 @@
-# TurMove — geliştirici notları
+# Taşıyoruz — geliştirici notları
 
 Yük taşıma ve teslimat pazaryeri. Ürün ve mimari kararların tamamı `docs/` altında —
 **kod yazmadan önce ilgili dokümanı oku**, özellikle `docs/adr/`.
@@ -18,10 +18,10 @@ pnpm dev               # Next.js  → localhost:3000
 | Swagger | http://localhost:8080/swagger-ui.html | — |
 | Web | http://localhost:3000 | — |
 | Keycloak | http://localhost:8081 | admin / admin |
-| MinIO | http://localhost:9001 | turmove / turmove123 |
+| MinIO | http://localhost:9001 | tasiyoruz / tasiyoruz123 |
 | Mailhog | http://localhost:8025 | — |
 
-Test kullanıcıları (şifre `turmove`): `musteri@`, `nakliyeci@`, `operasyon@turmove.local`
+Test kullanıcıları (şifre `tasiyoruz`): `musteri@`, `nakliyeci@`, `operasyon@tasiyoruz.local`
 
 **Eksik anahtarlar:** [ANAHTARLAR.md](ANAHTARLAR.md) — hangi dış servisin beklendiği ve
 neyin bloke olduğu orada. Gerçek değerler `.env` dosyalarında, repoya girmez.

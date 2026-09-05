@@ -1,4 +1,4 @@
-import type { District } from '@turmove/contracts';
+import type { District } from '@tasiyoruz/contracts';
 import type { CityPlaces } from '@/data/places';
 
 export type PlaceKind = 'district' | 'neighborhood';

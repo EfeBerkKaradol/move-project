@@ -53,7 +53,7 @@ export function Footer() {
         </div>
 
         <p className="label-mono mt-10 border-t border-line pt-6 text-muted">
-          © {new Date().getFullYear()} Konvoy · 81 il · Marka ve kurumsal kimlik geçicidir
+          © {new Date().getFullYear()} Taşıyoruz · 81 il · Marka ve kurumsal kimlik geçicidir
         </p>
       </div>
     </footer>

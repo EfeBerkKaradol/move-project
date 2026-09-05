@@ -149,7 +149,7 @@ komisyonsuzluk **arzı** çekiyor, pano **talebin** güvenmesini sağlıyor.
 Panoda bu dönem açıkça duyurulur — gizlenmesi gereken bir şey değil, avantaj:
 
 > **Komisyonsuz dönem · 2027 ilk çeyreğine kadar**
-> TurMove taşıma ücretinden komisyon almıyor. Ödediğiniz tutarın tamamı
+> Taşıyoruz taşıma ücretinden komisyon almıyor. Ödediğiniz tutarın tamamı
 > taşımayı yapan firmaya ve sürücüye gidiyor.
 
 Bu mesaj hem müşteriye (fiyat avantajı) hem sürücüye (kazanç avantajı) aynı anda konuşuyor.

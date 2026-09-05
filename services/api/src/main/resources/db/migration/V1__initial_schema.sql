@@ -1,4 +1,4 @@
--- TurMove — temel şema (Faz 0)
+-- Taşıyoruz — temel şema (Faz 0)
 -- Coğrafi sorgular ve rota geometrisi için PostGIS (bkz. docs/04)
 
 CREATE EXTENSION IF NOT EXISTS postgis;

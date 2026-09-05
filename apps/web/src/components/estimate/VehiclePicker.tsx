@@ -1,6 +1,6 @@
 'use client';
 
-import type { VehicleType } from '@turmove/contracts';
+import type { VehicleType } from '@tasiyoruz/contracts';
 import { VehicleGlyph } from '@/components/site/VehicleGlyph';
 
 export function capacityLabel(v: VehicleType) {

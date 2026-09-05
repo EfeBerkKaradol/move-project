@@ -1,4 +1,4 @@
-import type { VehicleType } from '@turmove/contracts';
+import type { VehicleType } from '@tasiyoruz/contracts';
 import { Reveal } from './Reveal';
 import { VehicleGlyph } from './VehicleGlyph';
 
