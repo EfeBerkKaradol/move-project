@@ -14,6 +14,19 @@ export default async function LoginPage({ searchParams }: { searchParams: Promis
   const target = params.callbackUrl && params.callbackUrl.startsWith('/') ? params.callbackUrl : null;
   if (session && session.error !== 'RefreshFailed') redirect(target ?? homeFor(session.roles));
 
+  // Kimlik sağlayıcısı bağlı değilse (henüz dağıtılmamış ortam) sunucu hatası yerine
+  // net bir mesaj: ziyaretçi neyin eksik olduğunu anlasın, site kırık görünmesin.
+  if (!process.env.AUTH_KEYCLOAK_ISSUER || !process.env.AUTH_SECRET) {
+    return (
+      <Shell eyebrow="Hesap" title="Giriş bu ortamda henüz açık değil">
+        <div className="max-w-md rounded-card border border-line bg-surface p-6 text-sm text-muted">
+          <p>Kimlik servisi bu dağıtıma henüz bağlanmadı. Fiyat görmek için giriş gerekmiyor;
+          ilan yayınlama ve teklif verme, kimlik servisi devreye girince açılacak.</p>
+        </div>
+      </Shell>
+    );
+  }
+
   return (
     <Shell eyebrow="Hesap" title="Giriş yap">
       <div className="max-w-md rounded-card border border-line bg-surface p-6">
