@@ -107,6 +107,17 @@ export function EstimateFlow({
     return () => clearTimeout(timer);
   }, [request]);
 
+  // İlan sayfasına taşınan seçim: middleware giriş isterse kullanıcı aynı adrese döner
+  const publishHref = (() => {
+    const q = new URLSearchParams({
+      nereden: from, nereye: to, arac: vehicleCode ?? '', model: serviceModel,
+      pf: String(pickup.floor), pe: pickup.hasElevator ? '1' : '0',
+      df: String(dropoff.floor), de: dropoff.hasElevator ? '1' : '0',
+      ek: extras.join(','),
+    });
+    return `/panel/ilan/yeni?${q.toString()}`;
+  })();
+
   const swap = () => {
     setFrom(to);
     setTo(from);
@@ -289,6 +300,7 @@ export function EstimateFlow({
           error={error}
           ready={request !== null}
           vehicleName={vehicle?.displayName ?? null}
+          publishHref={publishHref}
         />
       </div>
     </div>

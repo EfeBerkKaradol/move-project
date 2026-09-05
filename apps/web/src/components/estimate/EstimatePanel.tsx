@@ -17,6 +17,7 @@ export function EstimatePanel({
   error,
   ready,
   vehicleName,
+  publishHref,
 }: {
   quote: Quote | null;
   loading: boolean;
@@ -24,6 +25,8 @@ export function EstimatePanel({
   /** Rota ve araç seçildi mi — boş durum metni buna göre değişir. */
   ready: boolean;
   vehicleName: string | null;
+  /** Seçim URL'e yazılarak ilan sayfasına taşınır; giriş gerekiyorsa oradan döner. */
+  publishHref: string;
 }) {
   return (
     <aside
@@ -82,7 +85,7 @@ export function EstimatePanel({
       )}
 
       <Link
-        href="/giris"
+        href={publishHref}
         aria-disabled={!ready}
         className={`mt-6 flex w-full items-center justify-center gap-2 rounded-field bg-amber px-6 py-4 font-bold text-[var(--amber-ink)] transition hover:brightness-105 ${
           ready ? '' : 'pointer-events-none opacity-50'

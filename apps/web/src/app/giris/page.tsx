@@ -1,20 +1,42 @@
 import type { Metadata } from 'next';
-import { PlaceholderPage } from '@/components/site/PlaceholderPage';
+import { redirect } from 'next/navigation';
+import { auth, homeFor, signIn } from '@/auth';
+import { Shell } from '@/components/app/Shell';
 
 export const metadata: Metadata = { title: 'Giriş yap' };
 
-/** Telefon + OTP girişi (docs/06 §2, app/(app)/giris) kimlik modülüyle birlikte gelecek. */
-export default function LoginPage() {
+/**
+ * Giriş Keycloak'a yönlendirir. Telefon + OTP, SMS sağlayıcısı bağlanınca
+ * (ANAHTARLAR.md #2) Keycloak tarafında açılacak; bu sayfa değişmeyecek.
+ */
+export default async function LoginPage({ searchParams }: { searchParams: Promise<{ callbackUrl?: string }> }) {
+  const [session, params] = await Promise.all([auth(), searchParams]);
+  const target = params.callbackUrl && params.callbackUrl.startsWith('/') ? params.callbackUrl : null;
+  if (session && session.error !== 'RefreshFailed') redirect(target ?? homeFor(session.roles));
+
   return (
-    <PlaceholderPage
-      eyebrow="Hesap"
-      title="Giriş yakında."
-      cta={{ href: '/fiyat-hesapla', label: 'Kayıtsız fiyat al' }}
-    >
-      <p>
-        Telefon numaran ve tek kullanımlık kodla giriş yapacaksın; şifre yok. Fiyat görmek
-        için giriş gerekmiyor — hesap yalnızca ilan yayınlarken ve teklif verirken lazım.
-      </p>
-    </PlaceholderPage>
+    <Shell eyebrow="Hesap" title="Giriş yap">
+      <div className="max-w-md rounded-card border border-line bg-surface p-6">
+        <p className="text-sm text-muted">
+          Fiyat görmek için giriş gerekmiyor. Hesap yalnızca ilan yayınlarken ve teklif verirken
+          lazım.
+        </p>
+        <form
+          className="mt-6"
+          action={async () => {
+            'use server';
+            await signIn('keycloak', { redirectTo: target ?? '/giris' });
+          }}
+        >
+          <button
+            type="submit"
+            className="w-full rounded-field bg-amber px-6 py-4 font-bold text-[var(--amber-ink)] transition hover:brightness-105"
+          >
+            Giriş yap
+          </button>
+        </form>
+        <p className="label-mono mt-4 text-center text-muted">Telefon + tek kullanımlık kod yakında</p>
+      </div>
+    </Shell>
   );
 }

@@ -132,3 +132,66 @@ export type QuoteRequest = {
   extraServices?: string[];
   couponCode?: string | null;
 };
+
+
+// ── Teklif pazarı (docs/05 §4b) ─────────────────────────────────────
+
+export type ListingStatus = 'OPEN' | 'AWARDED' | 'EXPIRED' | 'CANCELLED';
+export type OfferStatus = 'SUBMITTED' | 'WITHDRAWN' | 'ACCEPTED' | 'REJECTED';
+
+export type ListingPlace = {
+  districtId: string;
+  cityName: string | null;
+  districtName: string | null;
+  floor: number | null;
+  hasElevator: boolean | null;
+};
+
+export type ListingView = {
+  id: string;
+  listingNumber: string;
+  /** Taşıyıcıya gösterilen görünümde null. */
+  shipperId: string | null;
+  serviceModel: 'INSTANT' | 'SCHEDULED';
+  vehicleTypeCode: string;
+  pickup: ListingPlace;
+  dropoff: ListingPlace;
+  extraServices: string[];
+  cargoDescription: string | null;
+  pickupWindowStart: string | null;
+  pickupWindowEnd: string | null;
+  estimatedAmount: Money;
+  estimate: Quote;
+  status: ListingStatus;
+  awardedOfferId: string | null;
+  offerCount: number;
+  publishedAt: string;
+  expiresAt: string;
+};
+
+export type OfferView = {
+  id: string;
+  listingId: string;
+  carrierId: string;
+  carrierDisplayName: string | null;
+  amount: Money;
+  note: string | null;
+  estimatedPickupAt: string | null;
+  status: OfferStatus;
+  /** Taşıyıcı profili gelene kadar null — uydurma sayı gösterilmez. */
+  rating: number | null;
+  completedJobs: number | null;
+  submittedAt: string;
+  respondedAt: string | null;
+};
+
+export type CreateListingRequest = {
+  serviceModel: 'INSTANT' | 'SCHEDULED';
+  vehicleTypeCode: string;
+  pickup: { districtId: string; floor?: number | null; hasElevator?: boolean | null };
+  dropoff: { districtId: string; floor?: number | null; hasElevator?: boolean | null };
+  extraServices?: string[];
+  cargoDescription?: string | null;
+  pickupWindowStart?: string | null;
+  pickupWindowEnd?: string | null;
+};

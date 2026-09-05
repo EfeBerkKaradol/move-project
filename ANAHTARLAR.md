@@ -150,6 +150,20 @@ kalırsa herkes kendi fiyatını imzalayabilir.
 
 **Nereye:** `services/api/.env` → `TASIYORUZ_CORS_ALLOWED_ORIGINS=https://tasiyoruz.com,https://admin.tasiyoruz.com`
 
+### [ ] 16. Web oturum anahtarları (Auth.js)
+**Ne için:** Web uygulaması oturumu sunucu tarafında tutuyor. Çerezleri imzalayan
+`AUTH_SECRET` ve Keycloak'a gizli istemci olarak bağlanmayı sağlayan istemci sırrı.
+Yereldeki değerler (`tasiyoruz-web-dev-secret`) herkese açık, üretimde kullanılamaz.
+
+**Nereye:** Vercel/sunucu ortam değişkenleri
+```
+AUTH_SECRET=<openssl rand -base64 32>
+AUTH_KEYCLOAK_ID=tasiyoruz-web
+AUTH_KEYCLOAK_SECRET=<Keycloak > Clients > tasiyoruz-web > Credentials>
+AUTH_KEYCLOAK_ISSUER=https://<keycloak alan adı>/realms/tasiyoruz
+AUTH_URL=https://tasiyoruz.com
+```
+
 ### [ ] 15. Keycloak üretim yönetici parolası
 Local'de `admin/admin`. Üretimde değiştirilmeli ve realm ayarları gözden geçirilmeli.
 
