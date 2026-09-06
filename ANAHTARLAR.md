@@ -180,9 +180,14 @@ Deploy adımı eklendiğinde gerekecek: registry kimliği, kubeconfig, ortam ana
 ## Nereye ne konur
 
 ```
-services/api/.env        Backend anahtarları (Maps, SMS, Sentry, ödeme)
-apps/web/.env.local      Web'in genel değişkenleri (API URL, public Sentry DSN)
+services/api/.env        GOOGLE_MAPS_API_KEY · TASIYORUZ_QUOTE_SIGNING_SECRET · TASIYORUZ_CORS_ALLOWED_ORIGINS
+                         (SMS, Sentry, iyzico satırları yorumda — entegrasyon gelince açılacak)
+apps/web/.env.local      NEXT_PUBLIC_API_URL · AUTH_SECRET · AUTH_KEYCLOAK_ID/SECRET/ISSUER · AUTH_TRUST_HOST
+Vercel                   Web anahtarlarının aynısı, panelden (dosya yüklenmez); AUTH_TRUST_HOST yerine AUTH_URL
 ```
+
+İki dosya da hazır ve boş satırları doldurman için bekliyor. Spring `.env`'i
+`spring.config.import` ile okuyor; Next `.env.local`'ı kendiliğinden yükler.
 
 Her ikisi de `.gitignore`'da. Şablonları `.env.example` dosyalarında —
 onlar repoda, ama **içleri boş**.
