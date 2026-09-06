@@ -77,7 +77,9 @@
         "pkce.code.challenge.method": "S256",
         "post.logout.redirect.uris": "+"
       },
-      "secret": "tasiyoruz-web-dev-secret"
+      "secret": "tasiyoruz-web-dev-secret",
+      "rootUrl": "http://localhost:3000",
+      "baseUrl": "/"
     },
     {
       "clientId": "tasiyoruz-admin-web",
@@ -92,7 +94,9 @@
       ],
       "attributes": {
         "pkce.code.challenge.method": "S256"
-      }
+      },
+      "rootUrl": "http://localhost:3001",
+      "baseUrl": "/"
     },
     {
       "clientId": "tasiyoruz-customer-app",
@@ -188,7 +192,7 @@
   "registrationEmailAsUsername": true,
   "resetPasswordAllowed": true,
   "rememberMe": true,
-  "verifyEmail": false,
+  "verifyEmail": true,
   "loginTheme": "tasiyoruz",
   "accountTheme": "keycloak.v2",
   "defaultRole": {
@@ -197,5 +201,18 @@
     "composite": true,
     "clientRole": false,
     "containerId": "tasiyoruz"
+  },
+  "loginWithEmailAllowed": true,
+  "duplicateEmailsAllowed": false,
+  "smtpServer": {
+    "host": "mailhog",
+    "port": "1025",
+    "from": "no-reply@tasiyoruz.local",
+    "fromDisplayName": "Taşıyoruz",
+    "replyTo": "destek@tasiyoruz.local",
+    "replyToDisplayName": "Taşıyoruz Destek",
+    "ssl": "false",
+    "starttls": "false",
+    "auth": "false"
   }
 }

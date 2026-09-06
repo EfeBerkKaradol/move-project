@@ -23,6 +23,12 @@ export default async function LoginPage({ searchParams }: { searchParams: Promis
         <div className="max-w-md rounded-card border border-line bg-surface p-6 text-sm text-muted">
           <p>Kimlik servisi bu dağıtıma henüz bağlanmadı. Fiyat görmek için giriş gerekmiyor;
           ilan yayınlama ve teklif verme, kimlik servisi devreye girince açılacak.</p>
+          <Link
+            href="/"
+            className="mt-4 inline-flex min-h-11 items-center gap-1.5 rounded-field px-3 font-semibold text-ink transition hover:bg-surface-2"
+          >
+            <span aria-hidden>←</span> Ana sayfaya dön
+          </Link>
         </div>
       </Shell>
     );
@@ -75,6 +81,14 @@ export default async function LoginPage({ searchParams }: { searchParams: Promis
         </div>
 
         <p className="label-mono mt-5 text-center text-muted">Telefon + tek kullanımlık kod yakında</p>
+        <div className="mt-6 border-t border-line pt-4 text-center">
+          <Link
+            href="/"
+            className="inline-flex min-h-11 items-center gap-1.5 rounded-field px-3 text-sm font-semibold text-muted transition hover:bg-surface-2 hover:text-ink"
+          >
+            <span aria-hidden>←</span> Ana sayfaya dön
+          </Link>
+        </div>
       </div>
     </Shell>
   );

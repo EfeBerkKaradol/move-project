@@ -13,7 +13,7 @@ import type {
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { PlaceSearch } from '@/components/site/PlaceSearch';
 import { fetchQuote } from '@/lib/api';
-import { matchDistrict } from '@/lib/places';
+import { cityOf, matchDistrict, sameCity } from '@/lib/places';
 import { CargoAdvisor } from './CargoAdvisor';
 import { EstimatePanel } from './EstimatePanel';
 import { VehiclePicker } from './VehiclePicker';
@@ -118,6 +118,14 @@ export function EstimateFlow({
     return `/panel/ilan/yeni?${q.toString()}`;
   })();
 
+  const originCity = cityOf(from);
+
+  /** Alış ili değişince başka ildeki teslim noktası temizleniyor (bkz. QuoteWidget). */
+  const changeFrom = (v: string) => {
+    setFrom(v);
+    if (!sameCity(v, to)) setTo('');
+  };
+
   const swap = () => {
     setFrom(to);
     setTo(from);
@@ -142,7 +150,7 @@ export function EstimateFlow({
               name="nereden"
               label="Nereden"
               value={from}
-              onChange={setFrom}
+              onChange={changeFrom}
               placeholder="İstanbul, Hadımköy"
               icon={
                 <>
@@ -157,7 +165,8 @@ export function EstimateFlow({
               label="Nereye"
               value={to}
               onChange={setTo}
-              placeholder="Ankara, Ostim"
+              onlyCity={originCity}
+              placeholder={originCity ? `${originCity} içinde bir yer` : 'Önce nereden seçin'}
               icon={<path d="M2.5 8h11M9.5 4.5 13 8l-3.5 3.5" />}
             />
             <button

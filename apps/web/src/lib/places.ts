@@ -47,12 +47,18 @@ export function formatPlace(city: string, district: string, neighborhood?: strin
  *
  * <p>Sıralama: tam ön ek eşleşmesi > kelime başı eşleşmesi > alfabetik (tr).
  */
-export function searchPlaces(data: CityPlaces[], query: string): PlaceOption[] {
+export function searchPlaces(
+  data: CityPlaces[],
+  query: string,
+  /** Verilirse yalnızca bu ilin yerleri döner (alış ili seçilince teslim listesi). */
+  onlyCity?: string | null,
+): PlaceOption[] {
   const q = normalize(query);
   const collator = new Intl.Collator('tr-TR');
+  const cities = onlyCity ? data.filter((c) => normalize(c.city) === normalize(onlyCity)) : data;
 
   if (!q) {
-    return data.flatMap((c) =>
+    return cities.flatMap((c) =>
       c.districts.map(([district]) => ({
         kind: 'district' as const,
         city: c.city,
@@ -65,7 +71,7 @@ export function searchPlaces(data: CityPlaces[], query: string): PlaceOption[] {
   const districts: { opt: PlaceOption; s: number }[] = [];
   const neighborhoods: { opt: PlaceOption; s: number }[] = [];
 
-  for (const c of data) {
+  for (const c of cities) {
     for (const [district, hoods] of c.districts) {
       const ds = score(district, q);
       if (ds) {
@@ -105,6 +111,18 @@ export function searchPlaces(data: CityPlaces[], query: string): PlaceOption[] {
     ...districts.slice(0, MAX_DISTRICTS).map((x) => x.opt),
     ...neighborhoods.slice(0, MAX_NEIGHBORHOODS).map((x) => x.opt),
   ];
+}
+
+/** Alandaki metnin ili; henüz bir yer seçilmemişse null. */
+export function cityOf(value: string): string | null {
+  return parsePlace(value)?.city ?? null;
+}
+
+/** İki alan aynı ilde mi? Biri boşsa çelişki yok sayılır. */
+export function sameCity(a: string, b: string): boolean {
+  const ca = cityOf(a);
+  const cb = cityOf(b);
+  return ca === null || cb === null || normalize(ca) === normalize(cb);
 }
 
 /** "İstanbul, Beşiktaş - Cihannüma" → { city, district, neighborhood }. Biçim dışıysa null. */

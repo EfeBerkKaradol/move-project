@@ -11,7 +11,7 @@ Bir maddeyi hallettiğinde söyle, kutusunu işaretleyeyim.
 
 | | Faz 1 | Altyapı | Üretim | Faz 3–4 | Faz 5 | Toplam |
 |---|---|---|---|---|---|---|
-| Bekleyen | 3 | 4 | 3 | 3 | 3 | 16 |
+| Bekleyen | 3 | 5 | 3 | 3 | 3 | 17 |
 | Tamamlanan | 0 | 0 | 0 | 0 | 0 | 0 |
 
 ---
@@ -120,6 +120,22 @@ KEYCLOAK_ADMIN_CLIENT_SECRET=...
 
 **Şu an bloke olan:** Onaydan sonra rol atamanın otomatikleşmesi. Başvuru, belge
 yükleme ve onay akışının tamamı bu olmadan çalışıyor.
+
+---
+
+### [ ] 20. SMTP sunucusu (e-posta doğrulama ve şifre sıfırlama)
+**Ne için:** Kayıt sonrası e-posta doğrulama ve "şifremi unuttum" postaları. Keycloak
+realm'inde `verifyEmail` açık; yerelde `docker-compose`'daki Mailhog kullanılıyor
+(http://localhost:8025), üretimde gerçek bir SMTP gerekiyor.
+
+**Adaylar:** Türkiye'de barındırılan bir posta sağlayıcısı ya da kendi sunucun. Yurt
+dışı sağlayıcılar e-posta adresini işler; ADR-0005 gereği tercih edilmiyor.
+
+**Nereye:** Keycloak realm ayarları (Realm settings → Email). Değerler:
+host, port, from, starttls/ssl, kullanıcı adı ve parola.
+
+**Şu an bloke olan:** Hiçbir şey — yerelde Mailhog ile uçtan uca çalışıyor. Üretimde
+SMTP olmadan kimse kaydını tamamlayamaz, çünkü doğrulama postası gitmez.
 
 ---
 

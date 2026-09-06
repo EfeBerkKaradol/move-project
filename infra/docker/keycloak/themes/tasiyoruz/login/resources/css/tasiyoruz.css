@@ -296,6 +296,31 @@ input[type="checkbox"] { accent-color: var(--ts-amber); width: 1.15rem; height: 
   .login-pf-page, .pf-v5-c-login { padding-top: 1.75rem !important; }
 }
 
+/* ── Ana sayfaya dön (footer.ftl) ─────────────────────────────── */
+/* Şablonda kartın DIŞINDA, altında duruyor; bu yüzden çerçeve değil boşluk veriliyor. */
+.ts-back-home {
+  margin-top: 1.15rem;
+  text-align: center;
+}
+.ts-back-home a {
+  align-items: center;
+  border-radius: var(--ts-radius);
+  color: var(--ts-muted) !important;
+  display: inline-flex;
+  font-family: var(--ts-mono);
+  font-size: 0.72rem;
+  gap: 0.4rem;
+  letter-spacing: 0.06em;
+  /* Dokunma hedefi en az 44px (docs/01) */
+  min-height: 44px;
+  padding: 0 0.75rem;
+  text-decoration: none;
+  text-transform: uppercase;
+  transition: background-color .15s, color .15s;
+}
+.ts-back-home a:hover { background: rgb(255 255 255 / .08); color: #ffffff !important; }
+.ts-back-home a:focus-visible { outline: 2px solid var(--ts-amber); outline-offset: 2px; }
+
 @media (prefers-reduced-motion: reduce) {
   * { transition: none !important; }
   input[type="submit"]:active { transform: none; }

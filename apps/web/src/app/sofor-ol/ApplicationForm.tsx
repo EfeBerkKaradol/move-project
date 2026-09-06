@@ -2,6 +2,8 @@
 
 import type { CarrierProfileView, VehicleType } from '@tasiyoruz/contracts';
 import { useActionState, useState } from 'react';
+import { PhoneInput } from '@/components/form/PhoneInput';
+import { PlateInput } from '@/components/form/PlateInput';
 import { saveApplication, type ActionState } from './actions';
 
 const FIELD =
@@ -30,8 +32,7 @@ export function ApplicationForm({
 
       <label className="text-sm">
         <span className="label-mono block text-muted">Telefon</span>
-        <input name="phone" inputMode="tel" placeholder="0532 123 45 67"
-          defaultValue={profile?.phone ?? ''} disabled={!editable} className={FIELD} />
+        <PhoneInput name="phone" defaultValue={profile?.phone ?? ''} disabled={!editable} className={FIELD} />
       </label>
 
       <label className="text-sm">
@@ -45,8 +46,8 @@ export function ApplicationForm({
 
       <label className="text-sm">
         <span className="label-mono block text-muted">Plaka</span>
-        <input name="plate" required placeholder="34 ABC 123" defaultValue={profile?.plate ?? ''}
-          disabled={!editable} className={`${FIELD} uppercase`} />
+        <PlateInput name="plate" required defaultValue={profile?.plate ?? ''}
+          disabled={!editable} className={FIELD} />
       </label>
 
       <label className="flex min-h-11 cursor-pointer items-center gap-2 text-sm sm:col-span-2">
