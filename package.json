@@ -14,7 +14,10 @@
     "api:test": "cd services/api && ./gradlew test",
     "infra:up": "docker compose -f infra/docker/docker-compose.yml up -d",
     "infra:down": "docker compose -f infra/docker/docker-compose.yml down",
-    "infra:reset": "docker compose -f infra/docker/docker-compose.yml down -v && pnpm infra:up"
+    "infra:reset": "docker compose -f infra/docker/docker-compose.yml down -v && pnpm infra:up",
+    "start": "bash scripts/start.sh",
+    "doctor": "bash scripts/doctor.sh",
+    "stop": "pnpm infra:down"
   },
   "devDependencies": {
     "prettier": "3.4.2",

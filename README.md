@@ -39,6 +39,41 @@ seçer, sistem uygun aracı önerir ve kullanıcı isterse **pazarlık** başlat
 
 `Motor` · `Mini panelvan` · `Panelvan` · `Minivan` · `Kamyonet` · `Kamyon` · `TIR` (yakında)
 
+## Yerelde çalıştırma
+
+```bash
+pnpm install
+pnpm start      # Docker + Keycloak + API + web — hepsi, hazır olana kadar bekler
+```
+
+Bir şey çalışmıyorsa:
+
+```bash
+pnpm doctor     # neyin eksik olduğunu ve çözümünü yazar
+```
+
+| Adres | Ne |
+|---|---|
+| http://localhost:3000 | Site |
+| http://localhost:8080/swagger-ui.html | API dokümanı |
+| http://localhost:8081 | Keycloak (admin / admin) |
+| http://localhost:8025 | Mailhog — giden e-postalar |
+
+**Test kullanıcıları** (şifre `tasiyoruz`):
+
+| Kullanıcı | Rol | Panel |
+|---|---|---|
+| `musteri@tasiyoruz.local` | Yük veren | `/panel` — ilan ver, teklif seç, teslimatı onayla |
+| `nakliyeci@tasiyoruz.local` | Araç sahibi | `/nakliyeci` — teklif ver, aşama ilerlet, teslim et |
+
+Uçtan uca denemek için: fiyat hesapla → ilan yayınla → **çıkış yap** → nakliyeci
+olarak gir, teklif ver → çıkış → müşteri olarak gir, teklifi kabul et → nakliyeci
+aşamaları ilerletip teslim etsin → müşteri teslimatı onaylasın.
+
+Diğer komutlar: `pnpm dev` (yalnızca web) · `pnpm api` (yalnızca API) ·
+`pnpm infra:up` / `infra:down` / `infra:reset` (veriyi sıfırlar) · `pnpm api:test` ·
+`pnpm typecheck` · `pnpm lint`
+
 ## Dokümantasyon
 
 | Doküman | İçerik |

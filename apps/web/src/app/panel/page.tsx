@@ -40,7 +40,10 @@ export default async function PanelPage() {
                 <RouteLine l={l} />
                 <span className="label-mono text-muted">{l.vehicleTypeCode}</span>
                 <span className="ml-auto stat text-base">{formatPrice(l.estimatedAmount.amount)}</span>
-                <span className="label-mono text-muted">{l.offerCount} teklif</span>
+                {/* Kabul sonrası bekleyen teklif kalmaz; "0 teklif" yanıltıcı olurdu */}
+                <span className="label-mono text-muted">
+                  {l.status === 'OPEN' ? `${l.offerCount} teklif` : ''}
+                </span>
                 <StatusPill status={l.status} />
               </Link>
             </li>

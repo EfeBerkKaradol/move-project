@@ -39,3 +39,6 @@ test-results/
 
 # expo (ileride)
 .expo/
+
+# yerel çalıştırma logları
+.logs/
