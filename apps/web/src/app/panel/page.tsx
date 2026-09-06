@@ -3,7 +3,7 @@ import { formatPrice } from '@tasiyoruz/shared';
 import type { Metadata } from 'next';
 import Link from 'next/link';
 import { redirect } from 'next/navigation';
-import { auth, isCustomer } from '@/auth';
+import { auth, homeFor, isCustomer } from '@/auth';
 import { RouteLine } from '@/components/app/RouteLine';
 import { Shell } from '@/components/app/Shell';
 import { StatusPill } from '@/components/app/StatusPill';
@@ -14,7 +14,7 @@ export const dynamic = 'force-dynamic';
 
 export default async function PanelPage() {
   const session = await auth();
-  if (!session || !isCustomer(session.roles)) redirect('/nakliyeci');
+  if (!session || !isCustomer(session.roles)) redirect(homeFor(session?.roles ?? []));
   const listings = await apiFetch<ListingView[]>('/listings');
 
   return (

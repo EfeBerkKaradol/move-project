@@ -31,6 +31,31 @@
       {
         "name": "ADMIN",
         "description": "Sistem yöneticisi"
+      },
+      {
+        "name": "offline_access",
+        "description": "${role_offline-access}",
+        "composite": false,
+        "clientRole": false
+      },
+      {
+        "name": "uma_authorization",
+        "description": "${role_uma_authorization}",
+        "composite": false,
+        "clientRole": false
+      },
+      {
+        "name": "default-roles-tasiyoruz",
+        "description": "Yeni kaydolan kullanıcıların varsayılan rolleri",
+        "composite": true,
+        "composites": {
+          "realm": [
+            "CUSTOMER",
+            "offline_access",
+            "uma_authorization"
+          ]
+        },
+        "clientRole": false
       }
     ]
   },
@@ -157,5 +182,19 @@
         "ADMIN"
       ]
     }
-  ]
+  ],
+  "registrationAllowed": true,
+  "registrationEmailAsUsername": true,
+  "resetPasswordAllowed": true,
+  "rememberMe": true,
+  "verifyEmail": false,
+  "loginTheme": "tasiyoruz",
+  "accountTheme": "keycloak.v2",
+  "defaultRole": {
+    "name": "default-roles-tasiyoruz",
+    "description": "${role_default-roles}",
+    "composite": true,
+    "clientRole": false,
+    "containerId": "tasiyoruz"
+  }
 }

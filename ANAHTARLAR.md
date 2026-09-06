@@ -131,6 +131,17 @@ Süreç uzun — Faz 5'ten çok önce başlatılmalı. Söyle, planlayalım.
 
 ---
 
+## Staging / dağıtım hesapları
+
+### [ ] 17. Konteyner ve veritabanı sağlayıcıları
+**Ne için:** API ve Keycloak'ın herkese açık bir adreste çalışması. Vercel'de giriş ve
+fiyat hesaplamanın çalışmamasının tek sebebi bu.
+
+**Ücretsiz başlangıç:** Neon (PostgreSQL + PostGIS) · Upstash (Redis) · Render (API + Keycloak)
+**Adım adım:** [docs/13-dagitim.md](docs/13-dagitim.md)
+
+⚠️ Bu sağlayıcılar Türkiye'de değil; gerçek kullanıcı verisinden önce ADR-0005.
+
 ## Üretime çıkarken ayarlanması zorunlu
 
 Bunlar dış servis değil, **bizim ürettiğimiz** değerler — ama local varsayılanlarıyla

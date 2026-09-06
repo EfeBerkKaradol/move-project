@@ -52,7 +52,7 @@ export async function Header() {
             </>
           ) : (
             <>
-              <Link href="/giris" className="py-3.5 text-sm font-semibold text-ink">Giriş yap</Link>
+              <Link href="/giris" className="hidden py-3.5 text-sm font-semibold text-ink sm:inline">Giriş yap</Link>
               <Link href="/fiyat-hesapla"
                 className="rounded-field bg-amber px-4 py-3.5 text-sm font-bold text-[var(--amber-ink)] transition hover:brightness-105">
                 Yük ver

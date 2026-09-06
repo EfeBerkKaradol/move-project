@@ -2,7 +2,7 @@ import type { District, ExtraService, VehicleType } from '@tasiyoruz/contracts';
 import type { Metadata } from 'next';
 import Link from 'next/link';
 import { redirect } from 'next/navigation';
-import { auth, isCustomer } from '@/auth';
+import { auth, homeFor, isCustomer } from '@/auth';
 import { Shell } from '@/components/app/Shell';
 import { getDistricts, getExtraServices, getVehicleTypes } from '@/lib/api';
 import { matchDistrict } from '@/lib/places';
@@ -22,7 +22,7 @@ export default async function NewListingPage({ searchParams }: { searchParams: P
   const [session, p, districts, vehicles, extras] = await Promise.all([
     auth(), searchParams, getDistricts(), getVehicleTypes(), getExtraServices(),
   ]);
-  if (!session || !isCustomer(session.roles)) redirect('/nakliyeci');
+  if (!session || !isCustomer(session.roles)) redirect(homeFor(session?.roles ?? []));
 
   const pickup = districts ? matchDistrict(districts, first(p.nereden)) : null;
   const dropoff = districts ? matchDistrict(districts, first(p.nereye)) : null;

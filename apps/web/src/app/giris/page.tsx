@@ -1,4 +1,5 @@
 import type { Metadata } from 'next';
+import Link from 'next/link';
 import { redirect } from 'next/navigation';
 import { auth, homeFor, signIn } from '@/auth';
 import { Shell } from '@/components/app/Shell';
@@ -48,7 +49,32 @@ export default async function LoginPage({ searchParams }: { searchParams: Promis
             Giriş yap
           </button>
         </form>
-        <p className="label-mono mt-4 text-center text-muted">Telefon + tek kullanımlık kod yakında</p>
+
+        {/* Kayıt aynı akış, yalnızca Keycloak'ın kayıt formuyla başlıyor */}
+        <div className="mt-4 border-t border-line pt-4">
+          <p className="text-sm text-muted">Hesabın yok mu?</p>
+          <form
+            className="mt-2"
+            action={async () => {
+              'use server';
+              await signIn('keycloak-signup', { redirectTo: target ?? '/giris' });
+            }}
+          >
+            <button
+              type="submit"
+              className="w-full rounded-field border border-line px-6 py-4 font-bold transition hover:border-amber"
+            >
+              Hesap oluştur
+            </button>
+          </form>
+          <p className="mt-3 text-xs text-muted">
+            Kayıt olan herkes yük veren olarak başlar. Araç sahibi olmak için belgelerini
+            yükleyip onay alman gerekiyor —{' '}
+            <Link href="/sofor-ol" className="underline underline-offset-2">şoför ol</Link>.
+          </p>
+        </div>
+
+        <p className="label-mono mt-5 text-center text-muted">Telefon + tek kullanımlık kod yakında</p>
       </div>
     </Shell>
   );

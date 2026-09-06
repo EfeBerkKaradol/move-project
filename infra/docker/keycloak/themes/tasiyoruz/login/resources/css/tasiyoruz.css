@@ -1,0 +1,163 @@
+/*
+ * Taşıyoruz — Keycloak giriş/kayıt teması.
+ *
+ * Ürünün tasarım dili (docs/06): koyu zemin #0D1015, amber #F49F2C, krem kart.
+ * Yalnızca CSS ile yapılıyor; FreeMarker şablonları override edilmiyor ki
+ * Keycloak yükseltmelerinde kırılmasın.
+ *
+ * Fontlar sistem yığınından: Keycloak sayfasının Google'a istek atmaması için
+ * (web tarafında fontlar next/font ile self-host ediliyor, aynı gerekçe).
+ */
+
+:root {
+  --ts-bg: #0d1015;
+  --ts-surface: #f5f4f0;
+  --ts-card: #ffffff;
+  --ts-ink: #0d1015;
+  --ts-muted: #5b6470;
+  --ts-line: #e7e6e1;
+  --ts-amber: #f49f2c;
+  --ts-amber-ink: #0d1015;
+  --ts-danger: #8a2a1f;
+  --ts-sans: "Helvetica Neue", Helvetica, Arial, system-ui, sans-serif;
+  --ts-mono: ui-monospace, SFMono-Regular, "SF Mono", Menlo, monospace;
+}
+
+/* ── Sayfa zemini ─────────────────────────────────────────────── */
+body.login-pf,
+.login-pf body,
+body {
+  background: var(--ts-bg) !important;
+  font-family: var(--ts-sans);
+}
+.login-pf-page,
+.pf-v5-c-login__container {
+  padding-top: 3rem;
+}
+
+/* PatternFly'ın kendi arka plan görselini kaldır */
+.login-pf-background-image,
+.pf-v5-c-background-image { display: none !important; }
+
+/* ── Marka başlığı ────────────────────────────────────────────── */
+#kc-header,
+.login-pf-page-header,
+.pf-v5-c-login__header { text-align: center; }
+
+#kc-header-wrapper,
+.login-pf-brand,
+.pf-v5-c-login__header img { display: none !important; }
+
+#kc-header::before,
+.pf-v5-c-login__header::before {
+  content: "Taşıyoruz";
+  display: block;
+  color: #ffffff;
+  font-family: var(--ts-sans);
+  font-size: 1.6rem;
+  font-weight: 800;
+  letter-spacing: -0.02em;
+  margin-bottom: 0.35rem;
+}
+#kc-header::after,
+.pf-v5-c-login__header::after {
+  content: "81 İL · MOTORDAN KAMYONA";
+  display: block;
+  color: var(--ts-amber);
+  font-family: var(--ts-mono);
+  font-size: 0.66rem;
+  letter-spacing: 0.14em;
+  margin-bottom: 1.6rem;
+}
+
+/* ── Kart ─────────────────────────────────────────────────────── */
+.card-pf,
+.pf-v5-c-login__main {
+  background: var(--ts-card) !important;
+  border: 1px solid var(--ts-line) !important;
+  border-radius: 1rem !important;
+  box-shadow: 0 2px 6px rgb(13 16 21 / 0.10), 0 22px 48px rgb(13 16 21 / 0.28) !important;
+  padding: 2rem 1.75rem !important;
+}
+#kc-page-title,
+.pf-v5-c-login__main-header-desc,
+.pf-v5-c-title {
+  color: var(--ts-ink) !important;
+  font-weight: 800 !important;
+  letter-spacing: -0.02em;
+}
+
+/* ── Alanlar ──────────────────────────────────────────────────── */
+label,
+.pf-v5-c-form__label,
+.pf-v5-c-form__label-text {
+  color: var(--ts-muted) !important;
+  font-family: var(--ts-mono);
+  font-size: 0.68rem !important;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+}
+input[type="text"],
+input[type="email"],
+input[type="password"],
+.pf-v5-c-form-control,
+.pf-v5-c-form-control > input {
+  background: #f9f8f4 !important;
+  border: 1px solid var(--ts-line) !important;
+  border-radius: 0.625rem !important;
+  color: var(--ts-ink) !important;
+  font-size: 15px !important;
+  padding: 0.85rem 0.9rem !important;
+  min-height: 48px;
+}
+.pf-v5-c-form-control:focus-within,
+input:focus {
+  border-color: var(--ts-amber) !important;
+  outline: 2px solid rgb(244 159 44 / 0.28) !important;
+  outline-offset: 1px;
+}
+
+/* ── Butonlar ─────────────────────────────────────────────────── */
+input[type="submit"],
+button[type="submit"],
+.pf-v5-c-button.pf-m-primary,
+.btn-primary {
+  background: var(--ts-amber) !important;
+  border: none !important;
+  border-radius: 0.625rem !important;
+  color: var(--ts-amber-ink) !important;
+  font-weight: 700 !important;
+  font-size: 15px !important;
+  min-height: 50px;
+  padding: 0.9rem 1.25rem !important;
+}
+input[type="submit"]:hover,
+.pf-v5-c-button.pf-m-primary:hover { filter: brightness(1.05); }
+
+/* ── Bağlantılar ──────────────────────────────────────────────── */
+a, .pf-v5-c-button.pf-m-link {
+  color: #8a5c10 !important;
+  text-underline-offset: 3px;
+}
+a:hover { color: var(--ts-ink) !important; }
+
+/* ── Uyarı / hata ─────────────────────────────────────────────── */
+.alert-error, .pf-v5-c-alert.pf-m-danger {
+  background: #fbe9e7 !important;
+  border-radius: 0.625rem !important;
+  color: var(--ts-danger) !important;
+}
+.pf-v5-c-alert__title { color: var(--ts-danger) !important; }
+
+/* ── Alt bilgi: dil seçici ve "kayıt ol" ─────────────────────── */
+#kc-registration, #kc-registration-container,
+#kc-form-options, .pf-v5-c-login__main-footer-band {
+  font-size: 0.9rem;
+  color: var(--ts-muted);
+}
+#kc-locale { color: #ffffff; }
+#kc-locale a { color: #99a1aa !important; }
+
+/* ── Beni hatırla / onay kutuları ─────────────────────────────── */
+.pf-v5-c-check__label, .checkbox label { text-transform: none; font-family: var(--ts-sans); font-size: 0.9rem; letter-spacing: 0; }
+input[type="checkbox"] { accent-color: var(--ts-amber); width: 1rem; height: 1rem; }

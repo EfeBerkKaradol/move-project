@@ -51,6 +51,20 @@ export const authConfig: NextAuthConfig = {
       // Keycloak arayüz dilini tarayıcı dili belirliyor; realm varsayılanı yetmiyor
       authorization: { params: { ui_locales: 'tr' } },
     }),
+    /*
+     * Kayıt, aynı istemcinin farklı bir uç noktası: Keycloak'ın /registrations
+     * adresi doğrudan kayıt formunu açar. Ayrı bir sağlayıcı kimliği olarak
+     * tanımlanıyor ki signIn('keycloak-signup') kullanıcıyı giriş yerine kayda
+     * götürsün; dönüş akışı (token, roller) girişle birebir aynı.
+     */
+    Keycloak({
+      id: 'keycloak-signup',
+      name: 'Keycloak (kayıt)',
+      authorization: {
+        url: `${process.env.AUTH_KEYCLOAK_ISSUER}/protocol/openid-connect/registrations`,
+        params: { ui_locales: 'tr', scope: 'openid profile email' },
+      },
+    }),
   ],
   session: { strategy: 'jwt' },
   pages: { signIn: '/giris' },
@@ -99,7 +113,21 @@ export const { handlers, auth, signIn, signOut } = NextAuth(authConfig);
 /** Rol tabanlı yönlendirme için yardımcılar. */
 export const isCustomer = (roles: string[]) => roles.includes('CUSTOMER');
 export const isDriver = (roles: string[]) => roles.includes('DRIVER');
-export const homeFor = (roles: string[]) => (isDriver(roles) ? '/nakliyeci' : '/panel');
+
+/**
+ * Kullanıcının ait olduğu panel.
+ *
+ * <p>Rolsüz kullanıcı için `/hesap` döner. Bu şart: paneller birbirine
+ * yönlendiriyor (müşteri paneli sürücüyü `/nakliyeci`'ye, sürücü paneli
+ * müşteriyi `/panel`'e), rolsüz biri ikisi arasında sonsuz döngüye girerdi.
+ * Kendi kaydolan kullanıcılar CUSTOMER alır ama bu güvence yine de gerekli:
+ * rol elle kaldırılabilir ya da yeni bir rol eklenebilir.
+ */
+export function homeFor(roles: string[]): string {
+  if (isDriver(roles)) return '/nakliyeci';
+  if (isCustomer(roles)) return '/panel';
+  return '/hesap';
+}
 
 /**
  * Çıkış iki oturumu da kapatır: Auth.js çerezi ve Keycloak SSO oturumu.

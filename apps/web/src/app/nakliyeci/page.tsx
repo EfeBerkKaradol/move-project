@@ -3,7 +3,7 @@ import { formatPrice } from '@tasiyoruz/shared';
 import type { Metadata } from 'next';
 import Link from 'next/link';
 import { redirect } from 'next/navigation';
-import { auth, isDriver } from '@/auth';
+import { auth, homeFor, isDriver } from '@/auth';
 import { RouteLine } from '@/components/app/RouteLine';
 import { Shell } from '@/components/app/Shell';
 import { apiFetch } from '@/lib/api-server';
@@ -16,7 +16,7 @@ export const dynamic = 'force-dynamic';
 
 export default async function DriverPage() {
   const session = await auth();
-  if (!session || !isDriver(session.roles)) redirect('/panel');
+  if (!session || !isDriver(session.roles)) redirect(homeFor(session?.roles ?? []));
   // Taşıyıcının kendi teklifleri kartta gösterilir; aksi hâlde form yeniden çıkar ve
   // ikinci gönderim "zaten teklif verdiniz" ile döner.
   const [listings, myOffers] = await Promise.all([
