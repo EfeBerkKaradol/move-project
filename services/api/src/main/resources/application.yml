@@ -5,6 +5,13 @@ spring:
     import: optional:file:.env[.properties]
   application:
     name: tasiyoruz-api
+  servlet:
+    multipart:
+      # Belge yükleme sınırı DocumentUploadPolicy'de 8 MB. Sunucu sınırı ondan büyük
+      # olmalı: küçük olsaydı Spring isteği okumadan reddeder ve kullanıcı, politikanın
+      # yazdığı anlaşılır Türkçe mesaj yerine ham 413 görürdü.
+      max-file-size: 10MB
+      max-request-size: 12MB
   datasource:
     url: jdbc:postgresql://localhost:5432/tasiyoruz
     username: tasiyoruz
@@ -60,6 +67,18 @@ tasiyoruz:
   maps:
     # Google Maps Platform (ANAHTARLAR #1). Boşsa takribî rota sağlayıcısı devrede.
     api-key: ${GOOGLE_MAPS_API_KEY:}
+  storage:
+    # Taşıyıcı belgeleri için S3 uyumlu nesne deposu. Yerelde docker-compose'daki
+    # MinIO; üretimde Türkiye'de barındırılan bir sağlayıcı (ANAHTARLAR #18).
+    # Anahtar verilmezse belge yükleme açıkça reddeder, sessizce kaybetmez.
+    endpoint: ${STORAGE_ENDPOINT:http://localhost:9000}
+    region: ${STORAGE_REGION:us-east-1}
+    bucket: ${STORAGE_BUCKET:tasiyoruz-belgeler}
+    access-key: ${STORAGE_ACCESS_KEY:tasiyoruz}
+    secret-key: ${STORAGE_SECRET_KEY:tasiyoruz123}
+    # MinIO sanal-host adreslemeyi localhost'ta çözemez
+    path-style: ${STORAGE_PATH_STYLE:true}
+    create-bucket: ${STORAGE_CREATE_BUCKET:true}
 
 logging:
   level:

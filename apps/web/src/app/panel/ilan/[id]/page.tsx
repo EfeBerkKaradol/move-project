@@ -3,7 +3,7 @@ import { TRIP_STAGE_LABELS } from '@tasiyoruz/contracts';
 import { formatPrice } from '@tasiyoruz/shared';
 import type { Metadata } from 'next';
 import { notFound, redirect } from 'next/navigation';
-import { auth, homeFor, isCustomer } from '@/auth';
+import { auth, canCallApi, homeFor, isCustomer } from '@/auth';
 import { RouteLine } from '@/components/app/RouteLine';
 import { Shell } from '@/components/app/Shell';
 import { StatusPill } from '@/components/app/StatusPill';
@@ -16,7 +16,8 @@ export const dynamic = 'force-dynamic';
 
 export default async function ListingPage({ params }: { params: Promise<{ id: string }> }) {
   const [session, { id }] = await Promise.all([auth(), params]);
-  if (!session || !isCustomer(session.roles)) redirect(homeFor(session?.roles ?? []));
+  if (!canCallApi(session)) redirect('/giris');
+  if (!isCustomer(session.roles)) redirect(homeFor(session.roles));
 
   let listing: ListingView; let offers: OfferView[];
   try {

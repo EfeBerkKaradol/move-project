@@ -3,7 +3,7 @@ import { formatPrice } from '@tasiyoruz/shared';
 import type { Metadata } from 'next';
 import Link from 'next/link';
 import { redirect } from 'next/navigation';
-import { auth, homeFor, isDriver } from '@/auth';
+import { auth, canCallApi, homeFor, isDriver } from '@/auth';
 import { Shell } from '@/components/app/Shell';
 import { SubNav } from '@/components/app/SubNav';
 import { apiFetch } from '@/lib/api-server';
@@ -13,7 +13,8 @@ export const dynamic = 'force-dynamic';
 
 export default async function DriverTripsPage() {
   const session = await auth();
-  if (!session || !isDriver(session.roles)) redirect(homeFor(session?.roles ?? []));
+  if (!canCallApi(session)) redirect('/giris');
+  if (!isDriver(session.roles)) redirect(homeFor(session.roles));
   const trips = await apiFetch<TripView[]>('/driver/trips');
   const active = trips.filter((t) => t.stage !== 'COMPLETED');
   const done = trips.filter((t) => t.stage === 'COMPLETED');

@@ -3,7 +3,7 @@ import { CORRIDOR_STATUS_LABELS } from '@tasiyoruz/contracts';
 import { formatPrice } from '@tasiyoruz/shared';
 import type { Metadata } from 'next';
 import { redirect } from 'next/navigation';
-import { auth, homeFor, isDriver } from '@/auth';
+import { auth, canCallApi, homeFor, isDriver } from '@/auth';
 import { RouteLine } from '@/components/app/RouteLine';
 import { Shell } from '@/components/app/Shell';
 import { SubNav } from '@/components/app/SubNav';
@@ -31,7 +31,8 @@ function provinceChoices(districts: District[]): District[] {
 
 export default async function CorridorPage() {
   const session = await auth();
-  if (!session || !isDriver(session.roles)) redirect(homeFor(session?.roles ?? []));
+  if (!canCallApi(session)) redirect('/giris');
+  if (!isDriver(session.roles)) redirect(homeFor(session.roles));
 
   const [corridors, matches, districts, fleet] = await Promise.all([
     apiFetch<CorridorView[]>('/driver/corridors'),

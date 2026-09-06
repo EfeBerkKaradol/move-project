@@ -11,7 +11,7 @@ Bir maddeyi hallettiğinde söyle, kutusunu işaretleyeyim.
 
 | | Faz 1 | Altyapı | Üretim | Faz 3–4 | Faz 5 | Toplam |
 |---|---|---|---|---|---|---|
-| Bekleyen | 3 | 2 | 3 | 3 | 3 | 14 |
+| Bekleyen | 3 | 4 | 3 | 3 | 3 | 16 |
 | Tamamlanan | 0 | 0 | 0 | 0 | 0 | 0 |
 
 ---
@@ -81,6 +81,45 @@ yurt dışında olduğu için oraya kişisel veri gönderilmiyor (ADR-0005).
 içinde operatörle çalıştırmak gerekir ve bakım yükü ciddi artar.
 
 **Karar zamanı:** Faz 1 bitmeden, gerçek kullanıcı verisi girmeden.
+
+---
+
+### [ ] 18. Nesne deposu (taşıyıcı belgeleri)
+**Ne için:** Ehliyet, ruhsat, SRC, K belgesi gibi belgelerin dosyaları. Kod S3 uyumlu
+bir API'ye göre yazıldı; yerelde `docker-compose`'daki MinIO kullanılıyor, üretimde
+Türkiye'de barındırılan S3 uyumlu bir kova gerekiyor (ADR-0005 — belgeler kişisel veri).
+
+**Nereye:** `services/api/.env`
+```
+STORAGE_ENDPOINT=https://...
+STORAGE_BUCKET=...
+STORAGE_ACCESS_KEY=...
+STORAGE_SECRET_KEY=...
+STORAGE_PATH_STYLE=true
+STORAGE_CREATE_BUCKET=false
+```
+
+**Şu an bloke olan:** Hiçbir şey — yerel MinIO ile çalışıyor. Anahtar verilmezse belge
+yükleme "depo yapılandırılmamış" diyerek açıkça reddediyor, sessizce kaybetmiyor.
+
+**Not:** Kova **herkese açık olmamalı.** Dosyalara yalnızca API üzerinden, sahiplik ya
+da operasyon rolü kontrolüyle erişiliyor; imzalı doğrudan indirme linki yok.
+
+---
+
+### [ ] 19. Keycloak yönetim istemcisi (taşıyıcı rolü atamak için)
+**Ne için:** Başvuru onaylandığında kullanıcıya `DRIVER` realm rolünün verilmesi.
+Bugün onay `CarrierApproved` olayını yayınlıyor ama **rolü kimse atamıyor** — operasyon
+ekibi Keycloak arayüzünden elle veriyor. Otomatikleşmesi için servis hesabı gerekiyor.
+
+**Nereye:** `services/api/.env`
+```
+KEYCLOAK_ADMIN_CLIENT_ID=tasiyoruz-api
+KEYCLOAK_ADMIN_CLIENT_SECRET=...
+```
+
+**Şu an bloke olan:** Onaydan sonra rol atamanın otomatikleşmesi. Başvuru, belge
+yükleme ve onay akışının tamamı bu olmadan çalışıyor.
 
 ---
 

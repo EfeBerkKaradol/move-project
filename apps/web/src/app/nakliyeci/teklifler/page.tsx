@@ -2,7 +2,7 @@ import type { OfferView } from '@tasiyoruz/contracts';
 import { formatPrice } from '@tasiyoruz/shared';
 import type { Metadata } from 'next';
 import { redirect } from 'next/navigation';
-import { auth, homeFor, isDriver } from '@/auth';
+import { auth, canCallApi, homeFor, isDriver } from '@/auth';
 import { Shell } from '@/components/app/Shell';
 import { SubNav } from '@/components/app/SubNav';
 import { StatusPill } from '@/components/app/StatusPill';
@@ -14,7 +14,8 @@ export const dynamic = 'force-dynamic';
 
 export default async function MyOffersPage() {
   const session = await auth();
-  if (!session || !isDriver(session.roles)) redirect(homeFor(session?.roles ?? []));
+  if (!canCallApi(session)) redirect('/giris');
+  if (!isDriver(session.roles)) redirect(homeFor(session.roles));
   const offers = await apiFetch<OfferView[]>('/driver/offers');
 
   return (

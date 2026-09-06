@@ -12,20 +12,28 @@ export class ApiError extends Error {
  * Oturumlu API çağrısı — yalnızca sunucu bileşenleri ve server action'lar.
  * Access token tarayıcıya hiç inmez; Bearer başlığı burada eklenir.
  */
-export async function apiFetch<T>(path: string, init: RequestInit = {}): Promise<T> {
+export async function apiFetch<T>(
+  path: string,
+  init: RequestInit & { timeoutMs?: number } = {},
+): Promise<T> {
   const session = await auth();
   if (!session?.accessToken || session.error === 'RefreshFailed') {
     throw new ApiError(401, 'Oturum gerekli.');
   }
+  const { timeoutMs, ...rest } = init;
+  // FormData'da Content-Type'ı fetch kendisi kuruyor; elle yazmak multipart sınır
+  // (boundary) parametresini düşürür ve sunucu gövdeyi ayrıştıramaz.
+  const isMultipart = rest.body instanceof FormData;
   const res = await fetch(`${API_URL}/api/v1${path}`, {
-    ...init,
+    ...rest,
     headers: {
       Authorization: `Bearer ${session.accessToken}`,
-      ...(init.body ? { 'Content-Type': 'application/json' } : {}),
-      ...(init.headers ?? {}),
+      ...(rest.body && !isMultipart ? { 'Content-Type': 'application/json' } : {}),
+      ...(rest.headers ?? {}),
     },
     cache: 'no-store',
-    signal: AbortSignal.timeout(10_000),
+    // Belge yükleme birkaç MB olabiliyor; varsayılan 10 sn onun için yetmiyor
+    signal: AbortSignal.timeout(timeoutMs ?? (isMultipart ? 60_000 : 10_000)),
   });
   if (!res.ok) {
     const problem = (await res.json().catch(() => null)) as { detail?: string; message?: string } | null;

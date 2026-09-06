@@ -165,8 +165,27 @@ En büyük operasyonel değişiklik. Etkiler:
 | 4 | Tarife modelini mesafe kademeli hâle getir | ✅ V6 kademeler + V8 ulusal varsayılan tarife |
 | 5 | `LoadListing` + `CarrierOffer` (teklif pazarı) | ✅ tamam (V9; ilan → teklif → kabul → iş) |
 | 6 | `Corridor` + `CorridorMatch` (boş dönüş) | ✅ tamam (V11; eşleştirme, puanlama, taşıyıcı ekranı) |
-| 7 | Taşıyıcı belge yükleme (kamerayla) | ⏳ sıradaki |
-| 8 | Teslimatta onay + e-irsaliye | ✅ aşama makinesi + POD + onay (V10) · ⏳ fotoğraf, e-irsaliye |
+| 7 | Taşıyıcı belge yükleme (kamerayla) | ✅ tamam (V12; başvuru, belge, onay kuyruğu, süre takibi) |
+| 8 | Teslimatta onay + e-irsaliye | ✅ aşama makinesi + POD + onay (V10) · ⏳ sıradaki: teslim fotoğrafı, e-irsaliye |
+
+### Belge doğrulama — uygulamada bilinmesi gerekenler
+
+- **Başvuru uçları `/driver` altında değil.** Kayıt olan herkes yük veren olarak başlıyor;
+  DRIVER rolü ancak onaydan sonra veriliyor. Uçlar `/driver/**` altında olsaydı başvurmak
+  için zaten taşıyıcı olmak gerekirdi.
+- **Onay, Keycloak'ta rolü atamıyor.** `CarrierApproved` olayı yayınlanıyor ama rol atama
+  bir yönetim istemcisi istiyor (ANAHTARLAR.md #19); o gelene kadar operasyon rolü elle
+  veriyor. Ekranda kullanıcıya da bu söyleniyor.
+- **Zorunlu belge listesi araç tipine bağlı.** SRC ve K belgesi yalnızca kapasite sırası
+  3 ve üstü araçlarda isteniyor; motokuryeden istemek başvuruyu boşuna kilitlerdi.
+  Kural tek yerde (`DocumentKind.requiredFor`), arayüz kendi kopyasını tutmuyor.
+- **Belgeye dokunmak onayı düşürür.** Onaylı bir taşıyıcı belgesini değiştirdiğinde
+  başvuru taslağa dönüyor; aksi hâlde doğrulanmamış belgeyle iş almaya devam ederdi.
+- **Dosyalar veritabanında değil.** Nesne deposunda (yerelde MinIO); veritabanında yalnızca
+  anahtar var. Kovaya doğrudan erişim yok, indirme sahiplik ya da operasyon kontrolünden
+  geçiyor.
+
+---
 
 ## 6. Açık sorular
 

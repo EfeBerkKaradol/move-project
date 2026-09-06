@@ -15,6 +15,7 @@ java {
 repositories { mavenCentral() }
 
 extra["springModulithVersion"] = "1.3.1"
+extra["awsSdkVersion"] = "2.29.52"
 // Docker Engine 29 uyumu — Boot 3.4 varsayılanı (1.20.4) çok eski API sürümü gönderiyor
 extra["testcontainers.version"] = "1.21.3"
 
@@ -54,6 +55,10 @@ dependencies {
     // api dokümantasyonu → OpenAPI → TS tipleri
     implementation("org.springdoc:springdoc-openapi-starter-webmvc-ui:2.7.0")
 
+    // nesne deposu — taşıyıcı belgeleri. S3 uyumlu API: yerelde MinIO, üretimde
+    // Türkiye'de barındırılan S3 uyumlu bir sağlayıcı; kod değişmiyor (docs/03).
+    implementation("software.amazon.awssdk:s3")
+
     compileOnly("org.projectlombok:lombok")
     annotationProcessor("org.projectlombok:lombok")
 
@@ -65,12 +70,14 @@ dependencies {
     testImplementation("org.testcontainers:postgresql")
     testImplementation("com.redis:testcontainers-redis:2.2.2")
     testImplementation("com.tngtech.archunit:archunit-junit5:1.3.0")
+    testImplementation("org.testcontainers:minio")
     testRuntimeOnly("org.junit.platform:junit-platform-launcher")
 }
 
 dependencyManagement {
     imports {
         mavenBom("org.springframework.modulith:spring-modulith-bom:${property("springModulithVersion")}")
+        mavenBom("software.amazon.awssdk:bom:${property("awsSdkVersion")}")
     }
 }
 

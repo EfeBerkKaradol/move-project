@@ -73,6 +73,17 @@ soket yolunu ayarlayarak bunu çözüyor. Linux CI'da bu blok devre dışı kal�
 dizinini kullanıyor; eşzamanlı çalıştırınca Turbopack panic atıp dev sunucuyu 500'e
 düşürüyor. Build almadan önce dev sunucuyu durdur.
 
+**Keycloak "HTTPS required".** Realm'in `sslRequired` değeri varsayılan `external` ile
+kaldığında Keycloak, Docker ağ geçidinden gelen HTTP isteklerini 403 ile reddediyor ve
+giriş `error=Configuration` ile kırılıyor. Import dosyasında `sslRequired: NONE` —
+yalnızca yerel geliştirme için; üretimde HTTPS zaten zorunlu. Çalışan bir örnekte:
+
+```bash
+docker exec tasiyoruz-keycloak /opt/keycloak/bin/kcadm.sh config credentials \
+  --server http://localhost:8080 --realm master --user admin --password admin
+docker exec tasiyoruz-keycloak /opt/keycloak/bin/kcadm.sh update realms/tasiyoruz -s sslRequired=NONE
+```
+
 **Spring Boot sürümü:** Plan Boot 4 diyordu; Faz 0 uyumluluk doğrulamasında springdoc,
 Modulith ve Redisson için Boot 4 uyumlu sürümler henüz stabil olmadığından **3.4 LTS**
 ile başlandı (docs/07, Faz 0 çıkış kriteri). Ekosistem olgunlaşınca yükseltilecek.

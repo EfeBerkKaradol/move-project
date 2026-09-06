@@ -18,12 +18,13 @@ export default function DocumentsPage() {
     <PlaceholderPage
       eyebrow="Araç sahibi için"
       title="Dört belge, bir kez."
-      cta={{ href: '/sofor-ol', label: 'Şoför olarak katıl' }}
+      cta={{ href: '/sofor-ol', label: 'Başvuruya başla' }}
     >
       <p>
         Belgeler kayıt sırasında kamerayla yüklenir ve doğrulandıktan sonra bir daha
-        istenmez. Hangi belgenin hangi araç tipi için zorunlu olduğu kayıt açılınca burada
-        netleşecek.
+        istenmez. Hangi belgelerin isteneceği seçtiğin araç tipine göre belirlenir:
+        SRC ve K yetki belgesi yalnızca daha büyük araçlarda gerekiyor. Süresi olan
+        belgelerde geçerlilik tarihi de alınır ve dolmadan önce uyarılırsın.
       </p>
       <ul className="space-y-3 pt-2">
         {DOCUMENTS.map(([name, why]) => (

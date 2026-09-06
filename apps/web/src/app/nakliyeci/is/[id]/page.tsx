@@ -2,7 +2,7 @@ import { TRIP_STAGE_LABELS, type TripView } from '@tasiyoruz/contracts';
 import { formatPrice } from '@tasiyoruz/shared';
 import type { Metadata } from 'next';
 import { notFound, redirect } from 'next/navigation';
-import { auth, homeFor, isDriver } from '@/auth';
+import { auth, canCallApi, homeFor, isDriver } from '@/auth';
 import { Shell } from '@/components/app/Shell';
 import { TripTimeline } from '@/components/app/TripTimeline';
 import { ApiError, apiFetch } from '@/lib/api-server';
@@ -15,7 +15,8 @@ export const dynamic = 'force-dynamic';
 /** Araç içinde tek elle kullanım: tek büyük buton, sıradaki aşama (docs/03 sürücü UI). */
 export default async function DriverTripPage({ params }: { params: Promise<{ id: string }> }) {
   const [session, { id }] = await Promise.all([auth(), params]);
-  if (!session || !isDriver(session.roles)) redirect(homeFor(session?.roles ?? []));
+  if (!canCallApi(session)) redirect('/giris');
+  if (!isDriver(session.roles)) redirect(homeFor(session.roles));
   let trip: TripView;
   try { trip = await apiFetch<TripView>(`/driver/trips/${id}`); }
   catch (e) { if (e instanceof ApiError && (e.status === 404 || e.status === 403)) notFound(); throw e; }

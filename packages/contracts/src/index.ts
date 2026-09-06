@@ -287,3 +287,82 @@ export type CreateCorridorRequest = {
   detourToleranceKm: number;
   minAmount?: string | null;
 };
+
+
+// ── Taşıyıcı başvurusu ve belgeler (docs/01 §4.2) ───────────────────
+
+export type CarrierStatus = 'DRAFT' | 'PENDING_REVIEW' | 'APPROVED' | 'REJECTED' | 'SUSPENDED';
+
+export const CARRIER_STATUS_LABELS: Record<CarrierStatus, string> = {
+  DRAFT: 'Taslak',
+  PENDING_REVIEW: 'İncelemede',
+  APPROVED: 'Onaylandı',
+  REJECTED: 'Reddedildi',
+  SUSPENDED: 'Askıya alındı',
+};
+
+export type DocumentKind =
+  | 'DRIVING_LICENCE' | 'VEHICLE_REGISTRATION' | 'TRAFFIC_INSURANCE'
+  | 'SRC' | 'K_DOCUMENT' | 'CRIMINAL_RECORD' | 'TAX_PLATE';
+
+/** Neden istendiği — başvuru ekranında belgenin altında görünür. */
+export const DOCUMENT_KIND_HINTS: Record<DocumentKind, string> = {
+  DRIVING_LICENCE: 'Kullanacağın araç sınıfına uygun ehliyet.',
+  VEHICLE_REGISTRATION: 'Aracın kime kayıtlı olduğu ve azami yüklü ağırlığı buradan doğrulanır.',
+  TRAFFIC_INSURANCE: 'Zorunlu trafik sigortası poliçesi. Son kullanma tarihini de gir.',
+  SRC: 'Ticari yük taşıyan sürücüler için mesleki yeterlilik belgesi.',
+  K_DOCUMENT: 'Ulaştırma Bakanlığı yetki belgesi.',
+  CRIMINAL_RECORD: 'İsteğe bağlı; güven puanını yükseltir.',
+  TAX_PLATE: 'Firma adına başvuruyorsan zorunlu.',
+};
+
+export type DocumentStatus = 'PENDING' | 'APPROVED' | 'REJECTED' | 'EXPIRED';
+
+export const DOCUMENT_STATUS_LABELS: Record<DocumentStatus, string> = {
+  PENDING: 'İncelenecek',
+  APPROVED: 'Onaylandı',
+  REJECTED: 'Reddedildi',
+  EXPIRED: 'Süresi doldu',
+};
+
+export type CarrierDocumentView = {
+  id: string;
+  kind: DocumentKind;
+  kindDisplayName: string;
+  contentType: string;
+  sizeBytes: number;
+  originalFilename: string | null;
+  /** Süresiz belgelerde null. */
+  expiresOn: string | null;
+  status: DocumentStatus;
+  rejectionReason: string | null;
+  uploadedAt: string;
+  reviewedAt: string | null;
+};
+
+export type CarrierProfileView = {
+  id: string;
+  displayName: string;
+  phone: string | null;
+  companyName: string | null;
+  taxId: string | null;
+  vehicleTypeCode: string;
+  plate: string;
+  status: CarrierStatus;
+  reviewNote: string | null;
+  documents: CarrierDocumentView[];
+  /** Henüz yüklenmemiş zorunlu belgeler; eksik listesi bundan çizilir. */
+  missingDocuments: DocumentKind[];
+  submittedAt: string | null;
+  reviewedAt: string | null;
+  createdAt: string;
+};
+
+export type CarrierApplicationRequest = {
+  displayName: string;
+  phone?: string | null;
+  companyName?: string | null;
+  taxId?: string | null;
+  vehicleTypeCode: string;
+  plate: string;
+};

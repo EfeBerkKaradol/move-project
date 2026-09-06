@@ -110,6 +110,20 @@ export const authConfig: NextAuthConfig = {
 
 export const { handlers, auth, signIn, signOut } = NextAuth(authConfig);
 
+/**
+ * Oturum API'yi çağırabilecek durumda mı?
+ *
+ * <p>Yenileme başarısız olduğunda çerez hâlâ duruyor ve `auth()` bir oturum döndürüyor,
+ * ama içindeki access token ölü. Sayfalar yalnızca `!session` diye baksaydı — nitekim
+ * öyle bakıyorlardı — bu kullanıcı giriş ekranı yerine 500 görürdü. Süresi dolmuş
+ * oturum, oturumsuzla aynı muameleyi görmeli.
+ */
+export function canCallApi<T extends { accessToken?: string; error?: string }>(
+  session: T | null | undefined,
+): session is T {
+  return Boolean(session?.accessToken) && session?.error !== 'RefreshFailed';
+}
+
 /** Rol tabanlı yönlendirme için yardımcılar. */
 export const isCustomer = (roles: string[]) => roles.includes('CUSTOMER');
 export const isDriver = (roles: string[]) => roles.includes('DRIVER');
