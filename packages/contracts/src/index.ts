@@ -362,6 +362,8 @@ export type CarrierDocumentView = {
 
 export type CarrierProfileView = {
   id: string;
+  /** Keycloak subject; operasyon uçları taşıyıcıyı bununla adresliyor. */
+  carrierId: string;
   displayName: string;
   phone: string | null;
   companyName: string | null;
@@ -385,4 +387,20 @@ export type CarrierApplicationRequest = {
   taxId?: string | null;
   vehicleTypeCode: string;
   plate: string;
+};
+
+
+// ── Operasyon paneli (docs/01 §4.13) ────────────────────────────────
+
+export type OverviewView = {
+  openListings: number;
+  listingsAwaitingOffer: number;
+  activeTrips: number;
+  completedTrips: number;
+  carriersPendingReview: number;
+  approvedCarriers: number;
+  suspendedCarriers: number;
+  activeCorridors: number;
+  /** Tamamlanan işlerin toplam tutarı — komisyonsuz dönemde ciro değil, hacim. */
+  completedVolume: Money;
 };

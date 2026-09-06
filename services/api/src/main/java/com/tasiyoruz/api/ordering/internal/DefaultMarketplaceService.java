@@ -4,10 +4,12 @@ import static com.tasiyoruz.api.ordering.internal.MarketplaceExceptions.*;
 
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.tasiyoruz.api.fleet.api.CarrierDirectory;
 import com.tasiyoruz.api.geo.api.District;
 import com.tasiyoruz.api.geo.api.GeoService;
 import com.tasiyoruz.api.ordering.api.*;
 import com.tasiyoruz.api.ordering.api.MarketplaceEvents.ListingAwarded;
+import com.tasiyoruz.api.ordering.api.MarketplaceEvents.ListingExpired;
 import com.tasiyoruz.api.ordering.api.MarketplaceEvents.ListingPublished;
 import com.tasiyoruz.api.ordering.api.MarketplaceEvents.OfferSubmitted;
 import com.tasiyoruz.api.ordering.domain.CarrierOffer;
@@ -45,17 +47,20 @@ class DefaultMarketplaceService implements MarketplaceService {
 
     private final LoadListingRepository listings;
     private final CarrierOfferRepository offers;
+    private final CarrierDirectory carriers;
     private final GeoService geo;
     private final PricingService pricing;
     private final ApplicationEventPublisher events;
     private final ObjectMapper mapper;
     private final Clock clock;
 
-    DefaultMarketplaceService(LoadListingRepository listings, CarrierOfferRepository offers, GeoService geo,
+    DefaultMarketplaceService(LoadListingRepository listings, CarrierOfferRepository offers,
+                              CarrierDirectory carriers, GeoService geo,
                               PricingService pricing, ApplicationEventPublisher events, ObjectMapper mapper,
                               Clock clock) {
         this.listings = listings;
         this.offers = offers;
+        this.carriers = carriers;
         this.geo = geo;
         this.pricing = pricing;
         this.events = events;
@@ -96,6 +101,49 @@ class DefaultMarketplaceService implements MarketplaceService {
         events.publishEvent(new ListingPublished(listing.getId().toString(), listing.getVehicleTypeCode(),
                 pickup.id(), dropoff.id(), listing.getEstimatedAmount()));
         return view(listing);
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public List<ListingView> allListings(ListingStatus status) {
+        var all = status == null
+                ? listings.findAll(org.springframework.data.domain.Sort.by(
+                        org.springframework.data.domain.Sort.Direction.DESC, "publishedAt"))
+                : listings.findByStatusInOrderByPublishedAtDesc(List.of(status));
+        return all.stream().map(this::view).toList();
+    }
+
+    @Override
+    public ListingView cancelAsOperations(String listingId, String reason) {
+        if (reason == null || reason.isBlank()) throw badRequest("İptal gerekçesi zorunlu.");
+        var listing = parse(listingId).flatMap(listings::findById).orElseThrow(() -> notFound("İlan"));
+        if (listing.getStatus() != ListingStatus.OPEN) {
+            throw conflict("Yalnızca açık ilan iptal edilebilir.");
+        }
+        var now = Instant.now(clock);
+        DomainAccess.cancel(listing, reason, now);
+        for (var offer : offers.findByListingIdOrderBySubmittedAtAsc(listing.getId())) {
+            if (offer.getStatus() == OfferStatus.SUBMITTED) respond(offer, OfferStatus.REJECTED, now);
+        }
+        return view(listing);
+    }
+
+    @Override
+    public int expireOverdueListings() {
+        var now = Instant.now(clock);
+        var overdue = listings.findByStatusAndExpiresAtBefore(ListingStatus.OPEN, now);
+        for (var listing : overdue) {
+            DomainAccess.expire(listing);
+            // Bekleyen teklifler de kapanır; aksi hâlde taşıyıcı "bekliyor" görünen
+            // ama artık kabul edilemeyecek bir teklifle kalırdı
+            for (var offer : offers.findByListingIdOrderBySubmittedAtAsc(listing.getId())) {
+                if (offer.getStatus() == OfferStatus.SUBMITTED) {
+                    respond(offer, OfferStatus.REJECTED, now);
+                }
+            }
+            events.publishEvent(new ListingExpired(listing.getId().toString(), listing.getShipperId()));
+        }
+        return overdue.size();
     }
 
     @Override
@@ -145,6 +193,12 @@ class DefaultMarketplaceService implements MarketplaceService {
         }
         if (listing.isOwnedBy(carrierId)) {
             throw conflict("Kendi ilanınıza teklif veremezsiniz.");
+        }
+        // Belge doğrulamasının yaptırımı burada. Bu kontrol olmadan onay kuyruğu,
+        // süre takibi ve askıya alma tamamen süs olurdu: belgesi dolmuş taşıyıcı
+        // iş almaya devam ederdi.
+        if (!carriers.canTakeWork(carrierId)) {
+            throw forbidden("Teklif verebilmek için taşıyıcı başvurunuzun onaylı olması gerekiyor.");
         }
 
         var existing = offers.findByListingIdAndCarrierId(listing.getId(), carrierId);

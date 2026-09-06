@@ -2,6 +2,7 @@ package com.tasiyoruz.api.corridor.internal;
 
 import com.tasiyoruz.api.corridor.api.MatchOutcome;
 import com.tasiyoruz.api.ordering.api.MarketplaceEvents.ListingAwarded;
+import com.tasiyoruz.api.ordering.api.MarketplaceEvents.ListingExpired;
 import com.tasiyoruz.api.ordering.api.MarketplaceEvents.ListingPublished;
 import com.tasiyoruz.api.ordering.api.MarketplaceEvents.OfferSubmitted;
 import com.tasiyoruz.api.ordering.api.MarketplaceService;
@@ -50,6 +51,12 @@ class MarketplaceListener {
     /** İlan başkasına verildiğinde diğer taşıyıcıların eşleşmeleri kapanır. */
     @ApplicationModuleListener
     void on(ListingAwarded event) {
+        matcher.closeMatchesFor(UUID.fromString(event.listingId()), MatchOutcome.EXPIRED);
+    }
+
+    /** Teklif penceresi dolan ilan taşıyıcının listesinde asılı kalmasın. */
+    @ApplicationModuleListener
+    void on(ListingExpired event) {
         matcher.closeMatchesFor(UUID.fromString(event.listingId()), MatchOutcome.EXPIRED);
     }
 }

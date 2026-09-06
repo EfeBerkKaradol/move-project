@@ -5,6 +5,7 @@ import com.tasiyoruz.api.corridor.api.CorridorStatus;
 import com.tasiyoruz.api.corridor.api.MatchOutcome;
 import com.tasiyoruz.api.corridor.domain.Corridor;
 import com.tasiyoruz.api.corridor.domain.DomainAccess;
+import com.tasiyoruz.api.fleet.api.CarrierDirectory;
 import com.tasiyoruz.api.geo.api.District;
 import com.tasiyoruz.api.geo.api.GeoService;
 import com.tasiyoruz.api.ordering.api.ListingView;
@@ -35,15 +36,17 @@ class CorridorMatcher {
     private final DetourCalculator detours;
     private final GeoService geo;
     private final FleetService fleet;
+    private final CarrierDirectory carriers;
     private final Clock clock;
 
     CorridorMatcher(CorridorRepository corridors, CorridorMatchRepository matches, DetourCalculator detours,
-                    GeoService geo, FleetService fleet, Clock clock) {
+                    GeoService geo, FleetService fleet, CarrierDirectory carriers, Clock clock) {
         this.corridors = corridors;
         this.matches = matches;
         this.detours = detours;
         this.geo = geo;
         this.fleet = fleet;
+        this.carriers = carriers;
         this.clock = clock;
     }
 
@@ -64,6 +67,9 @@ class CorridorMatcher {
 
         for (var corridor : corridors.findMatchable(CorridorStatus.ACTIVE, now)) {
             if (!corridor.matchable(now)) continue;
+            // Onaysız ya da askıya alınmış taşıyıcıya iş getirmenin anlamı yok:
+            // teklif verdiğinde zaten reddedilir
+            if (!carriers.canTakeWork(corridor.getCarrierId())) continue;
             if (!capacityCovers(corridor, required)) continue;
             if (belowMinimum(corridor, listing)) continue;
 
@@ -100,6 +106,15 @@ class CorridorMatcher {
             if (match.getOutcome() == MatchOutcome.PENDING) {
                 DomainAccess.resolve(match, outcome, now);
             }
+        }
+    }
+
+    /** Koridor kapandığında bekleyen eşleşmeleri düşürür. */
+    @Transactional
+    void closeMatchesForCorridor(UUID corridorId) {
+        var now = Instant.now(clock);
+        for (var match : matches.findByCorridorIdAndOutcome(corridorId, MatchOutcome.PENDING)) {
+            DomainAccess.resolve(match, MatchOutcome.EXPIRED, now);
         }
     }
 

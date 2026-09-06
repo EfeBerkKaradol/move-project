@@ -10,4 +10,5 @@ interface TripRepository extends JpaRepository<Trip, UUID> {
     Optional<Trip> findByListingId(UUID listingId);
     List<Trip> findByCarrierIdOrderByStartedAtDesc(String carrierId);
     List<Trip> findByShipperIdOrderByStartedAtDesc(String shipperId);
+    List<Trip> findAllByOrderByStartedAtDesc();
 }

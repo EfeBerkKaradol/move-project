@@ -1,6 +1,6 @@
 import Link from 'next/link';
 import { redirect } from 'next/navigation';
-import { auth, homeFor, isDriver, signOutEverywhere } from '@/auth';
+import { auth, homeFor, isDriver, isOps, signOutEverywhere } from '@/auth';
 
 const NAV = [
   { href: '/#nasil-calisir', label: 'Nasıl çalışır' },
@@ -42,7 +42,7 @@ export async function Header() {
           {signedIn ? (
             <>
               <Link href={homeFor(roles)} className="py-3.5 text-sm font-semibold text-ink">
-                {isDriver(roles) ? 'Nakliyeci paneli' : 'Panelim'}
+                {isOps(roles) ? 'Operasyon' : isDriver(roles) ? 'Nakliyeci paneli' : 'Panelim'}
               </Link>
               <form action={async () => { 'use server'; redirect(await signOutEverywhere('/')); }}>
                 <button type="submit" className="rounded-field border border-line px-4 py-3 text-sm font-semibold text-ink transition hover:border-amber hover:bg-surface-2">

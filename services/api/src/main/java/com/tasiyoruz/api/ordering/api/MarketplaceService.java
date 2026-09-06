@@ -28,4 +28,22 @@ public interface MarketplaceService {
 
     /** Seçilen teklif kabul edilir, diğerleri reddedilir, ilan AWARDED olur. */
     ListingView acceptOffer(String shipperId, String listingId, String offerId);
+
+    /**
+     * Teklif penceresi dolan açık ilanları EXPIRED yapar ve bekleyen teklifleri kapatır.
+     *
+     * @return kapatılan ilan sayısı
+     */
+    int expireOverdueListings();
+
+    // ── Operasyon ────────────────────────────────────────────────────
+
+    /** Tüm ilanlar, isteğe bağlı durum süzgeciyle. Yalnızca operasyon uçlarından çağrılır. */
+    List<ListingView> allListings(ListingStatus status);
+
+    /**
+     * Operasyon bir ilanı kapatır (kötüye kullanım, yanlış bilgi, kullanıcı talebi).
+     * Sahiplik aranmaz; gerekçe zorunlu ve kayda geçer.
+     */
+    ListingView cancelAsOperations(String listingId, String reason);
 }

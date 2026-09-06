@@ -119,6 +119,24 @@ class DefaultCorridorService implements CorridorService {
         DomainAccess.resolve(match, MatchOutcome.IGNORED, Instant.now(clock));
     }
 
+    @Override
+    @Transactional(readOnly = true)
+    public long activeCorridorCount() {
+        return corridors.countByStatus(CorridorStatus.ACTIVE);
+    }
+
+    @Override
+    public int expireOverdueCorridors() {
+        var overdue = corridors.findByStatusAndDepartureToBefore(CorridorStatus.ACTIVE, Instant.now(clock));
+        for (var corridor : overdue) {
+            DomainAccess.expire(corridor);
+            // Kapanan koridorun bekleyen eşleşmeleri de düşsün; taşıyıcı artık
+            // gitmeyeceği bir rota için ilan listesi görmemeli
+            matcher.closeMatchesForCorridor(corridor.getId());
+        }
+        return overdue.size();
+    }
+
     /**
      * Koridor kurulduğunda açık ilanları tarar. Eşleştirici zaten tüm koridorlara
      * bakıyor ve yazılmış eşleşmeyi atlıyor, bu yüzden tarama yeni koridorla sınırlı

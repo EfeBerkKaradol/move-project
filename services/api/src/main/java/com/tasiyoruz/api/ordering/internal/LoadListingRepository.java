@@ -24,6 +24,13 @@ interface LoadListingRepository extends JpaRepository<LoadListing, UUID> {
                                @Param("vehicleType") String vehicleType,
                                @Param("pickupDistrictIds") List<UUID> pickupDistrictIds);
 
+    /** Süre dolumu taraması: açık kalmış ama penceresi geçmiş ilanlar. */
+    List<LoadListing> findByStatusAndExpiresAtBefore(ListingStatus status, Instant now);
+
+    List<LoadListing> findByStatusInOrderByPublishedAtDesc(List<ListingStatus> statuses);
+
+    long countByStatus(ListingStatus status);
+
     @Query(value = "select nextval('listing_number_seq')", nativeQuery = true)
     long nextListingNumber();
 }

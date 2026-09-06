@@ -46,4 +46,7 @@ public interface TripService {
 
     /** Müşteri teslimatı onaylar → COMPLETED. */
     TripView confirmDelivery(String shipperId, String tripId);
+
+    /** Tüm işler, en yeni önce. Yalnızca operasyon uçlarından çağrılır. */
+    List<TripView> allTrips();
 }

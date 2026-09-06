@@ -32,7 +32,7 @@ import org.springframework.transaction.annotation.Transactional;
  */
 @Service
 @Transactional
-class DefaultCarrierService implements CarrierService {
+class DefaultCarrierService implements CarrierService, CarrierDirectory {
 
     private static final Logger log = LoggerFactory.getLogger(DefaultCarrierService.class);
     private static final ZoneId TR = ZoneId.of("Europe/Istanbul");
@@ -81,6 +81,22 @@ class DefaultCarrierService implements CarrierService {
     @Transactional(readOnly = true)
     public Optional<CarrierProfileView> profileOf(String carrierId) {
         return profiles.findByCarrierId(carrierId).map(this::view);
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public boolean canTakeWork(String carrierId) {
+        return profiles.findByCarrierId(carrierId)
+                .map(p -> p.getStatus() == CarrierStatus.APPROVED)
+                .orElse(false);
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public Optional<CarrierSummary> summary(String carrierId) {
+        return profiles.findByCarrierId(carrierId).map(p -> new CarrierSummary(
+                p.getCarrierId(), p.getDisplayName(), p.getCompanyName(),
+                p.getVehicleTypeCode(), p.getPlate(), p.getStatus()));
     }
 
     @Override
@@ -167,6 +183,51 @@ class DefaultCarrierService implements CarrierService {
     public List<CarrierProfileView> pendingReview() {
         return profiles.findByStatusOrderBySubmittedAtAsc(CarrierStatus.PENDING_REVIEW).stream()
                 .map(this::view).toList();
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public List<CarrierProfileView> carriers(CarrierStatus status) {
+        var all = status == null
+                ? profiles.findAllByOrderByCreatedAtDesc()
+                : profiles.findByStatusOrderBySubmittedAtAsc(status);
+        return all.stream().map(this::view).toList();
+    }
+
+    @Override
+    public CarrierProfileView suspend(String carrierId, String reason) {
+        if (reason == null || reason.isBlank()) throw badRequest("Askıya alma gerekçesi zorunlu.");
+        var profile = profiles.findByCarrierId(carrierId).orElseThrow(() -> notFound("Başvuru"));
+        if (profile.getStatus() != CarrierStatus.APPROVED) {
+            throw conflict("Yalnızca onaylı taşıyıcı askıya alınabilir.");
+        }
+        var now = Instant.now(clock);
+        DomainAccess.suspend(profile, reason, now);
+        events.publishEvent(new CarrierSuspended(carrierId, reason));
+        log.info("Taşıyıcı operasyon kararıyla askıya alındı: {} — {}", carrierId, reason);
+        return view(profile);
+    }
+
+    @Override
+    public CarrierProfileView reactivate(String carrierId) {
+        var profile = profiles.findByCarrierId(carrierId).orElseThrow(() -> notFound("Başvuru"));
+        if (profile.getStatus() != CarrierStatus.SUSPENDED) {
+            throw conflict("Yalnızca askıdaki taşıyıcı yeniden açılabilir.");
+        }
+        // Askıya alma sebebi süresi dolmuş belge olabilir; belge yenilenmeden
+        // yeniden açmak, doğrulamayı tek tıkla bypass etmek olurdu
+        var today = LocalDate.now(clock.withZone(TR));
+        var invalid = requiredKinds(profile).stream()
+                .filter(k -> profile.getDocuments().stream().noneMatch(d -> d.getKind() == k && d.valid(today)))
+                .map(DocumentKind::displayName).toList();
+        if (!invalid.isEmpty()) {
+            throw conflict("Şu belgeler geçerli değil: " + String.join(", ", invalid));
+        }
+        var now = Instant.now(clock);
+        DomainAccess.approve(profile, "Askı kaldırıldı", now);
+        events.publishEvent(new CarrierApproved(profile.getCarrierId(), profile.getDisplayName(),
+                profile.getVehicleTypeCode(), profile.getPlate()));
+        return view(profile);
     }
 
     @Override
@@ -286,7 +347,7 @@ class DefaultCarrierService implements CarrierService {
                         d.getContentType(), d.getSizeBytes(), d.getOriginalFilename(), d.getExpiresOn(),
                         d.getStatus(), d.getRejectionReason(), d.getUploadedAt(), d.getReviewedAt()))
                 .toList();
-        return new CarrierProfileView(p.getId().toString(), p.getDisplayName(), p.getPhone(),
+        return new CarrierProfileView(p.getId().toString(), p.getCarrierId(), p.getDisplayName(), p.getPhone(),
                 p.getCompanyName(), p.getTaxId(), p.getVehicleTypeCode(), p.getPlate(), p.getStatus(),
                 p.getReviewNote(), docs, missing(p), p.getSubmittedAt(), p.getReviewedAt(), p.getCreatedAt());
     }

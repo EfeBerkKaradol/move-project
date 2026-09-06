@@ -183,7 +183,24 @@
         }
       ],
       "realmRoles": [
-        "OPS_AGENT",
+        "OPS_AGENT"
+      ]
+    },
+    {
+      "username": "admin@tasiyoruz.local",
+      "enabled": true,
+      "emailVerified": true,
+      "email": "admin@tasiyoruz.local",
+      "firstName": "Sistem",
+      "lastName": "Yöneticisi",
+      "credentials": [
+        {
+          "type": "password",
+          "value": "tasiyoruz",
+          "temporary": false
+        }
+      ],
+      "realmRoles": [
         "ADMIN"
       ]
     }

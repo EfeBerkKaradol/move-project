@@ -195,6 +195,11 @@ class DefaultTripService implements TripService {
         return view(trip);
     }
 
+    @Override @Transactional(readOnly = true)
+    public List<TripView> allTrips() {
+        return trips.findAllByOrderByStartedAtDesc().stream().map(this::view).toList();
+    }
+
     // --- yardımcılar ---
 
     private TripPhoto photo(UUID tripId, String photoId) {

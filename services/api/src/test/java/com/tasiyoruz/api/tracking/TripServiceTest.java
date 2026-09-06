@@ -3,6 +3,7 @@ package com.tasiyoruz.api.tracking;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
+import com.tasiyoruz.api.CarrierFixture;
 import com.tasiyoruz.api.IntegrationTestBase;
 import com.tasiyoruz.api.geo.api.GeoService;
 import com.tasiyoruz.api.ordering.api.CreateListingRequest;
@@ -17,6 +18,7 @@ import com.tasiyoruz.api.tracking.api.TripView;
 import java.math.BigDecimal;
 import java.time.Duration;
 import java.util.List;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 
@@ -28,6 +30,19 @@ class TripServiceTest extends IntegrationTestBase {
     @Autowired GeoService geo;
 
     static final String SHIPPER = "trip-shipper", CARRIER = "trip-carrier";
+
+    @Autowired CarrierFixture carrierFixture;
+
+    /** Teklif verme onaylı başvuru istiyor; taşıyıcı bir kez onaylanıyor. */
+    @BeforeEach
+    void onayliTasiyici() {
+        if (!approved) {
+            carrierFixture.approve(CARRIER);
+            approved = true;
+        }
+    }
+
+    private static boolean approved;
 
     private String district(String city, String slug) {
         return geo.districtsOf(city).stream().filter(d -> d.slug().equals(slug)).findFirst().orElseThrow().id();

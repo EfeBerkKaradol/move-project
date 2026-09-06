@@ -3,6 +3,7 @@ package com.tasiyoruz.api.corridor;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
+import com.tasiyoruz.api.CarrierFixture;
 import com.tasiyoruz.api.IntegrationTestBase;
 import com.tasiyoruz.api.corridor.api.*;
 import com.tasiyoruz.api.geo.api.GeoService;
@@ -29,11 +30,15 @@ import org.springframework.web.server.ResponseStatusException;
 class CorridorServiceTest extends IntegrationTestBase {
 
     @Autowired CorridorService corridors;
+    @Autowired CarrierFixture carrierFixture;
     @Autowired MarketplaceService marketplace;
     @Autowired GeoService geo;
 
+    /** Eşleşme onaylı taşıyıcı istiyor; her test kendi taşıyıcısını onaylatıyor. */
     private String carrier() {
-        return "carrier-" + UUID.randomUUID();
+        var id = "carrier-" + UUID.randomUUID();
+        carrierFixture.approve(id);
+        return id;
     }
 
     private String district(String city, String slug) {

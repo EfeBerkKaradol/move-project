@@ -19,4 +19,14 @@ public interface CorridorService {
 
     /** Taşıyıcı ilgilenmediğini söyler; eşleşme listeden düşer. */
     void ignore(String carrierId, String matchId);
+
+    /**
+     * Kalkış penceresi geçmiş aktif koridorları EXPIRED yapar.
+     *
+     * @return kapatılan koridor sayısı
+     */
+    int expireOverdueCorridors();
+
+    /** Operasyon panosu için: eşleştirmeye açık koridor sayısı. */
+    long activeCorridorCount();
 }

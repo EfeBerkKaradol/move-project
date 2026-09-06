@@ -19,4 +19,9 @@ interface CorridorRepository extends JpaRepository<Corridor, UUID> {
             where c.status = :status and c.departureTo >= :now
             """)
     List<Corridor> findMatchable(@Param("status") CorridorStatus status, @Param("now") Instant now);
+
+    /** Süre dolumu taraması: aktif kalmış ama kalkış penceresi geçmiş koridorlar. */
+    List<Corridor> findByStatusAndDepartureToBefore(CorridorStatus status, Instant now);
+
+    long countByStatus(CorridorStatus status);
 }

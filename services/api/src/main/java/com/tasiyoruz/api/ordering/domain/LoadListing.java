@@ -102,6 +102,11 @@ public class LoadListing {
         this.awardedOfferId = offerId;
     }
 
+    /** Teklif penceresi doldu. İptalden ayrı: kullanıcı bir şey yapmadı, süre işledi. */
+    void expire() {
+        this.status = ListingStatus.EXPIRED;
+    }
+
     void cancel(String reason, Instant now) {
         this.status = ListingStatus.CANCELLED;
         this.cancelReason = reason;

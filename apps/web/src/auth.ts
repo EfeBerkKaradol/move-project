@@ -127,6 +127,8 @@ export function canCallApi<T extends { accessToken?: string; error?: string }>(
 /** Rol tabanlı yönlendirme için yardımcılar. */
 export const isCustomer = (roles: string[]) => roles.includes('CUSTOMER');
 export const isDriver = (roles: string[]) => roles.includes('DRIVER');
+/** Operasyon paneline erişebilenler: operasyon ekibi ve yöneticiler. */
+export const isOps = (roles: string[]) => roles.includes('OPS_AGENT') || roles.includes('ADMIN');
 
 /**
  * Kullanıcının ait olduğu panel.
@@ -138,6 +140,8 @@ export const isDriver = (roles: string[]) => roles.includes('DRIVER');
  * rol elle kaldırılabilir ya da yeni bir rol eklenebilir.
  */
 export function homeFor(roles: string[]): string {
+  // Operasyon önce: aynı kişide hem OPS_AGENT hem CUSTOMER olabilir, işi paneldedir
+  if (isOps(roles)) return '/yonetim';
   if (isDriver(roles)) return '/nakliyeci';
   if (isCustomer(roles)) return '/panel';
   return '/hesap';

@@ -11,6 +11,11 @@ import java.util.List;
  */
 public record CarrierProfileView(
         String id,
+        /**
+         * Keycloak subject. Operasyon uçları taşıyıcıyı bununla adresliyor; profil
+         * kaydının kendi id'si başka bir değer ve uçlarda işe yaramıyor.
+         */
+        String carrierId,
         String displayName,
         String phone,
         String companyName,

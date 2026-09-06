@@ -16,4 +16,7 @@ public final class MarketplaceEvents {
 
     public record ListingAwarded(String listingId, String offerId, String carrierId, String shipperId,
                                  BigDecimal amount) {}
+
+    /** Teklif penceresi teklif alınmadan doldu. */
+    public record ListingExpired(String listingId, String shipperId) {}
 }

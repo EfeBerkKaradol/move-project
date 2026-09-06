@@ -3,7 +3,6 @@ package com.tasiyoruz.api.shared.config;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.http.HttpMethod;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.config.http.SessionCreationPolicy;
@@ -37,8 +36,10 @@ class SecurityConfig {
                         .requestMatchers("/ws/public/**", "/ws/track/**").permitAll()
                         .requestMatchers("/actuator/health/**", "/actuator/prometheus").permitAll()
                         .requestMatchers("/v3/api-docs/**", "/swagger-ui/**", "/swagger-ui.html").permitAll()
-                        .requestMatchers(HttpMethod.GET, "/api/v1/admin/**").hasAnyRole("OPS_AGENT", "ADMIN")
-                        .requestMatchers("/api/v1/admin/**").hasRole("ADMIN")
+                        // Operasyon ekibi onay kuyruğunu yürütüyor (docs/01 FR-13.3).
+                        // Yazma yalnızca ADMIN olsaydı belge onaylamak da yönetici işi
+                        // olurdu ve kuyruk tıkanırdı.
+                        .requestMatchers("/api/v1/admin/**").hasAnyRole("OPS_AGENT", "ADMIN")
                         .requestMatchers("/api/v1/driver/**").hasRole("DRIVER")
                         .requestMatchers("/api/v1/fleet/**").hasAnyRole("FLEET_MANAGER", "ADMIN")
                         .anyRequest().authenticated())

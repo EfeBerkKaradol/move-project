@@ -15,6 +15,10 @@ final class MarketplaceExceptions {
         return new ResponseStatusException(HttpStatus.FORBIDDEN, "Bu kayıt size ait değil.");
     }
 
+    static ResponseStatusException forbidden(String detail) {
+        return new ResponseStatusException(HttpStatus.FORBIDDEN, detail);
+    }
+
     static ResponseStatusException conflict(String detail) {
         return new ResponseStatusException(HttpStatus.CONFLICT, detail);
     }

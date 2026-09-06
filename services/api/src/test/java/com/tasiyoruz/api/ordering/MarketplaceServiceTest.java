@@ -3,11 +3,13 @@ package com.tasiyoruz.api.ordering;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
+import com.tasiyoruz.api.CarrierFixture;
 import com.tasiyoruz.api.IntegrationTestBase;
 import com.tasiyoruz.api.geo.api.GeoService;
 import com.tasiyoruz.api.ordering.api.*;
 import java.math.BigDecimal;
 import java.util.List;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.server.ResponseStatusException;
@@ -20,8 +22,22 @@ class MarketplaceServiceTest extends IntegrationTestBase {
 
     @Autowired MarketplaceService marketplace;
     @Autowired GeoService geo;
+    @Autowired com.tasiyoruz.api.fleet.api.CarrierService carriers;
 
     static final String SHIPPER = "shipper-1", CARRIER_A = "carrier-a", CARRIER_B = "carrier-b";
+
+    @Autowired CarrierFixture carrierFixture;
+
+    @BeforeEach
+    void onayliTasiyicilar() {
+        if (!approved) {
+            carrierFixture.approve(CARRIER_A);
+            carrierFixture.approve(CARRIER_B);
+            approved = true;
+        }
+    }
+
+    private static boolean approved;
 
     private String district(String city, String slug) {
         return geo.districtsOf(city).stream().filter(d -> d.slug().equals(slug)).findFirst().orElseThrow().id();
@@ -129,5 +145,53 @@ class MarketplaceServiceTest extends IntegrationTestBase {
         assertThat(cancelled.status()).isEqualTo(ListingStatus.CANCELLED);
         assertThat(marketplace.offersOf(CARRIER_A)).filteredOn(o -> o.id().equals(a.id()))
                 .singleElement().extracting(OfferView::status).isEqualTo(OfferStatus.REJECTED);
+    }
+
+    @Test
+    void onaysizTasiyiciTeklifVeremez() {
+        var l = publish();
+        var basvurusuz = "carrier-" + java.util.UUID.randomUUID();
+
+        assertThatThrownBy(() -> marketplace.submitOffer(basvurusuz, "Kayıtsız", l.id(), offer("9000")))
+                .as("Belge doğrulamasının yaptırımı bu kontrol")
+                .isInstanceOf(ResponseStatusException.class)
+                .hasMessageContaining("onaylı olması gerekiyor");
+    }
+
+    @Test
+    void askiyaAlinanTasiyiciTeklifVeremez() {
+        var askidaki = "carrier-" + java.util.UUID.randomUUID();
+        carrierFixture.approve(askidaki);
+        var l = publish();
+        // Onaylıyken verebiliyor
+        marketplace.submitOffer(askidaki, "Onaylı", l.id(), offer("9000"));
+
+        carriers.suspend(askidaki, "Belge süresi doldu");
+        var yeniIlan = publish();
+
+        assertThatThrownBy(() -> marketplace.submitOffer(askidaki, "Onaylı", yeniIlan.id(), offer("9000")))
+                .isInstanceOf(ResponseStatusException.class)
+                .hasMessageContaining("onaylı olması gerekiyor");
+    }
+
+    @Test
+    void suresiDolanIlanKapanir_bekleyenTekliflerReddedilir() {
+        // Alış penceresi geçmiş planlı ilan: yayın anında zaten süresi dolmuş sayılır
+        var gecmis = marketplace.publish(SHIPPER, new CreateListingRequest(
+                "SCHEDULED", "KAMYONET",
+                new CreateListingRequest.Stop(district("34", "kadikoy"), 0, true),
+                new CreateListingRequest.Stop(district("06", "cankaya"), 0, true),
+                List.of(), "Süresi geçmiş ilan",
+                java.time.Instant.now().minus(java.time.Duration.ofHours(2)),
+                java.time.Instant.now().minus(java.time.Duration.ofHours(1))));
+        assertThat(gecmis.status()).isEqualTo(ListingStatus.OPEN);
+
+        int kapanan = marketplace.expireOverdueListings();
+        assertThat(kapanan).isPositive();
+
+        var sonra = marketplace.listing(gecmis.id()).orElseThrow();
+        assertThat(sonra.status())
+                .as("Arayüzdeki 'süresi doldu' rozeti ancak bu geçişle görünebilir")
+                .isEqualTo(ListingStatus.EXPIRED);
     }
 }

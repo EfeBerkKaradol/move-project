@@ -28,6 +28,15 @@ public interface CarrierService {
 
     List<CarrierProfileView> pendingReview();
 
+    /** Tüm taşıyıcı başvuruları, isteğe bağlı durum süzgeciyle. */
+    List<CarrierProfileView> carriers(CarrierStatus status);
+
+    /** Onaylı taşıyıcıyı askıya alır; iş alması durur. Gerekçe zorunlu. */
+    CarrierProfileView suspend(String carrierId, String reason);
+
+    /** Askıdaki taşıyıcıyı yeniden onaylar. Belgeleri hâlâ geçerli olmalı. */
+    CarrierProfileView reactivate(String carrierId);
+
     CarrierProfileView reviewDocument(String documentId, ReviewDecision decision);
 
     CarrierProfileView reviewProfile(String carrierId, ReviewDecision decision);

@@ -21,7 +21,18 @@ pnpm dev               # Next.js  → localhost:3000
 | MinIO | http://localhost:9001 | tasiyoruz / tasiyoruz123 |
 | Mailhog | http://localhost:8025 | — |
 
-Test kullanıcıları (şifre `tasiyoruz`): `musteri@`, `nakliyeci@`, `operasyon@tasiyoruz.local`
+Test kullanıcıları (şifre `tasiyoruz`), hepsi `@tasiyoruz.local`:
+
+| Kullanıcı | Rol | Açılış sayfası |
+|---|---|---|
+| `musteri` | CUSTOMER | `/panel` |
+| `nakliyeci` | DRIVER | `/nakliyeci` |
+| `operasyon` | OPS_AGENT | `/yonetim` |
+| `admin` | ADMIN | `/yonetim` |
+
+⚠️ `nakliyeci` kullanıcısının onaylı taşıyıcı başvurusu **yok**. Teklif verebilmesi için
+önce `/sofor-ol` üzerinden başvurup `/yonetim/basvurular` ekranından onaylanması
+gerekiyor — belge doğrulamasının yaptırımı bu.
 
 **Eksik anahtarlar:** [ANAHTARLAR.md](ANAHTARLAR.md) — hangi dış servisin beklendiği ve
 neyin bloke olduğu orada. Gerçek değerler `.env` dosyalarında, repoya girmez.

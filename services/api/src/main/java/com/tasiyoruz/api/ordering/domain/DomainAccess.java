@@ -17,5 +17,6 @@ public final class DomainAccess {
         o.resubmit(amount, note, pickupAt, now);
     }
     public static void award(LoadListing l, UUID offerId) { l.award(offerId); }
+    public static void expire(LoadListing l) { l.expire(); }
     public static void cancel(LoadListing l, String reason, Instant now) { l.cancel(reason, now); }
 }
