@@ -24,14 +24,38 @@ const plexMono = IBM_Plex_Mono({
   display: 'swap',
 });
 
+/**
+ * Paylaşım ve arama sonuçları için mutlak adres.
+ *
+ * <p>Bu olmadan Next açılış görselini ve kanonik adresi göreli üretiyor; WhatsApp ve
+ * arama motorları göreli adresi çözemediği için önizleme boş çıkıyor. Ortamdan geliyor:
+ * sabit yazılsaydı önizleme her dağıtımda localhost'u gösterirdi.
+ */
+const siteUrl = process.env.NEXT_PUBLIC_SITE_URL?.trim() || 'http://localhost:3000';
+
+const description =
+  'Rotanızı girin, doğrulanmış araç sahiplerinden teklif alın. Aracı siz seçin, ' +
+  'ödemeyi teslimatta onaylayın. 81 il, motordan kamyona.';
+
 export const metadata: Metadata = {
+  metadataBase: new URL(siteUrl),
   title: {
     default: 'Taşıyoruz — Yükünüz için doğru aracı dakikalar içinde bulun',
     template: '%s · Taşıyoruz',
   },
-  description:
-    'Rotanızı girin, doğrulanmış araç sahiplerinden teklif alın. Aracı siz seçin, ' +
-    'ödemeyi teslimatta onaylayın. 81 il, motosikletten kırkayağa.',
+  description,
+  applicationName: 'Taşıyoruz',
+  openGraph: {
+    type: 'website',
+    locale: 'tr_TR',
+    siteName: 'Taşıyoruz',
+    title: 'Taşıyoruz — Yükünüz için doğru aracı dakikalar içinde bulun',
+    description,
+    url: '/',
+  },
+  twitter: { card: 'summary_large_image', title: 'Taşıyoruz', description },
+  // Marka ve alan adı kesinleşmeden dizine girmesin (ANAHTARLAR #5)
+  robots: { index: false, follow: false },
 };
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {

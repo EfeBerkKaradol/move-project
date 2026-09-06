@@ -74,8 +74,11 @@ export function DocumentUpload({
         <form action={action} className="mt-3 flex flex-wrap items-end gap-3">
           <input type="hidden" name="kind" value={kind} />
           <div>
+            {/* Alan görsel olarak gizli, tetikleyici aşağıdaki buton. Erişilebilir ad
+                olmadan ekran okuyucu buraya sekince ne olduğunu söyleyemiyordu. */}
             <input ref={inputRef} type="file" name="file" required accept="image/*,application/pdf"
               capture="environment" className="sr-only"
+              aria-label={`${displayName} dosyası seç`}
               onChange={(e) => setFileName(e.target.files?.[0]?.name ?? null)} />
             <button type="button" onClick={() => inputRef.current?.click()}
               className="min-h-11 rounded-field border border-line px-4 py-2.5 text-sm font-semibold transition hover:border-amber hover:bg-surface-2">

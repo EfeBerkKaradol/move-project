@@ -103,6 +103,25 @@ class DefaultMarketplaceService implements MarketplaceService {
         return view(listing);
     }
 
+    /** Ortalamanın yayınlanabilmesi için gereken en az ilan sayısı. */
+    static final int MIN_FIRST_OFFER_SAMPLE = 5;
+
+    @Override
+    @Transactional(readOnly = true)
+    public long openListingCount() {
+        return listings.countByStatus(ListingStatus.OPEN);
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public Optional<Duration> averageTimeToFirstOffer() {
+        var row = listings.firstOfferStats();
+        if (row == null || row.length < 2) return Optional.empty();
+        long sample = ((Number) row[0]).longValue();
+        if (sample < MIN_FIRST_OFFER_SAMPLE) return Optional.empty();
+        return Optional.of(Duration.ofSeconds(((Number) row[1]).longValue()));
+    }
+
     @Override
     @Transactional(readOnly = true)
     public List<ListingView> allListings(ListingStatus status) {

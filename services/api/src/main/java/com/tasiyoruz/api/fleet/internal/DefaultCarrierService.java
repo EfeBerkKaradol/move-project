@@ -93,6 +93,12 @@ class DefaultCarrierService implements CarrierService, CarrierDirectory {
 
     @Override
     @Transactional(readOnly = true)
+    public long approvedCarrierCount() {
+        return profiles.countByStatus(CarrierStatus.APPROVED);
+    }
+
+    @Override
+    @Transactional(readOnly = true)
     public Optional<CarrierSummary> summary(String carrierId) {
         return profiles.findByCarrierId(carrierId).map(p -> new CarrierSummary(
                 p.getCarrierId(), p.getDisplayName(), p.getCompanyName(),

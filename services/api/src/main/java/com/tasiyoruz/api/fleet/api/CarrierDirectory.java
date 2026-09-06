@@ -21,4 +21,7 @@ public interface CarrierDirectory {
     boolean canTakeWork(String carrierId);
 
     Optional<CarrierSummary> summary(String carrierId);
+
+    /** Herkese açık sayaç: belgeleri doğrulanmış taşıyıcı sayısı. */
+    long approvedCarrierCount();
 }

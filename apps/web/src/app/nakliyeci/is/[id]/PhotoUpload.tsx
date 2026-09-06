@@ -51,8 +51,10 @@ export function PhotoUpload({
       <form action={action} className="mt-2 flex flex-wrap items-center gap-2">
         <input type="hidden" name="tripId" value={tripId} />
         <input type="hidden" name="kind" value={kind} />
+        {/* Görsel olarak gizli; erişilebilir adı olmadan ekran okuyucuda sessiz kalıyordu */}
         <input ref={inputRef} type="file" name="file" required accept="image/*" capture="environment"
-          className="sr-only" onChange={(e) => setFileName(e.target.files?.[0]?.name ?? null)} />
+          className="sr-only" aria-label={`${label} çek ya da seç`}
+          onChange={(e) => setFileName(e.target.files?.[0]?.name ?? null)} />
         <button type="button" onClick={() => inputRef.current?.click()}
           className="min-h-11 rounded-field border border-line px-4 py-2.5 text-sm font-semibold transition hover:border-amber hover:bg-surface-2">
           Fotoğraf çek

@@ -5,6 +5,7 @@ import type {
   CargoPreset,
   District,
   ExtraService,
+  PublicStatsView,
   Quote,
   QuoteRequest,
   VehicleRecommendation,
@@ -88,6 +89,8 @@ export const getCargoCategories = () => get<CargoCategory[]>('/cargo-categories'
 export const getCargoItems = () => get<CargoItem[]>('/cargo-items');
 export const getCargoPresets = () => get<CargoPreset[]>('/cargo-presets');
 export const getDistricts = () => get<District[]>('/districts');
+/** Ana sayfa sayaçları; API kapalıysa null döner ve arayüz tire gösterir. */
+export const getPublicStats = () => get<PublicStatsView>('/stats');
 export const getExtraServices = () => get<ExtraService[]>('/extra-services');
 
 /** Araç önerisi — tarayıcıdan çağrılır, her seçim değişikliğinde yenilenir. */

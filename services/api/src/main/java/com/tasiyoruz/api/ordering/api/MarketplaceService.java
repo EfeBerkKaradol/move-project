@@ -36,6 +36,17 @@ public interface MarketplaceService {
      */
     int expireOverdueListings();
 
+    /** Herkese açık sayaç: teklif toplayan ilan sayısı. */
+    long openListingCount();
+
+    /**
+     * Yayından ilk teklife ortalama süre.
+     *
+     * @return örneklem yeterli değilse boş — birkaç ilana bakıp "ortalama 3 dakika"
+     *         demek, gerçekte tutmayacak bir vaat üretir
+     */
+    java.util.Optional<java.time.Duration> averageTimeToFirstOffer();
+
     // ── Operasyon ────────────────────────────────────────────────────
 
     /** Tüm ilanlar, isteğe bağlı durum süzgeciyle. Yalnızca operasyon uçlarından çağrılır. */

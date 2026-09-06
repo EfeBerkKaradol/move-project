@@ -31,6 +31,24 @@ interface LoadListingRepository extends JpaRepository<LoadListing, UUID> {
 
     long countByStatus(ListingStatus status);
 
+    /**
+     * Yayından ilk teklife geçen ortalama süre (saniye) ve örneklem büyüklüğü.
+     *
+     * <p>Native sorgu: JPQL'de zaman farkı ifade edilemiyor. Yalnızca teklif almış
+     * ilanlar sayılıyor — hiç teklif almamışları sıfır saymak ortalamayı çökertirdi,
+     * sonsuz saymak da anlamsız olurdu.
+     */
+    @Query(value = """
+            SELECT count(*) AS ornek, coalesce(avg(saniye), 0) AS ortalama
+            FROM (
+                SELECT extract(epoch FROM (min(o.submitted_at) - l.published_at)) AS saniye
+                FROM load_listings l
+                JOIN carrier_offers o ON o.listing_id = l.id
+                GROUP BY l.id, l.published_at
+            ) t
+            """, nativeQuery = true)
+    Object[] firstOfferStats();
+
     @Query(value = "select nextval('listing_number_seq')", nativeQuery = true)
     long nextListingNumber();
 }

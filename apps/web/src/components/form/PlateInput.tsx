@@ -19,8 +19,11 @@ export function formatPlate(raw: string): string {
     .replace(/Ü/g, 'U').replace(/Ö/g, 'O').replace(/Ç/g, 'C')
     .replace(/[^A-Z0-9]/g, '');
 
-  const cityCode = clean.slice(0, 2).replace(/\D/g, '');
-  const rest = clean.slice(cityCode.length);
+  // Plaka il koduyla başlar. Baştaki harfler düşürülüyor; bırakılsaydı "ABC 34" gibi
+  // sunucunun reddedeceği bir değer üretilir, kullanıcı da nedenini anlamazdı.
+  const fromCityCode = clean.replace(/^[A-Z]+/, '');
+  const cityCode = fromCityCode.slice(0, 2).replace(/\D/g, '');
+  const rest = fromCityCode.slice(cityCode.length);
   const letters = rest.match(/^[A-Z]{0,3}/)?.[0] ?? '';
   const digits = rest.slice(letters.length).replace(/\D/g, '').slice(0, 5);
 

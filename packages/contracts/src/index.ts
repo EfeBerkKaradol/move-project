@@ -404,3 +404,13 @@ export type OverviewView = {
   /** Tamamlanan işlerin toplam tutarı — komisyonsuz dönemde ciro değil, hacim. */
   completedVolume: Money;
 };
+
+
+// ── Güven panosu sayaçları (docs/09) ────────────────────────────────
+
+export type PublicStatsView = {
+  openListings: number;
+  verifiedCarriers: number;
+  /** Örneklem yetersizse null; arayüz tire gösterir. */
+  averageMinutesToFirstOffer: number | null;
+};

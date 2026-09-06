@@ -145,6 +145,15 @@ SMTP olmadan kimse kaydını tamamlayamaz, çünkü doğrulama postası gitmez.
 **Not:** Marka adı geçici. Faz 1'de pazarlama sayfaları yazılmadan kesinleşmeli;
 sonradan değiştirmek SEO ve mağaza kayıtlarını etkiler.
 
+**Nereye (alan adı belli olunca):** `apps/web/.env`
+```
+NEXT_PUBLIC_SITE_URL=https://tasiyoruz.com
+NEXT_PUBLIC_ALLOW_INDEXING=true
+```
+Site şu an arama motorlarına **kapalı** (`robots.txt` → `Disallow: /`). Geçici adresin
+indekslenmesi sonradan temizlenmesi zor bir iz bırakır. Bu iki değişken verilene kadar
+paylaşım önizlemesi de localhost'u gösterir.
+
 ---
 
 ## Faz 3–4 — Mobil uygulamalar

@@ -30,6 +30,8 @@ class CacheConfig {
     static final String CARGO_ITEMS = "cargoItems";
     static final String CARGO_CATEGORIES = "cargoCategories";
     static final String DISTRICTS = "districts";
+    /** Ana sayfa sayaçları: referans verisi değil, kısa ömürlü. */
+    static final String PUBLIC_STATS = "publicStats";
 
     @Bean
     @Primary
@@ -41,6 +43,23 @@ class CacheConfig {
                 .expireAfterWrite(Duration.ofMinutes(30)));
         // Operasyon panelinden katalog değiştiğinde ilgili cache invalidate edilecek;
         // 30 dakikalık süre o mekanizma gelene kadarki güvenlik ağı.
+        manager.setAllowNullValues(false);
+        return manager;
+    }
+
+    /**
+     * Kısa ömürlü önbellek.
+     *
+     * <p>Referans verisi 30 dakika yaşayabilir; ana sayfadaki "açık ilan" sayısı
+     * yaşayamaz. Aynı yöneticiye konsaydı ya sayaç yarım saat bayat kalırdı ya da
+     * katalog gereksiz yere sürekli yeniden okunurdu.
+     */
+    @Bean
+    CacheManager shortLivedCacheManager() {
+        var manager = new CaffeineCacheManager(PUBLIC_STATS);
+        manager.setCaffeine(Caffeine.newBuilder()
+                .maximumSize(16)
+                .expireAfterWrite(Duration.ofSeconds(60)));
         manager.setAllowNullValues(false);
         return manager;
     }

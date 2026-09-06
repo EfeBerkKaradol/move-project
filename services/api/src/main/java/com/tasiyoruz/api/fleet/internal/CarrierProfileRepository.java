@@ -14,4 +14,6 @@ interface CarrierProfileRepository extends JpaRepository<CarrierProfile, UUID> {
     List<CarrierProfile> findByStatusOrderBySubmittedAtAsc(CarrierStatus status);
 
     List<CarrierProfile> findAllByOrderByCreatedAtDesc();
+
+    long countByStatus(CarrierStatus status);
 }
