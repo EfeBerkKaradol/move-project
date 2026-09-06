@@ -31,7 +31,7 @@ export function PlaceholderPage({
           {cta && (
             <Link
               href={cta.href}
-              className="mt-9 inline-block rounded-field bg-amber px-5 py-3.5 text-sm font-bold text-[var(--amber-ink)] transition hover:brightness-105"
+              className="mt-9 inline-block rounded-field bg-amber px-5 py-3.5 text-sm font-bold text-[var(--amber-ink)] transition hover:bg-[var(--amber-hover)] hover:shadow-[0_6px_18px_rgb(244_159_44_/_0.30)] active:translate-y-px"
             >
               {cta.label}
             </Link>

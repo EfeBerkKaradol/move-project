@@ -44,7 +44,7 @@ export default async function LoginPage({ searchParams }: { searchParams: Promis
         >
           <button
             type="submit"
-            className="w-full rounded-field bg-amber px-6 py-4 font-bold text-[var(--amber-ink)] transition hover:brightness-105"
+            className="w-full rounded-field bg-amber px-6 py-4 font-bold text-[var(--amber-ink)] transition hover:bg-[var(--amber-hover)] hover:shadow-[0_6px_18px_rgb(244_159_44_/_0.30)] active:translate-y-px"
           >
             Giriş yap
           </button>

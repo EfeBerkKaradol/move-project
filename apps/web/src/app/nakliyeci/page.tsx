@@ -58,7 +58,7 @@ export default async function DriverPage() {
                     <span className="text-sm">Teklifin: <span className="stat">{formatPrice(mine.get(l.id)!.amount.amount)}</span></span>
                     <StatusPill status="SUBMITTED" />
                     <form action={async () => { 'use server'; await withdrawOffer(mine.get(l.id)!.id); }}>
-                      <button type="submit" className="rounded-field border border-line px-3 py-2 text-sm font-semibold">Geri çek</button>
+                      <button type="submit" className="rounded-field border border-line px-3 py-2 text-sm font-semibold transition hover:border-amber hover:bg-surface-2">Geri çek</button>
                     </form>
                   </div>
                 ) : (

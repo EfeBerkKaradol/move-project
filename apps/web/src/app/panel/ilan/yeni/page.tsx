@@ -32,7 +32,7 @@ export default async function NewListingPage({ searchParams }: { searchParams: P
     return (
       <Shell eyebrow="Yük veren" title="Önce rotanı ve aracını seç">
         <p className="text-muted">İlan yayınlamak için fiyat sayfasından nereden, nereye ve araç tipini seçmen gerekiyor.</p>
-        <Link href="/fiyat-hesapla" className="mt-6 inline-block rounded-field bg-amber px-5 py-3 text-sm font-bold text-[var(--amber-ink)]">
+        <Link href="/fiyat-hesapla" className="mt-6 inline-block rounded-field bg-amber px-5 py-3 text-sm font-bold text-[var(--amber-ink)] transition hover:bg-[var(--amber-hover)] hover:shadow-[0_6px_18px_rgb(244_159_44_/_0.30)] active:translate-y-px">
           Fiyat hesapla
         </Link>
       </Shell>

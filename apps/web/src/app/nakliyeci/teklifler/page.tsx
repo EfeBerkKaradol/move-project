@@ -30,7 +30,7 @@ export default async function MyOffersPage() {
               <StatusPill status={o.status} />
               {o.status === 'SUBMITTED' && (
                 <form action={async () => { 'use server'; await withdrawOffer(o.id); }}>
-                  <button type="submit" className="rounded-field border border-line px-3 py-2 text-sm font-semibold">Geri çek</button>
+                  <button type="submit" className="rounded-field border border-line px-3 py-2 text-sm font-semibold transition hover:border-amber hover:bg-surface-2">Geri çek</button>
                 </form>
               )}
             </li>

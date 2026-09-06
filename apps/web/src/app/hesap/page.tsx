@@ -26,10 +26,10 @@ export default async function AccountPage() {
           Bu genelde geçici bir durumdur; destek ekibi hesabını yetkilendirdiğinde panelin açılır.
         </p>
         <div className="mt-6 flex flex-wrap gap-3">
-          <Link href="/fiyat-hesapla" className="rounded-field bg-amber px-5 py-3 text-sm font-bold text-[var(--amber-ink)]">
+          <Link href="/fiyat-hesapla" className="rounded-field bg-amber px-5 py-3 text-sm font-bold text-[var(--amber-ink)] transition hover:bg-[var(--amber-hover)] hover:shadow-[0_6px_18px_rgb(244_159_44_/_0.30)] active:translate-y-px">
             Fiyat hesapla
           </Link>
-          <Link href="/" className="rounded-field border border-line px-5 py-3 text-sm font-semibold">
+          <Link href="/" className="rounded-field border border-line px-5 py-3 text-sm font-semibold transition hover:border-amber hover:bg-surface-2">
             Ana sayfa
           </Link>
         </div>

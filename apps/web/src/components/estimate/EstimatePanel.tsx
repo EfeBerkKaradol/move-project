@@ -47,7 +47,7 @@ export function EstimatePanel({
             {quote.approximateDistance && ' · takribî mesafe'}
           </p>
 
-          <details className="mt-5 rounded-field border border-line bg-surface-2 px-4 py-3">
+          <details className="mt-5 rounded-field border border-line bg-surface-2 px-4 py-3 transition hover:border-muted focus:border-amber focus:ring-2 focus:ring-amber/25">
             <summary className="cursor-pointer text-sm font-semibold">
               Tarife dökümü — {formatPrice(quote.totalAmount.amount)}
             </summary>
@@ -87,7 +87,7 @@ export function EstimatePanel({
       <Link
         href={publishHref}
         aria-disabled={!ready}
-        className={`mt-6 flex w-full items-center justify-center gap-2 rounded-field bg-amber px-6 py-4 font-bold text-[var(--amber-ink)] transition hover:brightness-105 ${
+        className={`mt-6 flex w-full items-center justify-center gap-2 rounded-field bg-amber px-6 py-4 font-bold text-[var(--amber-ink)] transition hover:bg-[var(--amber-hover)] hover:shadow-[0_6px_18px_rgb(244_159_44_/_0.30)] active:translate-y-px ${
           ready ? '' : 'pointer-events-none opacity-50'
         }`}
       >

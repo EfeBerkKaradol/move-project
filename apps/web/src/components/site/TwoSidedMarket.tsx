@@ -90,10 +90,11 @@ function SideCard({
       <Link
         href={cta.href}
         className={[
-          'mt-7 inline-block rounded-field px-5 py-3 text-sm font-bold transition hover:brightness-105',
-          dark ? 'bg-surface text-ink' : 'bg-amber text-[var(--amber-ink)]',
+          'mt-7 inline-block rounded-field px-5 py-3 text-sm font-bold transition active:translate-y-px',
+          dark
+            ? 'bg-white text-[#0d1015] hover:bg-[#ebe9e4] hover:shadow-[0_6px_18px_rgb(0_0_0_/_0.35)]'
+            : 'bg-amber text-[var(--amber-ink)] hover:bg-[var(--amber-hover)] hover:shadow-[0_6px_18px_rgb(244_159_44_/_0.30)]',
         ].join(' ')}
-        style={dark ? { background: '#ffffff', color: '#0d1015' } : undefined}
       >
         {cta.label}
       </Link>

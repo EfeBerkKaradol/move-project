@@ -12,15 +12,15 @@ export function OfferForm({ listingId, suggested }: { listingId: string; suggest
       <label className="text-sm">
         <span className="label-mono block text-muted">Teklifin (₺)</span>
         <input name="amount" inputMode="decimal" required defaultValue={suggested}
-          className="mt-1 w-32 rounded-field border border-line bg-surface-2 px-3 py-2.5 tabular-nums outline-none" />
+          className="mt-1 w-32 rounded-field border border-line bg-surface-2 px-3 py-2.5 tabular-nums outline-none transition hover:border-muted focus:border-amber focus:ring-2 focus:ring-amber/25" />
       </label>
       <label className="min-w-0 flex-1 text-sm">
         <span className="label-mono block text-muted">Not (isteğe bağlı)</span>
         <input name="note" maxLength={500} placeholder="Örn. Hamaliye dahil, sabah alırım"
-          className="mt-1 w-full rounded-field border border-line bg-surface-2 px-3 py-2.5 outline-none placeholder:text-muted" />
+          className="mt-1 w-full rounded-field border border-line bg-surface-2 px-3 py-2.5 outline-none placeholder:text-muted transition hover:border-muted focus:border-amber focus:ring-2 focus:ring-amber/25" />
       </label>
       <button type="submit" disabled={pending}
-        className="rounded-field bg-amber px-4 py-2.5 text-sm font-bold text-[var(--amber-ink)] disabled:opacity-60">
+        className="rounded-field bg-amber px-4 py-2.5 text-sm font-bold text-[var(--amber-ink)] disabled:opacity-60 transition hover:bg-[var(--amber-hover)] hover:shadow-[0_6px_18px_rgb(244_159_44_/_0.30)] active:translate-y-px">
         {pending ? 'Gönderiliyor…' : 'Teklif ver'}
       </button>
       {state.error && <p className="basis-full text-sm text-[#8a2a1f]">{state.error}</p>}

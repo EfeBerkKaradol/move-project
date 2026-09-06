@@ -17,6 +17,7 @@
   --color-muted: var(--muted);
   --color-line: var(--line);
   --color-amber: var(--amber);
+  --color-amber-hover: var(--amber-hover);
   --color-amber-ink: var(--amber-ink);
   --color-amber-soft: var(--amber-soft);
 
@@ -33,6 +34,8 @@
 /* Amber her iki temada da aynı — markanın sabiti */
 :root {
   --amber: #f49f2c;
+  /* Hover'da koyulaşan amber — beyaz/koyu yazıyla kontrastı korur */
+  --amber-hover: #d9860f;
   --amber-ink: #0d1015;
   --amber-soft: #fdf3e2;
 }

@@ -125,7 +125,7 @@ export function QuoteWidget({ vehicles }: { vehicles: VehicleType[] }) {
 
         <button
           type="submit"
-          className="flex w-full items-center justify-center gap-2 rounded-field bg-amber px-6 py-4 font-bold text-[var(--amber-ink)] transition hover:brightness-105"
+          className="flex w-full items-center justify-center gap-2 rounded-field bg-amber px-6 py-4 font-bold text-[var(--amber-ink)] transition hover:bg-[var(--amber-hover)] hover:shadow-[0_6px_18px_rgb(244_159_44_/_0.30)] active:translate-y-px"
         >
           {side === 'SHIPPER' ? 'Tahmini fiyatı gör' : 'Koridoruma düşen yükleri gör'}
           <svg viewBox="0 0 16 16" className="size-4" fill="none" stroke="currentColor"

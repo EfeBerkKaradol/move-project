@@ -11,17 +11,17 @@ export function DeliverForm({ tripId }: { tripId: string }) {
       <label className="block text-sm">
         <span className="label-mono block text-muted">Teslim alan kişi</span>
         <input name="receivedByName" required maxLength={120} placeholder="Ad Soyad"
-          className="mt-1 w-full rounded-field border border-line bg-surface-2 px-3 py-3 outline-none placeholder:text-muted" />
+          className="mt-1 w-full rounded-field border border-line bg-surface-2 px-3 py-3 outline-none placeholder:text-muted transition hover:border-muted focus:border-amber focus:ring-2 focus:ring-amber/25" />
       </label>
       <label className="block text-sm">
         <span className="label-mono block text-muted">Not (isteğe bağlı)</span>
         <input name="note" maxLength={500} placeholder="Kapıda teslim edildi"
-          className="mt-1 w-full rounded-field border border-line bg-surface-2 px-3 py-3 outline-none placeholder:text-muted" />
+          className="mt-1 w-full rounded-field border border-line bg-surface-2 px-3 py-3 outline-none placeholder:text-muted transition hover:border-muted focus:border-amber focus:ring-2 focus:ring-amber/25" />
       </label>
       <p className="text-xs text-muted">Teslim fotoğrafı, depolama bağlanınca eklenecek.</p>
       {state.error && <p className="text-sm text-[#8a2a1f]">{state.error}</p>}
       <button type="submit" disabled={pending}
-        className="w-full rounded-field bg-amber px-6 py-4 font-bold text-[var(--amber-ink)] disabled:opacity-60">
+        className="w-full rounded-field bg-amber px-6 py-4 font-bold text-[var(--amber-ink)] disabled:opacity-60 transition hover:bg-[var(--amber-hover)] hover:shadow-[0_6px_18px_rgb(244_159_44_/_0.30)] active:translate-y-px">
         {pending ? 'Bildiriliyor…' : 'Teslim ettim'}
       </button>
     </form>

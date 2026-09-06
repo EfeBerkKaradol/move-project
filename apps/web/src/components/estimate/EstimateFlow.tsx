@@ -323,7 +323,7 @@ function StopDetails({
 }) {
   const id = label.toLowerCase();
   return (
-    <div className="rounded-field border border-line bg-surface-2 px-3.5 py-3">
+    <div className="rounded-field border border-line bg-surface-2 px-3.5 py-3 transition hover:border-muted focus:border-amber focus:ring-2 focus:ring-amber/25">
       <div className="flex items-baseline justify-between gap-2">
         <span className="label-mono text-muted">{label}</span>
         {typed && !matched && (

@@ -45,7 +45,7 @@ export async function Header() {
                 {isDriver(roles) ? 'Nakliyeci paneli' : 'Panelim'}
               </Link>
               <form action={async () => { 'use server'; redirect(await signOutEverywhere('/')); }}>
-                <button type="submit" className="rounded-field border border-line px-4 py-3 text-sm font-semibold text-ink">
+                <button type="submit" className="rounded-field border border-line px-4 py-3 text-sm font-semibold text-ink transition hover:border-amber hover:bg-surface-2">
                   Çıkış
                 </button>
               </form>
@@ -54,7 +54,7 @@ export async function Header() {
             <>
               <Link href="/giris" className="hidden py-3.5 text-sm font-semibold text-ink sm:inline">Giriş yap</Link>
               <Link href="/fiyat-hesapla"
-                className="rounded-field bg-amber px-4 py-3.5 text-sm font-bold text-[var(--amber-ink)] transition hover:brightness-105">
+                className="rounded-field bg-amber px-4 py-3.5 text-sm font-bold text-[var(--amber-ink)] transition hover:bg-[var(--amber-hover)] hover:shadow-[0_6px_18px_rgb(244_159_44_/_0.30)] active:translate-y-px">
                 Yük ver
               </Link>
             </>
