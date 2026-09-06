@@ -5,6 +5,7 @@ import Link from 'next/link';
 import { redirect } from 'next/navigation';
 import { auth, homeFor, isDriver } from '@/auth';
 import { Shell } from '@/components/app/Shell';
+import { SubNav } from '@/components/app/SubNav';
 import { apiFetch } from '@/lib/api-server';
 
 export const metadata: Metadata = { title: 'İşlerim' };
@@ -29,9 +30,13 @@ export default async function DriverTripsPage() {
 
   return (
     <Shell eyebrow="Araç sahibi" title="İşlerim">
-      <div className="flex gap-4 text-sm font-semibold underline underline-offset-4">
-        <Link href="/nakliyeci">Açık ilanlar</Link><Link href="/nakliyeci/teklifler">Tekliflerim</Link>
-      </div>
+      <SubNav
+        items={[
+          { href: '/nakliyeci', label: 'Açık ilanlar' },
+          { href: '/nakliyeci/teklifler', label: 'Tekliflerim' },
+        ]}
+        className="-ml-3"
+      />
       <h2 className="mt-6 text-lg">Devam eden ({active.length})</h2>
       {active.length === 0 ? <p className="mt-2 text-sm text-muted">Devam eden iş yok. Teklifin kabul edilince iş burada açılır.</p>
         : <ul className="mt-3 divide-y divide-line rounded-card border border-line bg-surface">{active.map((t) => <Row key={t.id} t={t} />)}</ul>}

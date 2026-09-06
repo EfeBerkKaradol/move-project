@@ -230,7 +230,7 @@ export function EstimateFlow({
                 type="button"
                 onClick={() => setAdvisorOpen((o) => !o)}
                 aria-expanded={advisorOpen}
-                className="text-sm font-semibold text-[#8a5c10] underline-offset-4 hover:underline"
+                className="-my-2.5 rounded-md py-2.5 text-sm font-semibold text-[#8a5c10] underline-offset-4 transition hover:text-[#6d4708] hover:underline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-amber"
               >
                 {advisorOpen ? 'Danışmanı kapat' : 'Hangi araç lazım bilmiyorum →'}
               </button>
@@ -332,7 +332,7 @@ function StopDetails({
         {matched && <span className="label-mono text-muted">{matched.cityName} · {matched.name}</span>}
       </div>
       <div className="mt-2 flex flex-wrap items-center gap-x-4 gap-y-2 text-sm">
-        <label htmlFor={`${id}-kat`} className="flex items-center gap-2">
+        <label htmlFor={`${id}-kat`} className="flex min-h-11 cursor-pointer items-center gap-2">
           Kat
           <input
             id={`${id}-kat`}
@@ -341,15 +341,15 @@ function StopDetails({
             max={50}
             value={value.floor}
             onChange={(e) => onChange({ ...value, floor: Number(e.target.value) })}
-            className="w-16 rounded-lg border border-line bg-surface px-2 py-1.5 tabular-nums"
+            className="min-h-11 w-16 rounded-lg border border-line bg-surface px-2 py-2 tabular-nums transition hover:border-muted focus:border-amber focus:outline-none focus:ring-2 focus:ring-amber/25"
           />
         </label>
-        <label className="flex items-center gap-2">
+        <label className="flex min-h-11 cursor-pointer items-center gap-2">
           <input
             type="checkbox"
             checked={value.hasElevator}
             onChange={(e) => onChange({ ...value, hasElevator: e.target.checked })}
-            className="size-4 accent-[var(--amber)]"
+            className="size-5 cursor-pointer accent-[var(--amber)]"
           />
           Asansör var
         </label>

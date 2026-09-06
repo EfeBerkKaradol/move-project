@@ -4,6 +4,7 @@ import type { Metadata } from 'next';
 import { redirect } from 'next/navigation';
 import { auth, homeFor, isDriver } from '@/auth';
 import { Shell } from '@/components/app/Shell';
+import { SubNav } from '@/components/app/SubNav';
 import { StatusPill } from '@/components/app/StatusPill';
 import { apiFetch } from '@/lib/api-server';
 import { withdrawOffer } from '../actions';
@@ -18,6 +19,13 @@ export default async function MyOffersPage() {
 
   return (
     <Shell eyebrow="Araç sahibi" title="Tekliflerim">
+      <SubNav
+        items={[
+          { href: '/nakliyeci', label: 'Açık ilanlar' },
+          { href: '/nakliyeci/isler', label: 'İşlerim' },
+        ]}
+        className="-ml-3 mb-4"
+      />
       {offers.length === 0 ? (
         <p className="text-muted">Henüz teklif vermedin.</p>
       ) : (

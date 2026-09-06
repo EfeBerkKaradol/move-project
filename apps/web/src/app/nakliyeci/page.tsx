@@ -1,11 +1,11 @@
 import type { ListingView, OfferView } from '@tasiyoruz/contracts';
 import { formatPrice } from '@tasiyoruz/shared';
 import type { Metadata } from 'next';
-import Link from 'next/link';
 import { redirect } from 'next/navigation';
 import { auth, homeFor, isDriver } from '@/auth';
 import { RouteLine } from '@/components/app/RouteLine';
 import { Shell } from '@/components/app/Shell';
+import { SubNav } from '@/components/app/SubNav';
 import { apiFetch } from '@/lib/api-server';
 import { StatusPill } from '@/components/app/StatusPill';
 import { withdrawOffer } from './actions';
@@ -29,10 +29,13 @@ export default async function DriverPage() {
     <Shell eyebrow="Araç sahibi" title="Açık ilanlar">
       <div className="flex items-center justify-between gap-4">
         <p className="text-sm text-muted">{session.user?.name ?? session.user?.email}</p>
-        <span className="flex gap-4 text-sm font-semibold underline underline-offset-4">
-          <Link href="/nakliyeci/isler">İşlerim</Link>
-          <Link href="/nakliyeci/teklifler">Tekliflerim</Link>
-        </span>
+        <SubNav
+          items={[
+            { href: '/nakliyeci/isler', label: 'İşlerim' },
+            { href: '/nakliyeci/teklifler', label: 'Tekliflerim' },
+          ]}
+          className="-mr-3"
+        />
       </div>
 
       {listings.length === 0 ? (
