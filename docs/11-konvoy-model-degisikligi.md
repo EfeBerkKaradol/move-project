@@ -110,6 +110,18 @@ skor = w1·(1/sapmaKm) + w2·zamanUyumu + w3·taşıyıcıPuanı + w4·tutar
 fazlaysa uygundur. Bu, rota motoruna (docs/03) ikinci bir çağrı tipi ekliyor:
 **"ara nokta eklenirse ne kadar uzar?"**
 
+> ✅ Uygulandı (V11). Uygulamada iki nokta dokümandan ayrıldı:
+>
+> 1. **Puan formülü.** Ham `1/sapmaKm` kullanılmadı; sapma sıfıra yaklaşınca sonsuza
+>    gidip diğer bileşenleri eziyordu. Her bileşen 0-1 aralığına çekildi, ağırlıklar
+>    toplamı 1 (sapma 0,50 · zaman uyumu 0,30 · sapma km'si başına kazanç 0,20).
+> 2. **Taşıyıcı puanı bileşeni yok.** Değerlendirme modülü boş; olmayan veriyi sabitle
+>    doldurmak sıralamayı sessizce bozardı. Modül gelince ağırlıklar yeniden dağıtılacak.
+>
+> Eşleştirme `ListingPublished` olayını dinliyor. Olay yeniden teslim edilebildiği ve
+> koridor kurulurken yapılan tarama aynı anda çalışabildiği için yazma
+> `ON CONFLICT DO NOTHING` ile idempotent.
+
 > Maps anahtarı gelene kadar bu da takribî sağlayıcıyla çalışacak
 > (bkz. [ANAHTARLAR.md](../ANAHTARLAR.md) #1).
 
@@ -151,9 +163,9 @@ En büyük operasyonel değişiklik. Etkiler:
 | 2 | Araç filosu (motokurye → tır, TIR "yakında") | ✅ tamam |
 | 3 | Şehirlerarası kısıtını kaldır, 81 il verisi | ✅ tamam (V8; il merkezleri geçici, ilçeler 3 ilde) |
 | 4 | Tarife modelini mesafe kademeli hâle getir | ✅ V6 kademeler + V8 ulusal varsayılan tarife |
-| 5 | `LoadListing` + `CarrierOffer` (teklif pazarı) | ⏳ sıradaki |
-| 6 | `Corridor` + `CorridorMatch` (boş dönüş) | ⏳ |
-| 7 | Taşıyıcı belge yükleme (kamerayla) | ⏳ |
+| 5 | `LoadListing` + `CarrierOffer` (teklif pazarı) | ✅ tamam (V9; ilan → teklif → kabul → iş) |
+| 6 | `Corridor` + `CorridorMatch` (boş dönüş) | ✅ tamam (V11; eşleştirme, puanlama, taşıyıcı ekranı) |
+| 7 | Taşıyıcı belge yükleme (kamerayla) | ⏳ sıradaki |
 | 8 | Teslimatta onay + e-irsaliye | ✅ aşama makinesi + POD + onay (V10) · ⏳ fotoğraf, e-irsaliye |
 
 ## 6. Açık sorular

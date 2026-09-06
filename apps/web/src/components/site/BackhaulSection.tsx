@@ -1,3 +1,4 @@
+import Link from 'next/link';
 import { Reveal } from './Reveal';
 
 /**
@@ -21,6 +22,12 @@ export function BackhaulSection() {
             sana biz getirelim — hem sen boş yol yakmayasın, hem yük sahibi daha uygun
             fiyat görsün.
           </p>
+          <Link
+            href="/nakliyeci/koridor"
+            className="mt-6 inline-flex min-h-11 items-center rounded-field bg-amber px-5 text-sm font-bold text-[var(--amber-ink)] transition hover:bg-[var(--amber-hover)] hover:shadow-[0_6px_18px_rgb(244_159_44_/_0.30)] active:translate-y-px"
+          >
+            Dönüş rotanı kaydet
+          </Link>
         </Reveal>
 
         <Reveal delay={80}>

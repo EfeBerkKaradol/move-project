@@ -33,6 +33,7 @@ export default async function DriverTripsPage() {
       <SubNav
         items={[
           { href: '/nakliyeci', label: 'Açık ilanlar' },
+          { href: '/nakliyeci/koridor', label: 'Boş dönüş' },
           { href: '/nakliyeci/teklifler', label: 'Tekliflerim' },
         ]}
         className="-ml-3"

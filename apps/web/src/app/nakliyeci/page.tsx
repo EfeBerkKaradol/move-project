@@ -31,6 +31,7 @@ export default async function DriverPage() {
         <p className="text-sm text-muted">{session.user?.name ?? session.user?.email}</p>
         <SubNav
           items={[
+            { href: '/nakliyeci/koridor', label: 'Boş dönüş' },
             { href: '/nakliyeci/isler', label: 'İşlerim' },
             { href: '/nakliyeci/teklifler', label: 'Tekliflerim' },
           ]}
@@ -41,7 +42,7 @@ export default async function DriverPage() {
       {listings.length === 0 ? (
         <div className="mt-6 rounded-card border border-dashed border-line p-8 text-center">
           <p className="font-semibold">Şu an açık ilan yok.</p>
-          <p className="mt-1 text-sm text-muted">Koridorunu kaydettiğinde uygun yükler sana bildirilecek (boş dönüş eşleştirme sırada).</p>
+          <p className="mt-1 text-sm text-muted">Dönüş rotanı <a href="/nakliyeci/koridor" className="font-semibold underline underline-offset-4 transition hover:text-ink">boş dönüş</a> sayfasında kaydet; o rotaya düşen yükler sana getirilsin.</p>
         </div>
       ) : (
         <ul className="mt-6 space-y-4">

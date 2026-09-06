@@ -22,6 +22,7 @@ export default async function MyOffersPage() {
       <SubNav
         items={[
           { href: '/nakliyeci', label: 'Açık ilanlar' },
+          { href: '/nakliyeci/koridor', label: 'Boş dönüş' },
           { href: '/nakliyeci/isler', label: 'İşlerim' },
         ]}
         className="-ml-3 mb-4"

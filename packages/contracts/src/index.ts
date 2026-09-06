@@ -231,3 +231,59 @@ export type TripView = {
   deliveredAt: string | null;
   completedAt: string | null;
 };
+
+
+// ── Boş dönüş koridorları (docs/11 §3) ──────────────────────────────
+
+export type CorridorStatus = 'ACTIVE' | 'PAUSED' | 'EXPIRED';
+
+export const CORRIDOR_STATUS_LABELS: Record<CorridorStatus, string> = {
+  ACTIVE: 'Yayında',
+  PAUSED: 'Duraklatıldı',
+  EXPIRED: 'Süresi doldu',
+};
+
+export type MatchOutcome = 'PENDING' | 'OFFERED' | 'IGNORED' | 'EXPIRED';
+
+export type CorridorPlace = {
+  districtId: string;
+  cityName: string | null;
+  districtName: string | null;
+};
+
+export type CorridorView = {
+  id: string;
+  vehicleTypeCode: string;
+  origin: CorridorPlace;
+  destination: CorridorPlace;
+  departureFrom: string;
+  departureTo: string;
+  detourToleranceKm: number;
+  /** Taşıyıcı alt sınır koymadıysa null. */
+  minAmount: Money | null;
+  status: CorridorStatus;
+  createdAt: string;
+  pendingMatchCount: number;
+};
+
+export type CorridorMatchView = {
+  id: string;
+  corridorId: string;
+  /** 0-1 arası; bileşenleri sapma, zaman uyumu ve kilometre başına kazanç. */
+  score: number;
+  /** İlanın koridora eklediği ekstra yol. */
+  detourKm: number;
+  outcome: MatchOutcome;
+  matchedAt: string;
+  listing: ListingView;
+};
+
+export type CreateCorridorRequest = {
+  vehicleTypeCode: string;
+  originDistrictId: string;
+  destinationDistrictId: string;
+  departureFrom: string;
+  departureTo: string;
+  detourToleranceKm: number;
+  minAmount?: string | null;
+};
