@@ -4,6 +4,6 @@
  */
 @org.springframework.modulith.ApplicationModule(
         displayName = "Takip",
-        allowedDependencies = { "geo::api", "ordering::api", "pricing::api" }
+        allowedDependencies = { "geo::api", "ordering::api", "pricing::api", "shared::storage" }
 )
 package com.tasiyoruz.api.tracking;

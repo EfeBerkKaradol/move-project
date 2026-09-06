@@ -15,11 +15,17 @@ public record TripView(
         /** Taşıyıcının bir sonraki geçebileceği aşama; DELIVERED/COMPLETED'da null. */
         TripStage nextStage,
         List<Event> events,
+        List<TripPhotoView> photos,
         Pod proofOfDelivery,
         Instant startedAt,
         Instant deliveredAt,
         Instant completedAt) {
 
     public record Event(TripStage stage, Instant occurredAt, String source, String note) {}
-    public record Pod(String receivedByName, String note, String photoKey) {}
+    public record Pod(String receivedByName, String note) {}
+
+    /** Belirli türdeki fotoğraflar; ekranlar bölümlere bunu kullanarak ayırıyor. */
+    public List<TripPhotoView> photosOf(TripPhotoKind kind) {
+        return photos.stream().filter(p -> p.kind() == kind).toList();
+    }
 }

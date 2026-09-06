@@ -159,10 +159,14 @@ pazaryeri (alt üye işyeri / submerchant) modeli gerekiyor.
 **Ön koşul:** ⚠️ **Şirket kuruluşu.** Sözleşme tüzel kişilikle yapılıyor.
 Süreç uzun — Faz 5'ten çok önce başlatılmalı. Söyle, planlayalım.
 
-### [ ] 10. e-Arşiv / e-Fatura entegratörü
-**Ne için:** Her sipariş için otomatik fatura üretimi.
+### [ ] 10. e-Arşiv / e-Fatura / e-İrsaliye entegratörü
+**Ne için:** Her sipariş için otomatik fatura ve **teslim sırasında e-irsaliye** üretimi.
 **Adaylar:** Logo e-Fatura · Paraşüt API · Uyumsoft
 **Ön koşul:** Şirket kuruluşu + mali mühür.
+
+**Şu an bloke olan:** Yalnızca e-irsaliye. Teslim akışının kalanı çalışıyor: aşama
+makinesi, teslim kanıtı fotoğrafları ve müşterinin teslimatta onayı hazır. e-irsaliye
+mali mühür olmadan üretilemez, o yüzden taklidi yapılmadı.
 
 ### [ ] 11. NVİ TC Kimlik Doğrulama servisi
 **Ne için:** Nakliyeci onboarding'inde kimlik doğrulama (Faz 3).

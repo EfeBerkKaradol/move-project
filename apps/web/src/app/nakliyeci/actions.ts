@@ -40,6 +40,33 @@ export async function advanceTrip(tripId: string, expected: string): Promise<Act
   return { ok: true };
 }
 
+export async function uploadTripPhoto(_prev: ActionState, form: FormData): Promise<ActionState> {
+  const tripId = String(form.get('tripId'));
+  const kind = String(form.get('kind'));
+  const file = form.get('file');
+  if (!(file instanceof File) || file.size === 0) return { error: 'Fotoğraf seçilmedi.' };
+
+  const body = new FormData();
+  body.append('file', file);
+  try {
+    await apiFetch(`/driver/trips/${tripId}/photos/${kind}`, { method: 'POST', body });
+  } catch (e) {
+    return { error: e instanceof ApiError ? e.message : 'Fotoğraf yüklenemedi.' };
+  }
+  revalidatePath(`/nakliyeci/is/${tripId}`);
+  return { ok: true };
+}
+
+export async function deleteTripPhoto(tripId: string, photoId: string): Promise<ActionState> {
+  try {
+    await apiFetch(`/driver/trips/${tripId}/photos/${photoId}`, { method: 'DELETE' });
+  } catch (e) {
+    return { error: e instanceof ApiError ? e.message : 'Fotoğraf silinemedi.' };
+  }
+  revalidatePath(`/nakliyeci/is/${tripId}`);
+  return { ok: true };
+}
+
 export async function deliverTrip(_prev: ActionState, form: FormData): Promise<ActionState> {
   const tripId = String(form.get('tripId'));
   try {

@@ -29,7 +29,6 @@ public class Trip {
     private Instant completedAt;
     @Column(length = 120) private String podReceivedBy;
     @Column(columnDefinition = "text") private String podNote;
-    @Column(length = 255) private String podPhotoKey;
     /** Aynı anda iki aşama geçişi / geçiş + onay yarışında ikinci yazan 409 alır. */
     @Version @Column(nullable = false) private int version;
 
@@ -43,9 +42,9 @@ public class Trip {
     }
 
     void moveTo(TripStage next) { this.stage = next; }
-    void deliver(String receivedBy, String note, String photoKey, Instant now) {
+    void deliver(String receivedBy, String note, Instant now) {
         this.stage = TripStage.DELIVERED; this.deliveredAt = now;
-        this.podReceivedBy = receivedBy; this.podNote = note; this.podPhotoKey = photoKey;
+        this.podReceivedBy = receivedBy; this.podNote = note;
     }
     void complete(Instant now) { this.stage = TripStage.COMPLETED; this.completedAt = now; }
 }

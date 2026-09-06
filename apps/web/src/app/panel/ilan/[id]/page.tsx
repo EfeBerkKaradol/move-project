@@ -7,6 +7,7 @@ import { auth, canCallApi, homeFor, isCustomer } from '@/auth';
 import { RouteLine } from '@/components/app/RouteLine';
 import { Shell } from '@/components/app/Shell';
 import { StatusPill } from '@/components/app/StatusPill';
+import { TripPhotos } from '@/components/app/TripPhotos';
 import { TripTimeline } from '@/components/app/TripTimeline';
 import { ApiError, apiFetch } from '@/lib/api-server';
 import { acceptOffer, cancelListing, confirmDelivery } from '../../actions';
@@ -82,6 +83,12 @@ export default async function ListingPage({ params }: { params: Promise<{ id: st
                 <span className="font-bold">{trip.carrierDisplayName ?? 'Taşıyıcı'}</span> · {TRIP_STAGE_LABELS[trip.stage]}
               </p>
               <div className="mt-4"><TripTimeline trip={trip} /></div>
+              {trip.photos.length > 0 && (
+                <div className="mt-5">
+                  <p className="label-mono text-muted">Taşıma kareleri</p>
+                  <TripPhotos tripId={trip.id} photos={trip.photos} />
+                </div>
+              )}
               {trip.stage === 'DELIVERED' && (
                 <div className="mt-4 rounded-field bg-[var(--amber-soft)] p-3">
                   <p className="text-sm">Taşıyıcı teslimi bildirdi{trip.proofOfDelivery ? ` — teslim alan: ${trip.proofOfDelivery.receivedByName.replace(/\.$/, '')}` : ''}. Yükünüzü aldıysanız onaylayın.</p>

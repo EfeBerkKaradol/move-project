@@ -8,6 +8,9 @@ import com.tasiyoruz.api.tracking.api.TripEvents.TripStageChanged;
 import com.tasiyoruz.api.tracking.domain.Trip;
 import com.tasiyoruz.api.tracking.domain.TripAccess;
 import com.tasiyoruz.api.tracking.domain.TripEvent;
+import com.tasiyoruz.api.tracking.domain.TripPhoto;
+import com.tasiyoruz.api.shared.storage.ObjectStorage;
+import com.tasiyoruz.api.shared.storage.UploadValidation;
 import java.math.BigDecimal;
 import java.time.Clock;
 import java.time.Instant;
@@ -29,13 +32,20 @@ import org.springframework.web.server.ResponseStatusException;
 @Transactional
 class DefaultTripService implements TripService {
 
+    /** İş başına tür başına en fazla kare. Deposu sınırsız doldurmayı engelliyor. */
+    static final int MAX_PHOTOS_PER_KIND = 5;
+
     private final TripRepository trips;
     private final TripEventRepository events;
+    private final TripPhotoRepository photos;
+    private final ObjectStorage storage;
     private final ApplicationEventPublisher publisher;
     private final Clock clock;
 
-    DefaultTripService(TripRepository trips, TripEventRepository events, ApplicationEventPublisher publisher, Clock clock) {
-        this.trips = trips; this.events = events; this.publisher = publisher; this.clock = clock;
+    DefaultTripService(TripRepository trips, TripEventRepository events, TripPhotoRepository photos,
+                       ObjectStorage storage, ApplicationEventPublisher publisher, Clock clock) {
+        this.trips = trips; this.events = events; this.photos = photos;
+        this.storage = storage; this.publisher = publisher; this.clock = clock;
     }
 
     @Override
@@ -101,8 +111,12 @@ class DefaultTripService implements TripService {
         if (trip.getStage() != TripStage.UNLOADING && trip.getStage() != TripStage.ARRIVED_AT_DROPOFF) {
             throw conflict("Teslim kanıtı yalnızca teslim noktasında verilebilir.");
         }
+        if (!photos.existsByTripIdAndKind(trip.getId(), TripPhotoKind.DELIVERY)) {
+            // Kanıtsız teslim kanıtı kanıt değil; uyuşmazlıkta elde hiçbir şey kalmaz
+            throw conflict("Teslimi bildirmeden önce en az bir teslim fotoğrafı yükleyin.");
+        }
         var now = Instant.now(clock);
-        TripAccess.deliver(trip, pod.receivedByName(), pod.note(), pod.photoKey(), now);
+        TripAccess.deliver(trip, pod.receivedByName(), pod.note(), now);
         events.save(TripEvent.of(trip.getId(), TripStage.DELIVERED, "DRIVER", "Teslim alan: " + pod.receivedByName(), now));
         publisher.publishEvent(new TripDelivered(tripId, trip.getListingId().toString(), trip.getShipperId(), carrierId));
         return view(trip);
@@ -122,7 +136,77 @@ class DefaultTripService implements TripService {
         return view(trip);
     }
 
+    @Override
+    public TripView addPhoto(String userId, String tripId, TripPhotoKind kind, UploadedPhoto photo) {
+        var trip = parse(tripId).flatMap(trips::findById).orElseThrow(() -> notFound());
+        if (!canSee(trip, userId)) throw forbidden();
+        // Yük sahibi yalnızca hasar kaydı ekleyebilir; yükleme ve teslim kareleri
+        // taşıyıcının kanıtı, onları karşı tarafın üretmesi anlamsız olurdu
+        boolean carrier = trip.getCarrierId().equals(userId);
+        if (!carrier && kind != TripPhotoKind.DAMAGE) {
+            throw forbidden();
+        }
+        if (trip.getStage() == TripStage.COMPLETED) {
+            throw conflict("Tamamlanan işe fotoğraf eklenemez.");
+        }
+        if (photos.countByTripIdAndKind(trip.getId(), kind) >= MAX_PHOTOS_PER_KIND) {
+            throw conflict("Bu tür için en fazla %d fotoğraf yükleyebilirsiniz.".formatted(MAX_PHOTOS_PER_KIND));
+        }
+        UploadValidation.validateImage(photo.contentType(), photo.size());
+
+        var now = Instant.now(clock);
+        var key = UploadValidation.storageKey("isler/" + trip.getId(), userId, kind.name());
+        storage.put(key, photo.contentType(), photo.size(), photo.content());
+        photos.saveAndFlush(TripPhoto.of(trip.getId(), kind, key, photo.contentType(), photo.size(), userId, now));
+        return view(trip);
+    }
+
+    @Override @Transactional(readOnly = true)
+    public PhotoDownload downloadPhoto(String userId, String tripId, String photoId) {
+        var trip = parse(tripId).flatMap(trips::findById).orElseThrow(() -> notFound());
+        if (!canSee(trip, userId)) throw forbidden();
+        var photo = photo(trip.getId(), photoId);
+        var object = storage.get(photo.getStorageKey())
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Fotoğraf dosyası bulunamadı."));
+        var extension = object.contentType() == null ? "jpg"
+                : object.contentType().substring(object.contentType().indexOf('/') + 1);
+        return new PhotoDownload(object.content(), object.contentType(), object.size(),
+                "%s-%s.%s".formatted(photo.getKind().name().toLowerCase(), photo.getId(), extension));
+    }
+
+    @Override
+    public TripView deletePhoto(String userId, String tripId, String photoId) {
+        var trip = parse(tripId).flatMap(trips::findById).orElseThrow(() -> notFound());
+        if (!canSee(trip, userId)) throw forbidden();
+        var photo = photo(trip.getId(), photoId);
+        if (!photo.getUploadedBy().equals(userId)) throw forbidden();
+        // Teslim bildirildikten sonra kanıt dokunulmaz; aksi hâlde taşıyıcı teslimi
+        // bildirip kanıtı silebilir ve geriye doğrulanamaz bir kayıt kalırdı
+        if (trip.getStage() == TripStage.DELIVERED || trip.getStage() == TripStage.COMPLETED) {
+            throw conflict("Teslim bildirildikten sonra fotoğraflar silinemez.");
+        }
+        photos.delete(photo);
+        photos.flush();
+        try {
+            storage.delete(photo.getStorageKey());
+        } catch (RuntimeException e) {
+            // Kayıt zaten silindi; depodaki artık dosya iş akışını durdurmamalı
+        }
+        return view(trip);
+    }
+
     // --- yardımcılar ---
+
+    private TripPhoto photo(UUID tripId, String photoId) {
+        var id = parse(photoId).orElseThrow(() -> photoNotFound());
+        return photos.findById(id).filter(p -> p.getTripId().equals(tripId))
+                .orElseThrow(() -> photoNotFound());
+    }
+
+    private static ResponseStatusException photoNotFound() {
+        return new ResponseStatusException(HttpStatus.NOT_FOUND, "Fotoğraf bulunamadı.");
+    }
+
 
     private Trip ownedByCarrier(String carrierId, String tripId) {
         var trip = parse(tripId).flatMap(trips::findById).orElseThrow(() -> notFound());
@@ -142,10 +226,15 @@ class DefaultTripService implements TripService {
     private TripView view(Trip t) {
         var evs = events.findByTripIdOrderByOccurredAtAsc(t.getId()).stream()
                 .map(e -> new TripView.Event(e.getStage(), e.getOccurredAt(), e.getSource(), e.getNote())).toList();
-        var pod = t.getPodReceivedBy() == null ? null : new TripView.Pod(t.getPodReceivedBy(), t.getPodNote(), t.getPodPhotoKey());
+        var pod = t.getPodReceivedBy() == null ? null : new TripView.Pod(t.getPodReceivedBy(), t.getPodNote());
+        var pics = photos.findByTripIdOrderByUploadedAtAsc(t.getId()).stream()
+                .map(p -> new TripPhotoView(p.getId().toString(), p.getKind(), p.getKind().displayName(),
+                        p.getContentType(), p.getSizeBytes(),
+                        p.getUploadedBy().equals(t.getCarrierId()) ? "DRIVER" : "SHIPPER", p.getUploadedAt()))
+                .toList();
         var next = t.getStage().driverAdvancable() ? t.getStage().next() : null;
         return new TripView(t.getId().toString(), t.getListingId().toString(), t.getShipperId(), t.getCarrierId(),
-                t.getCarrierDisplayName(), Money.tryOf(t.getAgreedAmount()), t.getStage(), next, evs, pod,
+                t.getCarrierDisplayName(), Money.tryOf(t.getAgreedAmount()), t.getStage(), next, evs, pics, pod,
                 t.getStartedAt(), t.getDeliveredAt(), t.getCompletedAt());
     }
 }

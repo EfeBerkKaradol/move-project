@@ -215,6 +215,25 @@ export const TRIP_STAGE_LABELS: Record<TripStage, string> = {
   COMPLETED: 'Tamamlandı',
 };
 
+export type TripPhotoKind = 'PICKUP' | 'DELIVERY' | 'DAMAGE';
+
+export const TRIP_PHOTO_KIND_LABELS: Record<TripPhotoKind, string> = {
+  PICKUP: 'Yükleme',
+  DELIVERY: 'Teslim',
+  DAMAGE: 'Hasar',
+};
+
+export type TripPhotoView = {
+  id: string;
+  kind: TripPhotoKind;
+  kindDisplayName: string;
+  contentType: string;
+  sizeBytes: number;
+  /** Kimin çektiği; uyuşmazlıkta belirleyici. */
+  uploadedByRole: 'DRIVER' | 'SHIPPER';
+  uploadedAt: string;
+};
+
 export type TripView = {
   id: string;
   listingId: string;
@@ -226,7 +245,8 @@ export type TripView = {
   /** Taşıyıcının geçebileceği sonraki aşama; DELIVERED/COMPLETED'da null. */
   nextStage: TripStage | null;
   events: { stage: TripStage; occurredAt: string; source: 'DRIVER' | 'SHIPPER' | 'SYSTEM'; note: string | null }[];
-  proofOfDelivery: { receivedByName: string; note: string | null; photoKey: string | null } | null;
+  photos: TripPhotoView[];
+  proofOfDelivery: { receivedByName: string; note: string | null } | null;
   startedAt: string;
   deliveredAt: string | null;
   completedAt: string | null;

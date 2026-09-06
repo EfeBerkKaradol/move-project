@@ -166,7 +166,7 @@ En büyük operasyonel değişiklik. Etkiler:
 | 5 | `LoadListing` + `CarrierOffer` (teklif pazarı) | ✅ tamam (V9; ilan → teklif → kabul → iş) |
 | 6 | `Corridor` + `CorridorMatch` (boş dönüş) | ✅ tamam (V11; eşleştirme, puanlama, taşıyıcı ekranı) |
 | 7 | Taşıyıcı belge yükleme (kamerayla) | ✅ tamam (V12; başvuru, belge, onay kuyruğu, süre takibi) |
-| 8 | Teslimatta onay + e-irsaliye | ✅ aşama makinesi + POD + onay (V10) · ⏳ sıradaki: teslim fotoğrafı, e-irsaliye |
+| 8 | Teslimatta onay + e-irsaliye | ✅ aşama makinesi, POD, onay (V10) + teslim fotoğrafı (V13) · ⏳ e-irsaliye entegratör hesabı bekliyor (ANAHTARLAR #10) |
 
 ### Belge doğrulama — uygulamada bilinmesi gerekenler
 
@@ -184,6 +184,22 @@ En büyük operasyonel değişiklik. Etkiler:
 - **Dosyalar veritabanında değil.** Nesne deposunda (yerelde MinIO); veritabanında yalnızca
   anahtar var. Kovaya doğrudan erişim yok, indirme sahiplik ya da operasyon kontrolünden
   geçiyor.
+
+---
+
+### Teslim kanıtı fotoğrafları — uygulamada bilinmesi gerekenler
+
+- **Tek sütun yerine ayrı tablo.** V10'daki `pod_photo_key` tek kare tutabiliyordu;
+  teslimatta çoğu zaman yükleme anı, teslim anı ve varsa hasar ayrı ayrı gerekiyor.
+  Sütun V13'te kaldırıldı, aynı bilgiyi iki yerde tutmak istenmedi.
+- **Kanıtsız teslim bildirilemiyor.** `DELIVERED` geçişi en az bir teslim karesi istiyor;
+  kanıtsız teslim kanıtı zaten kanıt değil.
+- **Teslimden sonra kanıt silinemiyor.** Aksi hâlde taşıyıcı teslimi bildirip kareyi
+  silebilir ve geriye doğrulanamaz bir kayıt kalırdı.
+- **Yük sahibi yalnızca hasar karesi ekleyebiliyor.** Yükleme ve teslim kareleri
+  taşıyıcının kanıtı; onları karşı tarafın üretmesi anlamsız olurdu.
+- **Fotoğraflar tarayıcıya vekil uçtan geliyor.** Erişim tokeni tarayıcıya inmiyor,
+  bu yüzden `<img src>` doğrudan API'yi çağıramıyor; istek Next tarafında imzalanıyor.
 
 ---
 

@@ -1,11 +1,16 @@
 package com.tasiyoruz.api.tracking.internal;
 
+import com.tasiyoruz.api.tracking.api.TripPhotoKind;
 import com.tasiyoruz.api.tracking.api.TripService;
 import com.tasiyoruz.api.tracking.api.TripView;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import java.util.List;
+import org.springframework.core.io.InputStreamResource;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.MediaType;
+import org.springframework.http.ResponseEntity;
+import org.springframework.web.multipart.MultipartFile;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.security.oauth2.jwt.Jwt;
 import org.springframework.web.bind.annotation.*;
@@ -32,6 +37,21 @@ class ShipperTripController {
     @GetMapping("/{id}")
     TripView one(@AuthenticationPrincipal Jwt jwt, @PathVariable String id) {
         return trips.trip(jwt.getSubject(), id).orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "İş bulunamadı."));
+    }
+
+    @GetMapping("/{id}/photos/{photoId}/file")
+    @Operation(summary = "Taşıma fotoğrafını indir")
+    ResponseEntity<InputStreamResource> photo(@AuthenticationPrincipal Jwt jwt, @PathVariable String id,
+                                              @PathVariable String photoId) {
+        return TripPhotoResponse.of(trips.downloadPhoto(jwt.getSubject(), id, photoId));
+    }
+
+    @PostMapping(path = "/{id}/photos/DAMAGE", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
+    @Operation(summary = "Hasar fotoğrafı ekle — yük veren yalnızca bu türü yükleyebilir")
+    TripView addDamagePhoto(@AuthenticationPrincipal Jwt jwt, @PathVariable String id,
+                            @RequestParam("file") MultipartFile file) {
+        return trips.addPhoto(jwt.getSubject(), id, TripPhotoKind.DAMAGE,
+                DriverTripController.toUploadedPhoto(file));
     }
 
     @PostMapping("/{id}/confirm-delivery")

@@ -1,13 +1,15 @@
-import { TRIP_STAGE_LABELS, type TripView } from '@tasiyoruz/contracts';
+import { TRIP_STAGE_LABELS, type TripPhotoKind, type TripView } from '@tasiyoruz/contracts';
 import { formatPrice } from '@tasiyoruz/shared';
 import type { Metadata } from 'next';
 import { notFound, redirect } from 'next/navigation';
 import { auth, canCallApi, homeFor, isDriver } from '@/auth';
 import { Shell } from '@/components/app/Shell';
+import { TripPhotos } from '@/components/app/TripPhotos';
 import { TripTimeline } from '@/components/app/TripTimeline';
 import { ApiError, apiFetch } from '@/lib/api-server';
 import { advanceTrip } from '../../actions';
 import { DeliverForm } from './DeliverForm';
+import { PhotoUpload } from './PhotoUpload';
 
 export const metadata: Metadata = { title: 'İş' };
 export const dynamic = 'force-dynamic';
@@ -23,6 +25,9 @@ export default async function DriverTripPage({ params }: { params: Promise<{ id:
 
   const canAdvance = trip.nextStage !== null && trip.nextStage !== 'DELIVERED';
   const canDeliver = trip.stage === 'ARRIVED_AT_DROPOFF' || trip.stage === 'UNLOADING';
+  const photosOf = (kind: TripPhotoKind) => trip.photos.filter((p) => p.kind === kind);
+  // Tamamlanan işte yükleme kapalı; kanıt geriye dönük değiştirilemez
+  const canUploadPhoto = trip.stage !== 'COMPLETED';
 
   return (
     <Shell eyebrow={`İş · ${formatPrice(trip.agreedAmount.amount)}`} title={TRIP_STAGE_LABELS[trip.stage]}>
@@ -30,6 +35,12 @@ export default async function DriverTripPage({ params }: { params: Promise<{ id:
         <section className="rounded-card border border-line bg-surface p-5">
           <p className="label-mono text-muted">Zaman çizelgesi</p>
           <div className="mt-3"><TripTimeline trip={trip} /></div>
+          {trip.photos.length > 0 && (
+            <div className="mt-5 border-t border-line pt-4">
+              <p className="label-mono text-muted">Kareler</p>
+              <TripPhotos tripId={trip.id} photos={trip.photos} />
+            </div>
+          )}
         </section>
         <aside className="h-fit rounded-card border border-line bg-surface p-5">
           {canAdvance && (
@@ -40,9 +51,24 @@ export default async function DriverTripPage({ params }: { params: Promise<{ id:
               </button>
             </form>
           )}
-          {canDeliver && (<div className={canAdvance ? 'mt-6 border-t border-line pt-5' : ''}>
+          {canUploadPhoto && (
+            <div className={`space-y-5 ${canAdvance ? 'mt-6 border-t border-line pt-5' : ''}`}>
+              <PhotoUpload tripId={trip.id} kind="PICKUP" label="Yükleme fotoğrafı"
+                photos={photosOf('PICKUP')}
+                hint="Yükü hangi durumda aldığını gösterir." />
+              <PhotoUpload tripId={trip.id} kind="DELIVERY" label="Teslim fotoğrafı"
+                photos={photosOf('DELIVERY')}
+                hint="Teslimi bildirmek için en az bir kare gerekiyor." />
+              <PhotoUpload tripId={trip.id} kind="DAMAGE" label="Hasar kaydı"
+                photos={photosOf('DAMAGE')}
+                hint="Bir sorun varsa burada belgeleyin." />
+            </div>
+          )}
+          {canDeliver && (<div className="mt-6 border-t border-line pt-5">
             <p className="label-mono text-muted">Teslim kanıtı</p>
-            <div className="mt-2"><DeliverForm tripId={trip.id} /></div>
+            <div className="mt-2">
+              <DeliverForm tripId={trip.id} hasDeliveryPhoto={photosOf('DELIVERY').length > 0} />
+            </div>
           </div>)}
           {trip.stage === 'DELIVERED' && <p className="text-sm">Teslimi bildirdin. Müşteri onaylayınca iş tamamlanır.</p>}
           {trip.stage === 'COMPLETED' && <p className="text-sm font-semibold text-[#1f6b45]">Tamamlandı. Ödeme akışı sırada.</p>}
