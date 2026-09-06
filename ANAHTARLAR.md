@@ -186,8 +186,10 @@ apps/web/.env.local      NEXT_PUBLIC_API_URL · AUTH_SECRET · AUTH_KEYCLOAK_ID/
 Vercel                   Web anahtarlarının aynısı, panelden (dosya yüklenmez); AUTH_TRUST_HOST yerine AUTH_URL
 ```
 
-İki dosya da hazır ve boş satırları doldurman için bekliyor. Spring `.env`'i
-`spring.config.import` ile okuyor; Next `.env.local`'ı kendiliğinden yükler.
+**Yerelde neyi doldurman gerekiyor?** Hiçbir şeyi. `apps/web/.env.local` hazır ve dolu
+(giriş için gerekli AUTH_* değerleri yerel Keycloak ile eşleşiyor); `services/api/.env`
+yerelde gerekmiyor, her ayarın çalışan varsayılanı var. Spring `.env`'i
+`spring.config.import` ile okur (üretim değerleri için), Next `.env.local`'ı kendiliğinden yükler.
 
 Her ikisi de `.gitignore`'da. Şablonları `.env.example` dosyalarında —
 onlar repoda, ama **içleri boş**.

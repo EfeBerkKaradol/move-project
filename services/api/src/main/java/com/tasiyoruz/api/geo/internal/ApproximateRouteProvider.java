@@ -4,7 +4,6 @@ import com.tasiyoruz.api.geo.api.GeoPoint;
 import com.tasiyoruz.api.geo.api.RouteEstimate;
 import com.tasiyoruz.api.geo.api.RouteProvider;
 import java.util.List;
-import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.stereotype.Component;
 
 /**
@@ -15,11 +14,11 @@ import org.springframework.stereotype.Component;
  * olarak işaretlenir ve kullanıcıya bu durum açıkça gösterilir — yanlış hassasiyet
  * izlenimi vermek fiyat güvenini bozar.
  *
- * <p>Anahtar geldiğinde {@code tasiyoruz.maps.api-key} tanımlanır ve bu bean devre dışı
- * kalır; yerine gerçek Routes çağrısı yapan uygulama geçer (ANAHTARLAR.md #1).
+ * <p>Google Routes entegrasyonu henüz yok; {@code GOOGLE_MAPS_API_KEY} bugün hiçbir kod
+ * tarafından okunmuyor. Entegrasyon geldiğinde o sağlayıcı {@code @Primary} olur, bu
+ * sınıf anahtarsız ortamlar için yedek kalır (ANAHTARLAR.md #1).
  */
 @Component
-@ConditionalOnProperty(name = "tasiyoruz.maps.api-key", havingValue = "", matchIfMissing = true)
 class ApproximateRouteProvider implements RouteProvider {
 
     /**
