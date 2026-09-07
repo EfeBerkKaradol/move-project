@@ -49,7 +49,7 @@ export function DocumentUpload({
     <div className="rounded-card border border-line bg-surface p-4">
       <div className="flex flex-wrap items-center gap-x-3 gap-y-2">
         <span className="font-semibold">{displayName}</span>
-        {required && !document && <span className="label-mono text-[#8a5c10]">zorunlu</span>}
+        {required && !document && <span className="label-mono text-[var(--route-deep)]">zorunlu</span>}
         {document && (
           <span className={`rounded-full px-2.5 py-1 text-xs font-semibold ${STATUS_TONE[document.status]}`}>
             {DOCUMENT_STATUS_LABELS[document.status]}
@@ -81,7 +81,7 @@ export function DocumentUpload({
               aria-label={`${displayName} dosyası seç`}
               onChange={(e) => setFileName(e.target.files?.[0]?.name ?? null)} />
             <button type="button" onClick={() => inputRef.current?.click()}
-              className="min-h-11 rounded-field border border-line px-4 py-2.5 text-sm font-semibold transition hover:border-amber hover:bg-surface-2">
+              className="min-h-11 rounded-field border border-line px-4 py-2.5 text-sm font-semibold transition hover:border-route hover:bg-surface-2">
               {document ? 'Yeniden yükle' : 'Fotoğraf çek ya da dosya seç'}
             </button>
             {fileName && <span className="mt-1 block max-w-56 truncate text-xs text-muted">{fileName}</span>}
@@ -91,12 +91,12 @@ export function DocumentUpload({
             <label className="text-sm">
               <span className="label-mono block text-muted">Son geçerlilik</span>
               <input type="date" name="expiresOn" defaultValue={document?.expiresOn ?? ''}
-                className="min-h-11 rounded-field border border-line bg-surface-2 px-3 py-2.5 outline-none transition hover:border-muted focus:border-amber focus:ring-2 focus:ring-amber/25" />
+                className="min-h-11 rounded-field border border-line bg-surface-2 px-3 py-2.5 outline-none transition hover:border-muted focus:border-route focus:ring-2 focus:ring-route/25" />
             </label>
           )}
 
           <button type="submit" disabled={pending || !fileName}
-            className="min-h-11 rounded-field bg-amber px-4 py-2.5 text-sm font-bold text-[var(--amber-ink)] transition hover:bg-[var(--amber-hover)] hover:shadow-[0_6px_18px_rgb(244_159_44_/_0.30)] active:translate-y-px disabled:opacity-60">
+            className="min-h-11 rounded-field bg-route px-4 py-2.5 text-sm font-bold text-[var(--route-ink)] transition hover:bg-[var(--route-hover)] hover:shadow-[0_6px_18px_rgb(244_159_44_/_0.30)] active:translate-y-px disabled:opacity-60">
             {pending ? 'Yükleniyor…' : 'Yükle'}
           </button>
           {state.error && <p className="basis-full text-sm text-[#8a2a1f]">{state.error}</p>}

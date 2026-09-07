@@ -1,6 +1,7 @@
 import type { Metadata } from 'next';
 import { Archivo, IBM_Plex_Mono } from 'next/font/google';
 import './globals.css';
+import { BRAND } from '@/lib/brand';
 
 /**
  * Archivo: sıkı harf aralıklı, kalın kesilebilen grotesk — tasarımın başlık dili.
@@ -33,27 +34,23 @@ const plexMono = IBM_Plex_Mono({
  */
 const siteUrl = process.env.NEXT_PUBLIC_SITE_URL?.trim() || 'http://localhost:3000';
 
-const description =
-  'Rotanızı girin, doğrulanmış araç sahiplerinden teklif alın. Aracı siz seçin, ' +
-  'ödemeyi teslimatta onaylayın. 81 il, motordan kamyona.';
+const description = BRAND.description;
+const title = `${BRAND.name} — ${BRAND.slogan}`;
 
 export const metadata: Metadata = {
   metadataBase: new URL(siteUrl),
-  title: {
-    default: 'Taşıyoruz — Yükünüz için doğru aracı dakikalar içinde bulun',
-    template: '%s · Taşıyoruz',
-  },
+  title: { default: title, template: `%s · ${BRAND.name}` },
   description,
-  applicationName: 'Taşıyoruz',
+  applicationName: BRAND.name,
   openGraph: {
     type: 'website',
     locale: 'tr_TR',
-    siteName: 'Taşıyoruz',
-    title: 'Taşıyoruz — Yükünüz için doğru aracı dakikalar içinde bulun',
+    siteName: BRAND.name,
+    title,
     description,
     url: '/',
   },
-  twitter: { card: 'summary_large_image', title: 'Taşıyoruz', description },
+  twitter: { card: 'summary_large_image', title, description },
   // Marka ve alan adı kesinleşmeden dizine girmesin (ANAHTARLAR #5)
   robots: { index: false, follow: false },
 };

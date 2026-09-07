@@ -56,11 +56,11 @@ export function PhotoUpload({
           className="sr-only" aria-label={`${label} çek ya da seç`}
           onChange={(e) => setFileName(e.target.files?.[0]?.name ?? null)} />
         <button type="button" onClick={() => inputRef.current?.click()}
-          className="min-h-11 rounded-field border border-line px-4 py-2.5 text-sm font-semibold transition hover:border-amber hover:bg-surface-2">
+          className="min-h-11 rounded-field border border-line px-4 py-2.5 text-sm font-semibold transition hover:border-route hover:bg-surface-2">
           Fotoğraf çek
         </button>
         <button type="submit" disabled={pending || !fileName}
-          className="min-h-11 rounded-field bg-amber px-4 py-2.5 text-sm font-bold text-[var(--amber-ink)] transition hover:bg-[var(--amber-hover)] hover:shadow-[0_6px_18px_rgb(244_159_44_/_0.30)] active:translate-y-px disabled:opacity-60">
+          className="min-h-11 rounded-field bg-route px-4 py-2.5 text-sm font-bold text-[var(--route-ink)] transition hover:bg-[var(--route-hover)] hover:shadow-[0_6px_18px_rgb(244_159_44_/_0.30)] active:translate-y-px disabled:opacity-60">
           {pending ? 'Yükleniyor…' : 'Yükle'}
         </button>
         {fileName && <span className="max-w-40 truncate text-xs text-muted">{fileName}</span>}

@@ -1,0 +1,36 @@
+import type { VehicleType } from '@tasiyoruz/contracts';
+import { QuoteWidget } from './QuoteWidget';
+import { Reveal } from './Reveal';
+
+/**
+ * Aramanın ilk adımı: nereden, nereye, hangi araç.
+ *
+ * <p>Kademeli açılım bilinçli — yük türü, ağırlık, tarih ve ek hizmetler burada
+ * sorulmuyor. Kullanıcıyı sekiz alanla karşılamak, henüz fiyatı görmemiş birinden
+ * form doldurmasını istemek demek. Kalan adımlar fiyat sayfasında, kullanıcı
+ * karşılığını gördükten sonra geliyor.
+ */
+export function SearchSection({ vehicles }: { vehicles: VehicleType[] }) {
+  if (vehicles.length === 0) return null;
+
+  return (
+    <section className="theme-cream bg-bg pb-20 md:pb-28">
+      <div className="mx-auto grid max-w-[76rem] gap-10 px-6 lg:grid-cols-[minmax(0,1fr)_minmax(0,1.1fr)] lg:items-center lg:gap-16">
+        <Reveal>
+          <p className="label-mono text-muted">Başla</p>
+          <h2 className="mt-3 text-[clamp(1.9rem,4vw,3.1rem)] leading-[1.05]">
+            Nereden nereye?
+          </h2>
+          <p className="mt-5 max-w-md text-muted">
+            İki adres ve bir araç tipi yeterli. Tahmini fiyat aralığını kayıt olmadan
+            görüyorsun; yük detayları ve tarih sonraki adımda.
+          </p>
+        </Reveal>
+
+        <Reveal delay={90}>
+          <QuoteWidget vehicles={vehicles} />
+        </Reveal>
+      </div>
+    </section>
+  );
+}

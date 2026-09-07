@@ -88,7 +88,7 @@ export default async function DriverSignupPage() {
           {profile.reviewNote && <span className="text-sm text-muted">{profile.reviewNote}</span>}
           {profile.status === 'APPROVED' && (
             <Link href="/nakliyeci"
-              className="ml-auto min-h-11 inline-flex items-center rounded-field bg-amber px-4 text-sm font-bold text-[var(--amber-ink)] transition hover:bg-[var(--amber-hover)] hover:shadow-[0_6px_18px_rgb(244_159_44_/_0.30)] active:translate-y-px">
+              className="ml-auto min-h-11 inline-flex items-center rounded-field bg-route px-4 text-sm font-bold text-[var(--route-ink)] transition hover:bg-[var(--route-hover)] hover:shadow-[0_6px_18px_rgb(244_159_44_/_0.30)] active:translate-y-px">
               Araç sahibi paneline git
             </Link>
           )}
@@ -151,7 +151,7 @@ export default async function DriverSignupPage() {
           {canSubmit && (
             <form action={async () => { 'use server'; await submitApplication(); }} className="mt-6">
               <button type="submit"
-                className="min-h-11 rounded-field bg-amber px-5 py-2.5 text-sm font-bold text-[var(--amber-ink)] transition hover:bg-[var(--amber-hover)] hover:shadow-[0_6px_18px_rgb(244_159_44_/_0.30)] active:translate-y-px">
+                className="min-h-11 rounded-field bg-route px-5 py-2.5 text-sm font-bold text-[var(--route-ink)] transition hover:bg-[var(--route-hover)] hover:shadow-[0_6px_18px_rgb(244_159_44_/_0.30)] active:translate-y-px">
                 Başvuruyu incelemeye gönder
               </button>
             </form>

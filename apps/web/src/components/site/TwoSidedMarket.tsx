@@ -1,103 +1,94 @@
 import Link from 'next/link';
+import { Icon, type IconName } from '@/components/ui/Icon';
 import { Reveal } from './Reveal';
 
-const SHIPPER = {
-  eyebrow: 'Yük veren için',
-  title: 'Fiyatı görmek için üye olmanız gerekmiyor.',
-  steps: [
-    ['Rotanızı ve yükünüzü girin', 'Fotoğraf çekin, sistem araç tipini önersin.'],
-    ['Teklifleri karşılaştırın', 'Puan, tamamlanan iş ve araç bilgisi yan yana.'],
-    ['Takip edin, teslimatta onaylayın', 'Canlı konum, teslim fotoğrafı ve e-irsaliye.'],
-  ],
-  cta: { href: '/fiyat-hesapla', label: 'Ücretsiz fiyat al' },
+type Side = {
+  eyebrow: string;
+  title: string;
+  points: string[];
+  cta: { href: string; label: string };
+  icon: IconName;
 };
 
-const CARRIER = {
-  eyebrow: 'Araç sahibi için',
-  title: 'İşi almak için pazarlığa girmenize gerek yok.',
-  steps: [
-    ['Belgelerini bir kez yükle', 'Ruhsat, ehliyet, K belgesi ve SRC — kamerayla.'],
-    ['Rotanı gir, yükler sana gelsin', 'Boş dönüşünü kaydet, koridorundaki ilanlar düşsün.'],
-    ['Net kazancını gör, gününde al', 'Komisyon düşülmüş tutar ve ödeme tarihi ekranda.'],
-  ],
-  cta: { href: '/sofor-ol', label: 'Şoför olarak katıl' },
-};
+/**
+ * Pazarın iki tarafı. Simetrik ve seyrek: kart yığını yerine iki geniş alan,
+ * aralarında tek bir ayırıcı. Kullanıcı "ben hangisiyim?" sorusunu tek bakışta
+ * cevaplayabilmeli.
+ */
+export function TwoSidedMarket({
+  shipperHref,
+  carrierHref,
+}: {
+  shipperHref: string;
+  carrierHref: string;
+}) {
+  const sides: Side[] = [
+    {
+      eyebrow: 'Yükün var',
+      title: 'Doğru aracı bul.',
+      icon: 'package',
+      points: [
+        'Fiyatı görmek için üye olman gerekmiyor',
+        'Teklifleri puan ve tamamlanan işle karşılaştır',
+        'Canlı konum, teslim fotoğrafı, teslimatta onay',
+      ],
+      cta: { href: shipperHref, label: 'Ücretsiz fiyat al' },
+    },
+    {
+      eyebrow: 'Aracın var',
+      title: 'Doğru yükü bul.',
+      icon: 'truck',
+      points: [
+        'Belgelerini bir kez yükle, onay al',
+        'Rotanı gir; koridoruna düşen ilanlar sana gelsin',
+        'Komisyon düşülmüş net kazancı önceden gör',
+      ],
+      cta: { href: carrierHref, label: 'Şoför olarak katıl' },
+    },
+  ];
 
-export function TwoSidedMarket() {
   return (
-    <section id="nasil-calisir" className="theme-cream bg-bg pb-20">
-      <div className="mx-auto max-w-6xl px-6">
+    <section className="theme-cream bg-bg pb-20 md:pb-28">
+      <div className="mx-auto max-w-[76rem] px-6">
         <Reveal>
-          <h2 className="text-[clamp(1.9rem,4vw,3.25rem)]">Tek pazar, iki taraf.</h2>
+          <h2 className="text-[clamp(1.9rem,4vw,3.1rem)] leading-[1.05]">
+            İki taraf. Tek rota.
+          </h2>
         </Reveal>
 
-        <div className="mt-7 grid gap-4 lg:grid-cols-2">
-          <Reveal delay={80}>
-            <SideCard {...SHIPPER} variant="light" />
-          </Reveal>
+        <div className="mt-12 grid gap-12 md:grid-cols-2 md:gap-0">
+          {sides.map((side, i) => (
+            <Reveal key={side.eyebrow} delay={i * 90}>
+              <div className={i === 1 ? 'md:border-l md:border-line md:pl-12' : 'md:pr-12'}>
+                <p className="label-mono flex items-center gap-2 text-muted">
+                  <Icon name={side.icon} size={16} />
+                  {side.eyebrow}
+                </p>
+                <h3 className="mt-3 text-[clamp(1.5rem,3vw,2.1rem)] leading-tight">{side.title}</h3>
 
-          <Reveal delay={140}>
-            <SideCard {...CARRIER} variant="dark" />
-          </Reveal>
+                <ul className="mt-7 space-y-3.5">
+                  {side.points.map((point) => (
+                    <li key={point} className="flex gap-3 text-[15px] leading-relaxed">
+                      <span aria-hidden className="mt-1 text-[var(--route-deep)]">
+                        <Icon name="check" size={16} />
+                      </span>
+                      {point}
+                    </li>
+                  ))}
+                </ul>
+
+                <Link
+                  href={side.cta.href}
+                  className="mt-8 inline-flex items-center gap-2 rounded-field bg-route px-5 py-3 text-sm font-bold text-[var(--route-ink)] transition duration-150 hover:bg-[var(--route-hover)] active:translate-y-px"
+                >
+                  {side.cta.label}
+                  <Icon name="arrowRight" size={16} />
+                </Link>
+              </div>
+            </Reveal>
+          ))}
         </div>
       </div>
     </section>
-  );
-}
-
-function SideCard({
-  eyebrow,
-  title,
-  steps,
-  cta,
-  variant,
-}: {
-  eyebrow: string;
-  title: string;
-  steps: string[][];
-  cta: { href: string; label: string };
-  variant: 'light' | 'dark';
-}) {
-  const dark = variant === 'dark';
-  return (
-    <div
-      className={[
-        'h-full rounded-card p-6 sm:p-8',
-        dark ? 'theme-dark bg-bg' : 'border border-line bg-surface',
-      ].join(' ')}
-    >
-      <p className={`label-mono ${dark ? 'text-amber' : 'text-[#8a5c10]'}`}>{eyebrow}</p>
-      <h3 className="mt-3 max-w-sm text-[clamp(1.35rem,3.4vw,1.6rem)] leading-[1.15]">{title}</h3>
-
-      <ol className="mt-6 space-y-4">
-        {steps.map(([heading, body], i) => (
-          <li key={heading} className="flex gap-3.5">
-            <span
-              className={`mt-0.5 grid size-6 shrink-0 place-items-center rounded-md text-xs font-bold ${
-                dark ? 'bg-surface text-ink' : 'bg-surface-2 text-ink'
-              }`}
-            >
-              {i + 1}
-            </span>
-            <span>
-              <span className="block text-sm font-bold">{heading}</span>
-              <span className="mt-0.5 block text-sm text-muted">{body}</span>
-            </span>
-          </li>
-        ))}
-      </ol>
-
-      <Link
-        href={cta.href}
-        className={[
-          'mt-7 inline-block rounded-field px-5 py-3 text-sm font-bold transition active:translate-y-px',
-          dark
-            ? 'bg-white text-[#0d1015] hover:bg-[#ebe9e4] hover:shadow-[0_6px_18px_rgb(0_0_0_/_0.35)]'
-            : 'bg-amber text-[var(--amber-ink)] hover:bg-[var(--amber-hover)] hover:shadow-[0_6px_18px_rgb(244_159_44_/_0.30)]',
-        ].join(' ')}
-      >
-        {cta.label}
-      </Link>
-    </div>
   );
 }

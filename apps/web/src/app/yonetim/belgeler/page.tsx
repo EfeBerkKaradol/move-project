@@ -21,7 +21,7 @@ export default async function OpsDocumentsPage({ searchParams }: { searchParams:
     {
       key: 'kalan', header: 'Kalan',
       cell: (d) => (
-        <Pill tone={d.daysLeft <= 0 ? 'red' : d.daysLeft <= 7 ? 'red' : d.daysLeft <= 30 ? 'amber' : 'neutral'}>
+        <Pill tone={d.daysLeft <= 0 ? 'red' : d.daysLeft <= 7 ? 'red' : d.daysLeft <= 30 ? 'route' : 'neutral'}>
           {d.daysLeft <= 0 ? 'Doldu' : `${d.daysLeft} gün`}
         </Pill>
       ),

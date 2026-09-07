@@ -95,7 +95,7 @@ export function CargoDetail({
                   className={[
                     'rounded-lg border px-4 py-2.5 text-sm transition',
                     isSelected
-                      ? 'border-amber bg-[var(--amber-soft)] ring-1 ring-amber'
+                      ? 'border-route bg-[var(--route-soft)] ring-1 ring-route'
                       : 'border-line bg-surface hover:border-ink-muted',
                   ].join(' ')}
                 >

@@ -44,8 +44,8 @@ export function OpsShell({
             href={item.href}
             aria-current={isActive ? 'page' : undefined}
             title={item.label}
-            className={`relative flex min-h-12 items-center gap-3 rounded-field px-3.5 text-sm font-semibold transition focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-amber md:justify-center xl:justify-start xl:px-4 ${
-              isActive ? 'bg-amber text-[var(--amber-ink)]' : 'text-muted hover:bg-surface-2 hover:text-ink'
+            className={`relative flex min-h-12 items-center gap-3 rounded-field px-3.5 text-sm font-semibold transition focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-route md:justify-center xl:justify-start xl:px-4 ${
+              isActive ? 'bg-route text-[var(--route-ink)]' : 'text-muted hover:bg-surface-2 hover:text-ink'
             }`}
           >
             <svg viewBox="0 0 24 24" className="size-5 shrink-0" fill="none" stroke="currentColor"
@@ -56,7 +56,7 @@ export function OpsShell({
             <span className="flex-1 md:sr-only xl:not-sr-only">{item.label}</span>
             {badge ? (
               <span className={`stat rounded-full px-2 py-0.5 text-xs md:absolute md:right-1.5 md:top-1.5 md:px-1.5 md:py-0 xl:static xl:px-2 xl:py-0.5 ${
-                isActive ? 'bg-[var(--amber-ink)] text-amber' : 'bg-amber text-[var(--amber-ink)]'
+                isActive ? 'bg-[var(--route-ink)] text-route' : 'bg-route text-[var(--route-ink)]'
               }`}>
                 {badge}
               </span>
@@ -81,7 +81,7 @@ export function OpsShell({
       </div>
       <div className="mt-4 grid gap-2.5">
         <Link href="/" title="Siteye dön"
-          className="inline-flex min-h-11 items-center justify-center gap-2 whitespace-nowrap rounded-field border border-line px-2 text-sm font-semibold text-ink transition hover:border-amber hover:bg-surface-2">
+          className="inline-flex min-h-11 items-center justify-center gap-2 whitespace-nowrap rounded-field border border-line px-2 text-sm font-semibold text-ink transition hover:border-route hover:bg-surface-2">
           <svg viewBox="0 0 24 24" className="size-4.5 shrink-0" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" aria-hidden>
             <path d="M3 11 12 4l9 7M5 10v10h14V10" />
           </svg>
@@ -89,7 +89,7 @@ export function OpsShell({
         </Link>
         <form action={async () => { 'use server'; redirect(await signOutEverywhere('/')); }}>
           <button type="submit" title="Çıkış"
-            className="inline-flex min-h-11 w-full items-center justify-center gap-2 whitespace-nowrap rounded-field border border-line px-2 text-sm font-semibold text-ink transition hover:border-amber hover:bg-surface-2">
+            className="inline-flex min-h-11 w-full items-center justify-center gap-2 whitespace-nowrap rounded-field border border-line px-2 text-sm font-semibold text-ink transition hover:border-route hover:bg-surface-2">
             <svg viewBox="0 0 24 24" className="size-4.5 shrink-0" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" aria-hidden>
               <path d="M10 4H5v16h5M14 8l4 4-4 4M18 12H9" />
             </svg>
@@ -135,13 +135,13 @@ export function OpsShell({
 function Brand() {
   return (
     <Link href="/yonetim" title="Pano" className="flex min-h-11 items-center gap-2.5 text-base font-extrabold text-ink md:justify-center xl:justify-start">
-      <span className="grid size-9 shrink-0 place-items-center rounded-lg bg-amber" aria-hidden>
-        <svg viewBox="0 0 24 24" className="size-5" fill="none" stroke="var(--amber-ink)"
+      <span className="grid size-9 shrink-0 place-items-center rounded-lg bg-route" aria-hidden>
+        <svg viewBox="0 0 24 24" className="size-5" fill="none" stroke="var(--route-ink)"
           strokeWidth="2.4" strokeLinecap="round" strokeLinejoin="round">
           <path d="M3 16 L9 8 L15 16 L21 8" />
         </svg>
       </span>
-      <span className="md:sr-only xl:not-sr-only">Taşıyoruz <span className="label-mono ml-1 text-amber">ops</span></span>
+      <span className="md:sr-only xl:not-sr-only">Taşıyoruz <span className="label-mono ml-1 text-route">ops</span></span>
     </Link>
   );
 }
@@ -164,7 +164,7 @@ export function OpsPage({
     <main className="mx-auto max-w-7xl px-5 py-10 md:px-10 lg:px-14 lg:py-14">
       <header className="flex flex-wrap items-end justify-between gap-6">
         <div>
-          {eyebrow && <p className="label-mono text-[#8a5c10]">{eyebrow}</p>}
+          {eyebrow && <p className="label-mono text-[var(--route-deep)]">{eyebrow}</p>}
           <h1 className="mt-3 text-[clamp(1.7rem,3vw,2.4rem)] leading-[1.08]">{title}</h1>
           {description && <p className="mt-3 max-w-2xl text-sm text-muted">{description}</p>}
         </div>

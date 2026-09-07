@@ -22,7 +22,7 @@ export default async function PanelPage() {
     <Shell eyebrow="Yük veren" title="İlanlarım">
       <div className="flex items-center justify-between gap-4">
         <p className="text-sm text-muted">{session.user?.name ?? session.user?.email}</p>
-        <Link href="/fiyat-hesapla" className="rounded-field bg-amber px-5 py-3 text-sm font-bold text-[var(--amber-ink)] transition hover:bg-[var(--amber-hover)] hover:shadow-[0_6px_18px_rgb(244_159_44_/_0.30)] active:translate-y-px">
+        <Link href="/fiyat-hesapla" className="rounded-field bg-route px-5 py-3 text-sm font-bold text-[var(--route-ink)] transition hover:bg-[var(--route-hover)] hover:shadow-[0_6px_18px_rgb(244_159_44_/_0.30)] active:translate-y-px">
           Yeni ilan
         </Link>
       </div>

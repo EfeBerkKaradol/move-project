@@ -29,7 +29,7 @@ export default function ErrorPage({
   return (
     <main className="theme-dark grid min-h-screen place-items-center bg-bg px-6">
       <div className="max-w-lg text-center">
-        <p className="label-mono text-amber">Bir şeyler ters gitti</p>
+        <p className="label-mono text-route">Bir şeyler ters gitti</p>
         <h1 className="mt-4 text-[clamp(1.8rem,5vw,2.6rem)] leading-[1.08]">
           Sayfa yüklenemedi.
         </h1>
@@ -43,13 +43,13 @@ export default function ErrorPage({
           <button
             type="button"
             onClick={reset}
-            className="min-h-11 rounded-field bg-amber px-5 py-3 text-sm font-bold text-[var(--amber-ink)] transition hover:bg-[var(--amber-hover)] hover:shadow-[0_6px_18px_rgb(244_159_44_/_0.30)] active:translate-y-px"
+            className="min-h-11 rounded-field bg-route px-5 py-3 text-sm font-bold text-[var(--route-ink)] transition hover:bg-[var(--route-hover)] hover:shadow-[0_6px_18px_rgb(244_159_44_/_0.30)] active:translate-y-px"
           >
             Tekrar dene
           </button>
           <Link
             href="/"
-            className="inline-flex min-h-11 items-center rounded-field border border-line px-5 text-sm font-semibold transition hover:border-amber hover:bg-surface-2"
+            className="inline-flex min-h-11 items-center rounded-field border border-line px-5 text-sm font-semibold transition hover:border-route hover:bg-surface-2"
           >
             Ana sayfaya dön
           </Link>

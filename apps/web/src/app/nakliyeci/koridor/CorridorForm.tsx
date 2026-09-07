@@ -5,7 +5,7 @@ import { useActionState, useState } from 'react';
 import { createCorridor, type ActionState } from './actions';
 
 const FIELD =
-  'min-h-11 w-full rounded-field border border-line bg-surface-2 px-3 py-2.5 text-[15px] outline-none transition hover:border-muted focus:border-amber focus:ring-2 focus:ring-amber/25';
+  'min-h-11 w-full rounded-field border border-line bg-surface-2 px-3 py-2.5 text-[15px] outline-none transition hover:border-muted focus:border-route focus:ring-2 focus:ring-route/25';
 
 /** Bugünden itibaren, datetime-local'ın beklediği yerel biçim. */
 function localInput(offsetHours: number): string {
@@ -78,7 +78,7 @@ export function CorridorForm({ cities, vehicles }: { cities: District[]; vehicle
 
       <div className="sm:col-span-2">
         <button type="submit" disabled={pending || sameEnds}
-          className="min-h-11 rounded-field bg-amber px-5 py-2.5 text-sm font-bold text-[var(--amber-ink)] transition hover:bg-[var(--amber-hover)] hover:shadow-[0_6px_18px_rgb(244_159_44_/_0.30)] active:translate-y-px disabled:opacity-60">
+          className="min-h-11 rounded-field bg-route px-5 py-2.5 text-sm font-bold text-[var(--route-ink)] transition hover:bg-[var(--route-hover)] hover:shadow-[0_6px_18px_rgb(244_159_44_/_0.30)] active:translate-y-px disabled:opacity-60">
           {pending ? 'Kaydediliyor…' : 'Koridoru kaydet'}
         </button>
         {state.error && <p className="mt-2 text-sm text-[#8a2a1f]">{state.error}</p>}

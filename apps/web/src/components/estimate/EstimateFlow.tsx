@@ -219,7 +219,7 @@ export function EstimateFlow({
                   aria-checked={on}
                   onClick={() => setServiceModel(value)}
                   className={`rounded-field border p-3 text-left transition ${
-                    on ? 'border-amber bg-[var(--amber-soft)]' : 'border-line bg-surface hover:border-muted'
+                    on ? 'border-route bg-[var(--route-soft)]' : 'border-line bg-surface hover:border-muted'
                   }`}
                 >
                   <span className="block text-sm font-semibold">{label}</span>
@@ -239,7 +239,7 @@ export function EstimateFlow({
                 type="button"
                 onClick={() => setAdvisorOpen((o) => !o)}
                 aria-expanded={advisorOpen}
-                className="-my-2.5 rounded-md py-2.5 text-sm font-semibold text-[#8a5c10] underline-offset-4 transition hover:text-[#6d4708] hover:underline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-amber"
+                className="-my-2.5 rounded-md py-2.5 text-sm font-semibold text-[var(--route-deep)] underline-offset-4 transition hover:text-[#6d4708] hover:underline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-route"
               >
                 {advisorOpen ? 'Danışmanı kapat' : 'Hangi araç lazım bilmiyorum →'}
               </button>
@@ -287,7 +287,7 @@ export function EstimateFlow({
                     onClick={() => toggleExtra(e.code)}
                     title={e.description ?? undefined}
                     className={`rounded-field border px-3.5 py-2.5 text-sm transition ${
-                      on ? 'border-amber bg-[var(--amber-soft)]' : 'border-line bg-surface hover:border-muted'
+                      on ? 'border-route bg-[var(--route-soft)]' : 'border-line bg-surface hover:border-muted'
                     }`}
                   >
                     {e.displayName}
@@ -332,11 +332,11 @@ function StopDetails({
 }) {
   const id = label.toLowerCase();
   return (
-    <div className="rounded-field border border-line bg-surface-2 px-3.5 py-3 transition hover:border-muted focus:border-amber focus:ring-2 focus:ring-amber/25">
+    <div className="rounded-field border border-line bg-surface-2 px-3.5 py-3 transition hover:border-muted focus:border-route focus:ring-2 focus:ring-route/25">
       <div className="flex items-baseline justify-between gap-2">
         <span className="label-mono text-muted">{label}</span>
         {typed && !matched && (
-          <span className="label-mono text-[#8a5c10]">Listeden ilçe seç</span>
+          <span className="label-mono text-[var(--route-deep)]">Listeden ilçe seç</span>
         )}
         {matched && <span className="label-mono text-muted">{matched.cityName} · {matched.name}</span>}
       </div>
@@ -350,7 +350,7 @@ function StopDetails({
             max={50}
             value={value.floor}
             onChange={(e) => onChange({ ...value, floor: Number(e.target.value) })}
-            className="min-h-11 w-16 rounded-lg border border-line bg-surface px-2 py-2 tabular-nums transition hover:border-muted focus:border-amber focus:outline-none focus:ring-2 focus:ring-amber/25"
+            className="min-h-11 w-16 rounded-lg border border-line bg-surface px-2 py-2 tabular-nums transition hover:border-muted focus:border-route focus:outline-none focus:ring-2 focus:ring-route/25"
           />
         </label>
         <label className="flex min-h-11 cursor-pointer items-center gap-2">
@@ -358,7 +358,7 @@ function StopDetails({
             type="checkbox"
             checked={value.hasElevator}
             onChange={(e) => onChange({ ...value, hasElevator: e.target.checked })}
-            className="size-5 cursor-pointer accent-[var(--amber)]"
+            className="size-5 cursor-pointer accent-[var(--route)]"
           />
           Asansör var
         </label>

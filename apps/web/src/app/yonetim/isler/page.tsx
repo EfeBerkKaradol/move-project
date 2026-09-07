@@ -33,7 +33,7 @@ function Progress({ stage }: { stage: TripStage }) {
     <div className="flex items-center gap-2">
       <div className="flex gap-0.5" aria-hidden>
         {STAGES.map((s, i) => (
-          <span key={s} className={`h-1.5 w-2.5 rounded-sm ${i <= idx ? 'bg-amber' : 'bg-line'}`} />
+          <span key={s} className={`h-1.5 w-2.5 rounded-sm ${i <= idx ? 'bg-route' : 'bg-line'}`} />
         ))}
       </div>
       <span className="label-mono text-muted">{idx + 1}/{STAGES.length}</span>

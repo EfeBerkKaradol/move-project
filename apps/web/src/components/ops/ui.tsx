@@ -3,25 +3,25 @@ import Link from 'next/link';
 
 /** Panelin küçük yapı taşları: rozet, sayı kartı, tablo, arama, boş durum. */
 
-export type Tone = 'neutral' | 'amber' | 'green' | 'red';
+export type Tone = 'neutral' | 'route' | 'green' | 'red';
 
 export const CARRIER_TONE: Record<CarrierStatus, Tone> = {
-  DRAFT: 'neutral', PENDING_REVIEW: 'amber', APPROVED: 'green', REJECTED: 'red', SUSPENDED: 'red',
+  DRAFT: 'neutral', PENDING_REVIEW: 'route', APPROVED: 'green', REJECTED: 'red', SUSPENDED: 'red',
 };
 
 export const LISTING_TONE: Record<ListingStatus, Tone> = {
-  OPEN: 'amber', AWARDED: 'green', EXPIRED: 'neutral', CANCELLED: 'red',
+  OPEN: 'route', AWARDED: 'green', EXPIRED: 'neutral', CANCELLED: 'red',
 };
 
 export function tripTone(stage: TripStage): Tone {
   if (stage === 'COMPLETED') return 'green';
-  if (stage === 'DELIVERED') return 'amber';
+  if (stage === 'DELIVERED') return 'route';
   return 'neutral';
 }
 
 const TONE: Record<Tone, string> = {
   neutral: 'bg-surface-2 text-muted',
-  amber: 'bg-[var(--amber-soft)] text-[#8a5c10]',
+  route: 'bg-[var(--route-soft)] text-[var(--route-deep)]',
   green: 'bg-[#dff0e5] text-[#1f6b45]',
   red: 'bg-[#f7e0dd] text-[#8a2a1f]',
 };
@@ -51,8 +51,8 @@ export function StatCard({
   href?: string;
   tone?: Tone;
 }) {
-  const accent = tone === 'amber' ? 'border-amber' : tone === 'red' ? 'border-[#e6b8b2]' : 'border-line';
-  const number = tone === 'amber' ? 'text-[#8a5c10]' : tone === 'red' ? 'text-[#8a2a1f]' : 'text-ink';
+  const accent = tone === 'route' ? 'border-route' : tone === 'red' ? 'border-[#e6b8b2]' : 'border-line';
+  const number = tone === 'route' ? 'text-[var(--route-deep)]' : tone === 'red' ? 'text-[#8a2a1f]' : 'text-ink';
   const body = (
     <>
       <p className="label-mono text-muted">{label}</p>
@@ -90,10 +90,10 @@ export function SearchForm({
           name="q"
           defaultValue={value}
           placeholder={placeholder}
-          className="min-h-11 w-full rounded-field border border-line bg-surface pl-9 pr-3 text-sm outline-none transition hover:border-muted focus:border-amber focus:ring-2 focus:ring-amber/25"
+          className="min-h-11 w-full rounded-field border border-line bg-surface pl-9 pr-3 text-sm outline-none transition hover:border-muted focus:border-route focus:ring-2 focus:ring-route/25"
         />
       </label>
-      <button type="submit" className="min-h-11 rounded-field border border-line bg-surface px-4 text-sm font-semibold transition hover:border-amber hover:bg-surface-2">
+      <button type="submit" className="min-h-11 rounded-field border border-line bg-surface px-4 text-sm font-semibold transition hover:border-route hover:bg-surface-2">
         Ara
       </button>
     </form>
@@ -117,7 +117,7 @@ export function FilterTabs({
         return (
           <Link key={f.value} href={hrefFor(f.value)} aria-current={on ? 'true' : undefined}
             className={`inline-flex min-h-11 items-center gap-2 rounded-field border px-4 text-sm font-semibold transition ${
-              on ? 'border-amber bg-[var(--amber-soft)] text-[#8a5c10]' : 'border-line bg-surface text-muted hover:border-muted hover:text-ink'
+              on ? 'border-route bg-[var(--route-soft)] text-[var(--route-deep)]' : 'border-line bg-surface text-muted hover:border-muted hover:text-ink'
             }`}>
             {f.label}
             {f.count !== undefined && <span className="stat text-xs opacity-70">{f.count}</span>}
@@ -181,7 +181,7 @@ export function DataTable<T>({
                 {columns.map((c, i) => (
                   <td key={c.key} className={`px-5 py-4 align-middle ${c.align === 'right' ? 'text-right' : ''} ${c.secondary ? 'hidden lg:table-cell' : ''} ${c.className ?? ''}`}>
                     {rowHref && i === 0
-                      ? <Link href={rowHref(row)} className="block -m-5 p-5 min-h-11 focus-visible:outline-2 focus-visible:outline-amber">{c.cell(row)}</Link>
+                      ? <Link href={rowHref(row)} className="block -m-5 p-5 min-h-11 focus-visible:outline-2 focus-visible:outline-route">{c.cell(row)}</Link>
                       : c.cell(row)}
                   </td>
                 ))}

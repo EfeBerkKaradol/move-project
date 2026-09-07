@@ -32,7 +32,7 @@ export default async function OpsCarrierDetailPage({ params }: { params: Promise
         <div>
           <Section title={`Belgeler · ${approved}/${c.documents.length} onaylı${pending ? ` · ${pending} bekliyor` : ''}`}>
             {c.missingDocuments.length > 0 && (
-              <p className="mb-5 rounded-field bg-[var(--amber-soft)] px-4 py-3 text-sm text-[#8a5c10]">
+              <p className="mb-5 rounded-field bg-[var(--route-soft)] px-4 py-3 text-sm text-[var(--route-deep)]">
                 Eksik belge: {c.missingDocuments.length}. Taşıyıcı yüklemeden başvuru incelemeye gelmez.
               </p>
             )}
@@ -82,7 +82,7 @@ export default async function OpsCarrierDetailPage({ params }: { params: Promise
             {c.status === 'SUSPENDED' && (
               <form action={async () => { 'use server'; await reactivateCarrier(c.carrierId); }} className="mt-3">
                 <button type="submit"
-                  className="min-h-11 w-full rounded-field bg-amber px-5 py-2.5 text-sm font-bold text-[var(--amber-ink)] transition hover:bg-[var(--amber-hover)] hover:shadow-[0_6px_18px_rgb(244_159_44_/_0.30)] active:translate-y-px">
+                  className="min-h-11 w-full rounded-field bg-route px-5 py-2.5 text-sm font-bold text-[var(--route-ink)] transition hover:bg-[var(--route-hover)] hover:shadow-[0_6px_18px_rgb(244_159_44_/_0.30)] active:translate-y-px">
                   Askıyı kaldır
                 </button>
                 <p className="mt-2 text-xs text-muted">Belgeleri hâlâ geçerli değilse sunucu reddeder.</p>

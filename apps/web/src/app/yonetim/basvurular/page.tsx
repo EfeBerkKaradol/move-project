@@ -57,7 +57,7 @@ export default async function OpsCarriersPage({
           <span className="text-sm">
             {onayli}/{c.documents.length} onaylı
             {red ? <span className="text-[#8a2a1f]"> · {red} red</span> : null}
-            {c.missingDocuments.length ? <span className="text-[#8a5c10]"> · {c.missingDocuments.length} eksik</span> : null}
+            {c.missingDocuments.length ? <span className="text-[var(--route-deep)]"> · {c.missingDocuments.length} eksik</span> : null}
           </span>
         );
       },

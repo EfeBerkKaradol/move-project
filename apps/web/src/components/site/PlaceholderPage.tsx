@@ -25,13 +25,13 @@ export function PlaceholderPage({
       <Header />
       <main className="theme-dark min-h-[60vh] bg-bg">
         <div className="mx-auto max-w-6xl px-6 py-20">
-          <p className="label-mono text-amber">{eyebrow}</p>
+          <p className="label-mono text-route">{eyebrow}</p>
           <h1 className="mt-4 text-[clamp(2rem,5.5vw,2.8rem)] leading-[1.06]">{title}</h1>
           <div className="mt-6 max-w-lg space-y-4 text-muted">{children}</div>
           {cta && (
             <Link
               href={cta.href}
-              className="mt-9 inline-block rounded-field bg-amber px-5 py-3.5 text-sm font-bold text-[var(--amber-ink)] transition hover:bg-[var(--amber-hover)] hover:shadow-[0_6px_18px_rgb(244_159_44_/_0.30)] active:translate-y-px"
+              className="mt-9 inline-block rounded-field bg-route px-5 py-3.5 text-sm font-bold text-[var(--route-ink)] transition hover:bg-[var(--route-hover)] hover:shadow-[0_6px_18px_rgb(244_159_44_/_0.30)] active:translate-y-px"
             >
               {cta.label}
             </Link>

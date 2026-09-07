@@ -97,9 +97,9 @@ export function PlaceSearch({
     <div ref={rootRef} className="relative">
       <label htmlFor={id} className="label-mono text-muted">
         {label}
-        {onlyCity && <span className="ml-2 normal-case text-[#8a5c10]">{onlyCity} içinde</span>}
+        {onlyCity && <span className="ml-2 normal-case text-[var(--route-deep)]">{onlyCity} içinde</span>}
       </label>
-      <div className="mt-1.5 flex items-center gap-2.5 rounded-field border border-line bg-surface-2 px-3.5 transition hover:border-muted focus:border-amber focus:ring-2 focus:ring-amber/25">
+      <div className="mt-1.5 flex items-center gap-2.5 rounded-field border border-line bg-surface-2 px-3.5 transition hover:border-muted focus:border-route focus:ring-2 focus:ring-route/25">
         <svg viewBox="0 0 16 16" className="size-4 shrink-0 text-muted" fill="none" stroke="currentColor"
           strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round" aria-hidden>
           {icon}
@@ -131,7 +131,7 @@ export function PlaceSearch({
           id={listId}
           ref={listRef}
           role="listbox"
-          className="absolute left-0 right-0 z-20 mt-2 max-h-72 overflow-y-auto rounded-field border border-line bg-surface p-1.5 shadow-lift transition hover:border-amber hover:bg-surface-2"
+          className="absolute left-0 right-0 z-20 mt-2 max-h-72 overflow-y-auto rounded-field border border-line bg-surface p-1.5 shadow-lift transition hover:border-route hover:bg-surface-2"
         >
           {options.length === 0 && (
             <li className="px-3 py-3 text-sm text-muted">
@@ -160,7 +160,7 @@ export function PlaceSearch({
                   }}
                   onMouseEnter={() => setActive(i)}
                   className={`flex w-full items-baseline justify-between gap-3 rounded-[0.5rem] px-3 py-2.5 text-left text-sm transition ${
-                    i === active ? 'bg-[var(--amber-soft)] text-ink' : 'text-ink hover:bg-surface-2'
+                    i === active ? 'bg-[var(--route-soft)] text-ink' : 'text-ink hover:bg-surface-2'
                   }`}
                 >
                   <span className="min-w-0 truncate">

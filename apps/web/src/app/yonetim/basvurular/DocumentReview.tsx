@@ -68,12 +68,12 @@ export function DocumentReview({ document: doc }: { document: CarrierDocumentVie
             <span className="label-mono block text-muted">Red gerekçesi</span>
             <input name="reason" required maxLength={500} autoFocus
               placeholder="Örn. Belge okunmuyor, yeniden çekin"
-              className="mt-2 min-h-11 w-full rounded-field border border-line bg-surface-2 px-3 py-2.5 outline-none transition hover:border-muted focus:border-amber focus:ring-2 focus:ring-amber/25" />
+              className="mt-2 min-h-11 w-full rounded-field border border-line bg-surface-2 px-3 py-2.5 outline-none transition hover:border-muted focus:border-route focus:ring-2 focus:ring-route/25" />
           </label>
         )}
         <button type="submit" disabled={pending}
           onClick={() => setRejecting(false)}
-          className="min-h-11 rounded-field bg-amber px-4 py-2.5 text-sm font-bold text-[var(--amber-ink)] transition hover:bg-[var(--amber-hover)] hover:shadow-[0_6px_18px_rgb(244_159_44_/_0.30)] active:translate-y-px disabled:opacity-60">
+          className="min-h-11 rounded-field bg-route px-4 py-2.5 text-sm font-bold text-[var(--route-ink)] transition hover:bg-[var(--route-hover)] hover:shadow-[0_6px_18px_rgb(244_159_44_/_0.30)] active:translate-y-px disabled:opacity-60">
           Onayla
         </button>
         <button type={rejecting ? 'submit' : 'button'} disabled={pending}

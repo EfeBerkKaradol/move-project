@@ -59,7 +59,7 @@ export default async function OpsListingsPage({
     },
     {
       key: 'teklif', header: 'Teklif', align: 'right',
-      cell: (l) => <Pill tone={l.offerCount ? 'green' : l.status === 'OPEN' ? 'amber' : 'neutral'}>{l.offerCount}</Pill>,
+      cell: (l) => <Pill tone={l.offerCount ? 'green' : l.status === 'OPEN' ? 'route' : 'neutral'}>{l.offerCount}</Pill>,
     },
     { key: 'tutar', header: 'Tarife', align: 'right', cell: (l) => <span className="stat whitespace-nowrap">{formatPrice(l.estimatedAmount.amount)}</span> },
     {

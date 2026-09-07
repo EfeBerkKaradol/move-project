@@ -95,7 +95,7 @@ export default async function CorridorPage() {
                   <OfferForm listingId={m.listing.id} suggested={Number(m.listing.estimatedAmount.amount).toFixed(0)} />
                   <form action={async () => { 'use server'; await ignoreMatch(m.id); }}>
                     <button type="submit"
-                      className="min-h-11 rounded-field border border-line px-3 py-2.5 text-sm font-semibold transition hover:border-amber hover:bg-surface-2">
+                      className="min-h-11 rounded-field border border-line px-3 py-2.5 text-sm font-semibold transition hover:border-route hover:bg-surface-2">
                       İlgilenmiyorum
                     </button>
                   </form>
@@ -128,7 +128,7 @@ export default async function CorridorPage() {
                   {CORRIDOR_STATUS_LABELS[c.status]}
                 </span>
                 {c.pendingMatchCount > 0 && (
-                  <span className="rounded-full bg-amber px-2.5 py-1 text-xs font-bold text-[var(--amber-ink)] tabular-nums">
+                  <span className="rounded-full bg-route px-2.5 py-1 text-xs font-bold text-[var(--route-ink)] tabular-nums">
                     {c.pendingMatchCount} ilan
                   </span>
                 )}
@@ -136,7 +136,7 @@ export default async function CorridorPage() {
                   {c.status !== 'EXPIRED' && (
                     <form action={async () => { 'use server'; await setCorridorPaused(c.id, c.status === 'ACTIVE'); }}>
                       <button type="submit"
-                        className="min-h-11 rounded-field border border-line px-3 py-2.5 text-sm font-semibold transition hover:border-amber hover:bg-surface-2">
+                        className="min-h-11 rounded-field border border-line px-3 py-2.5 text-sm font-semibold transition hover:border-route hover:bg-surface-2">
                         {c.status === 'ACTIVE' ? 'Duraklat' : 'Sürdür'}
                       </button>
                     </form>

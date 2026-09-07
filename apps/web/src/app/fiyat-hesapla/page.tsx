@@ -57,7 +57,7 @@ export default async function EstimatePage({ searchParams }: { searchParams: Sea
       <Header />
       <main className="theme-cream min-h-screen bg-bg text-ink">
         <div className="mx-auto max-w-6xl px-6 py-12 lg:py-16">
-          <p className="label-mono text-[#8a5c10]">Kayıt gerekmez · Tahmini aralık · Komisyon dahil</p>
+          <p className="label-mono text-[var(--route-deep)]">Kayıt gerekmez · Tahmini aralık · Komisyon dahil</p>
           <h1 className="mt-3 text-[clamp(1.9rem,4vw,3rem)] leading-[1.06]">
             Rotanı ve aracını seç, tahmini fiyatı gör.
           </h1>
@@ -91,13 +91,13 @@ export default async function EstimatePage({ searchParams }: { searchParams: Sea
                 <div className="mt-5 flex flex-wrap gap-3">
                   <Link
                     href="/yuk-ver"
-                    className="rounded-field bg-amber px-5 py-3 text-sm font-bold text-[var(--amber-ink)] transition hover:bg-[var(--amber-hover)] hover:shadow-[0_6px_18px_rgb(244_159_44_/_0.30)] active:translate-y-px"
+                    className="rounded-field bg-route px-5 py-3 text-sm font-bold text-[var(--route-ink)] transition hover:bg-[var(--route-hover)] hover:shadow-[0_6px_18px_rgb(244_159_44_/_0.30)] active:translate-y-px"
                   >
                     Yük ilanı ver
                   </Link>
                   <Link
                     href="/"
-                    className="rounded-field border border-line px-5 py-3 text-sm font-semibold transition hover:border-amber hover:bg-surface-2"
+                    className="rounded-field border border-line px-5 py-3 text-sm font-semibold transition hover:border-route hover:bg-surface-2"
                   >
                     Ana sayfaya dön
                   </Link>

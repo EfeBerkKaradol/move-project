@@ -39,13 +39,13 @@ export function VehiclePicker({
               soon
                 ? 'cursor-not-allowed border-dashed border-line text-muted'
                 : selected
-                  ? 'border-amber bg-[var(--amber-soft)]'
+                  ? 'border-route bg-[var(--route-soft)]'
                   : 'border-line bg-surface hover:border-muted',
             ].join(' ')}
           >
             <VehicleGlyph code={v.code} className="size-6" />
             <span className="mt-2 block text-sm font-semibold">{v.displayName}</span>
-            <span className={`label-mono mt-0.5 block ${selected ? 'text-[#8a5c10]' : 'text-muted'}`}>
+            <span className={`label-mono mt-0.5 block ${selected ? 'text-[var(--route-deep)]' : 'text-muted'}`}>
               {soon ? 'Yakında' : capacityLabel(v)}
             </span>
           </button>

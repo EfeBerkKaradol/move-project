@@ -62,7 +62,7 @@ export function QuoteWidget({ vehicles }: { vehicles: VehicleType[] }) {
     <form
       action={TARGET[side]}
       onSubmit={submit}
-      className="theme-cream mt-10 rounded-card bg-bg p-4 shadow-lift sm:p-5 lg:mt-0"
+      className="theme-cream rounded-card border border-line bg-surface p-4 shadow-card sm:p-5"
     >
       {/* Sekmeler */}
       <div role="tablist" aria-label="Taraf seçimi" className="flex gap-1 rounded-field bg-surface-2 p-1">
@@ -138,7 +138,7 @@ export function QuoteWidget({ vehicles }: { vehicles: VehicleType[] }) {
 
         <button
           type="submit"
-          className="flex w-full items-center justify-center gap-2 rounded-field bg-amber px-6 py-4 font-bold text-[var(--amber-ink)] transition hover:bg-[var(--amber-hover)] hover:shadow-[0_6px_18px_rgb(244_159_44_/_0.30)] active:translate-y-px"
+          className="flex w-full items-center justify-center gap-2 rounded-field bg-route px-6 py-4 font-bold text-[var(--route-ink)] transition hover:bg-[var(--route-hover)] hover:shadow-[0_6px_18px_rgb(244_159_44_/_0.30)] active:translate-y-px"
         >
           {side === 'SHIPPER' ? 'Tahmini fiyatı gör' : 'Koridoruma düşen yükleri gör'}
           <svg viewBox="0 0 16 16" className="size-4" fill="none" stroke="currentColor"

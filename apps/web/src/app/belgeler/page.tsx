@@ -28,7 +28,7 @@ export default function DocumentsPage() {
       </p>
       <ul className="space-y-3 pt-2">
         {DOCUMENTS.map(([name, why]) => (
-          <li key={name} className="rounded-field border border-line bg-surface p-4 transition hover:border-amber hover:bg-surface-2">
+          <li key={name} className="rounded-field border border-line bg-surface p-4 transition hover:border-route hover:bg-surface-2">
             <span className="block text-sm font-bold text-ink">{name}</span>
             <span className="mt-0.5 block text-sm">{why}</span>
           </li>

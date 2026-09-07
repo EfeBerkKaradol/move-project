@@ -1,66 +1,79 @@
 import Link from 'next/link';
 import { redirect } from 'next/navigation';
 import { auth, homeFor, isDriver, isOps, signOutEverywhere } from '@/auth';
+import { BRAND } from '@/lib/brand';
+import { HeaderShell } from './HeaderShell';
+import { Logo } from './Logo';
 
-const NAV = [
-  { href: '/#nasil-calisir', label: 'Nasıl çalışır' },
-  { href: '/fiyat-hesapla', label: 'Fiyat hesapla' },
-  { href: '/sofor-ol', label: 'Şoför ol' },
-  { href: '/kurumsal', label: 'Kurumsal' },
-  { href: '/rotalar', label: 'Rotalar' },
-];
-
-export async function Header() {
+export async function Header({ overlay = false }: { overlay?: boolean } = {}) {
   const session = await auth();
   const signedIn = !!session && session.error !== 'RefreshFailed';
   const roles = session?.roles ?? [];
 
+  // "Yük bul" araç sahibinin işi: sürücüyse doğrudan panele, değilse taşıyıcı
+  // olma sayfasına. Girişe zorlamak, ürünü henüz görmemiş birini duvara toslatır.
+  const carrierHref = signedIn && isDriver(roles) ? '/nakliyeci' : '/sofor-ol';
+
+  const nav = [
+    { href: '/fiyat-hesapla', label: 'Yük ver' },
+    { href: carrierHref, label: 'Yük bul' },
+    { href: '/#nasil-calisir', label: 'Nasıl çalışır' },
+    { href: '/#araclar', label: 'Araçlar' },
+  ];
+
   return (
-    <header className="theme-dark border-b border-line bg-bg">
-      <div className="mx-auto flex max-w-6xl items-center gap-4 px-6 py-2.5">
-        <Link href="/" className="flex items-center gap-2.5 py-3 text-lg font-extrabold text-ink">
-          <span className="grid size-8 place-items-center rounded-lg bg-amber" aria-hidden>
-            <svg viewBox="0 0 24 24" className="size-5" fill="none" stroke="var(--amber-ink)"
-              strokeWidth="2.4" strokeLinecap="round" strokeLinejoin="round">
-              <path d="M3 16 L9 8 L15 16 L21 8" />
-            </svg>
-          </span>
-          Taşıyoruz
-        </Link>
+    <HeaderShell overlay={overlay}>
+      <Link href="/" className="flex items-center gap-2.5 py-2 text-[15px] font-extrabold tracking-tight">
+        <Logo className="size-7" />
+        {BRAND.name}
+      </Link>
 
-        <nav aria-label="Ana menü" className="ml-6 hidden items-center gap-1 lg:flex">
-          {NAV.map((item) => (
-            <Link key={item.href} href={item.href}
-              className="rounded-lg px-3 py-3 text-sm text-muted transition hover:text-ink">
-              {item.label}
+      <nav aria-label="Ana menü" className="ml-8 hidden items-center gap-1 lg:flex">
+        {nav.map((item) => (
+          <Link
+            key={item.label}
+            href={item.href}
+            className="rounded-lg px-3 py-2.5 text-sm text-muted transition hover:text-ink"
+          >
+            {item.label}
+          </Link>
+        ))}
+      </nav>
+
+      <div className="ml-auto flex items-center gap-2">
+        {signedIn ? (
+          <>
+            <Link href={homeFor(roles)} className="px-3 py-2.5 text-sm font-semibold">
+              {isOps(roles) ? 'Operasyon' : isDriver(roles) ? 'Nakliyeci paneli' : 'Panelim'}
             </Link>
-          ))}
-        </nav>
-
-        <div className="ml-auto flex items-center gap-3">
-          <span className="label-mono hidden text-muted sm:inline">TR · Türkçe</span>
-          {signedIn ? (
-            <>
-              <Link href={homeFor(roles)} className="py-3.5 text-sm font-semibold text-ink">
-                {isOps(roles) ? 'Operasyon' : isDriver(roles) ? 'Nakliyeci paneli' : 'Panelim'}
-              </Link>
-              <form action={async () => { 'use server'; redirect(await signOutEverywhere('/')); }}>
-                <button type="submit" className="rounded-field border border-line px-4 py-3 text-sm font-semibold text-ink transition hover:border-amber hover:bg-surface-2">
-                  Çıkış
-                </button>
-              </form>
-            </>
-          ) : (
-            <>
-              <Link href="/giris" className="hidden py-3.5 text-sm font-semibold text-ink sm:inline">Giriş yap</Link>
-              <Link href="/fiyat-hesapla"
-                className="rounded-field bg-amber px-4 py-3.5 text-sm font-bold text-[var(--amber-ink)] transition hover:bg-[var(--amber-hover)] hover:shadow-[0_6px_18px_rgb(244_159_44_/_0.30)] active:translate-y-px">
-                Yük ver
-              </Link>
-            </>
-          )}
-        </div>
+            <form
+              action={async () => {
+                'use server';
+                redirect(await signOutEverywhere('/'));
+              }}
+            >
+              <button
+                type="submit"
+                className="rounded-field border border-line px-3.5 py-2.5 text-sm font-semibold transition hover:bg-surface-2"
+              >
+                Çıkış
+              </button>
+            </form>
+          </>
+        ) : (
+          <>
+            <Link href="/giris" className="hidden px-3 py-2.5 text-sm font-semibold sm:inline">
+              Giriş yap
+            </Link>
+            <Link
+              href="/fiyat-hesapla"
+              className="rounded-field bg-route px-4 py-2.5 text-sm font-bold text-[var(--route-ink)] transition duration-150 hover:bg-[var(--route-hover)] active:translate-y-px"
+            >
+              Yük ver
+            </Link>
+          </>
+        )}
       </div>
-    </header>
+    </HeaderShell>
   );
 }

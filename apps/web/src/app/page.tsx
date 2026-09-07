@@ -1,46 +1,35 @@
-import { BackhaulSection } from '@/components/site/BackhaulSection';
+import { auth, isDriver } from '@/auth';
+import { Hero } from '@/components/hero/Hero';
 import { Footer } from '@/components/site/Footer';
 import { Header } from '@/components/site/Header';
-import { HeroStats } from '@/components/site/HeroStats';
-import { QuoteWidget } from '@/components/site/QuoteWidget';
-import { TrustChips } from '@/components/site/TrustChips';
+import { HowItWorks } from '@/components/site/HowItWorks';
+import { SearchSection } from '@/components/site/SearchSection';
+import { TrustSection } from '@/components/site/TrustSection';
 import { TwoSidedMarket } from '@/components/site/TwoSidedMarket';
 import { VehicleRange } from '@/components/site/VehicleRange';
 import { getVehicleTypes } from '@/lib/api';
 
 export default async function HomePage() {
-  const vehicles = (await getVehicleTypes()) ?? [];
+  const [vehicles, session] = await Promise.all([getVehicleTypes(), auth()]);
+
+  // Araç sahibi tarafının hedefi kullanıcıya göre: onaylı sürücü panele,
+  // diğer herkes önce taşıyıcı olma akışına gider.
+  const carrierHref =
+    session && session.error !== 'RefreshFailed' && isDriver(session.roles ?? [])
+      ? '/nakliyeci'
+      : '/sofor-ol';
+  const shipperHref = '/fiyat-hesapla';
 
   return (
     <>
-      <Header />
+      <Header overlay />
       <main>
-        {/* Masaüstünde metin solda, teklif widget'ı sağda; mobilde alt alta (tasarım, masaüstü çerçevesi) */}
-        <section className="theme-dark bg-bg pb-16 pt-14 lg:pb-24 lg:pt-20">
-          <div className="mx-auto grid max-w-6xl gap-12 px-6 lg:grid-cols-[minmax(0,1.25fr)_minmax(0,1fr)] lg:items-start">
-            <div>
-              <p className="label-mono text-amber">81 il · Motordan kamyona</p>
-
-              <h1 className="mt-5 text-[clamp(2.1rem,5.2vw,4.25rem)] leading-[1.02]">
-                Yükünüz için doğru aracı dakikalar içinde bulun.
-              </h1>
-
-              <p className="mt-6 max-w-lg text-lg text-muted">
-                Rotanızı girin, doğrulanmış araç sahiplerinden teklif alın. Aracı siz seçin,
-                ödemeyi teslimatta onaylayın.
-              </p>
-
-              <TrustChips />
-              <HeroStats />
-            </div>
-
-            {vehicles.length > 0 && <QuoteWidget vehicles={vehicles} />}
-          </div>
-        </section>
-
-        <VehicleRange vehicles={vehicles} />
-        <TwoSidedMarket />
-        <BackhaulSection />
+        <Hero shipperHref={shipperHref} carrierHref={carrierHref} />
+        <HowItWorks />
+        <SearchSection vehicles={vehicles ?? []} />
+        <TwoSidedMarket shipperHref={shipperHref} carrierHref={carrierHref} />
+        <VehicleRange vehicles={vehicles ?? []} />
+        <TrustSection />
       </main>
       <Footer />
     </>

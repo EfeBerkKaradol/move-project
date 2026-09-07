@@ -51,7 +51,7 @@ export function PublishForm({
         <label htmlFor="cargo" className="label-mono mt-6 block text-muted">Yükünüzü tarif edin</label>
         <textarea id="cargo" name="cargoDescription" rows={4} maxLength={1000}
           placeholder="Örn. Buzdolabı, çamaşır makinesi ve 8 koli. Kırılacak eşya var."
-          className="mt-1.5 w-full rounded-field border border-line bg-surface-2 px-3.5 py-3 text-[15px] outline-none placeholder:text-muted transition hover:border-muted focus:border-amber focus:ring-2 focus:ring-amber/25" />
+          className="mt-1.5 w-full rounded-field border border-line bg-surface-2 px-3.5 py-3 text-[15px] outline-none placeholder:text-muted transition hover:border-muted focus:border-route focus:ring-2 focus:ring-route/25" />
         <p className="mt-1 text-xs text-muted">Araç sahipleri teklif verirken bunu görür; ne kadar netse teklif o kadar isabetli.</p>
       </div>
 
@@ -64,7 +64,7 @@ export function PublishForm({
         </ol>
         {state.error && <p className="mt-4 rounded-field bg-[#fbe9e7] px-3 py-2 text-sm text-[#8a2a1f]">{state.error}</p>}
         <button type="submit" disabled={pending}
-          className="mt-5 w-full rounded-field bg-amber px-6 py-4 font-bold text-[var(--amber-ink)] transition hover:bg-[var(--amber-hover)] hover:shadow-[0_6px_18px_rgb(244_159_44_/_0.30)] active:translate-y-px disabled:opacity-60">
+          className="mt-5 w-full rounded-field bg-route px-6 py-4 font-bold text-[var(--route-ink)] transition hover:bg-[var(--route-hover)] hover:shadow-[0_6px_18px_rgb(244_159_44_/_0.30)] active:translate-y-px disabled:opacity-60">
           {pending ? 'Yayınlanıyor…' : 'İlanı yayınla'}
         </button>
         <p className="label-mono mt-3 text-center text-muted">Komisyon dahil · Teslimatta ödeme</p>

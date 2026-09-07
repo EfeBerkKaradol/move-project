@@ -1,7 +1,10 @@
 import { getPublicStats } from '@/lib/api';
 
 /**
- * Tasarımın imzası: köşeli parantez içinde monospace sayılar.
+ * Canlı sayaçlar: köşeli parantez içinde monospace sayılar.
+ *
+ * <p>Güven bölümünün altında duruyor — "doğrulanmış araç" iddiasının hemen yanında
+ * kaç tane olduğunu göstermek, iddiayı denetlenebilir kılıyor.
  *
  * <p>Sayılar canlı sistemden geliyor. Veri yoksa ya da API'ye ulaşılamıyorsa tire
  * gösteriliyor — uydurma bir rakamı gerçekmiş gibi göstermek, "doğrulanmış araç
@@ -10,7 +13,7 @@ import { getPublicStats } from '@/lib/api';
  * <p>Sıfır da gerçek bir cevaptır ve gösteriliyor: "0 açık ilan" dürüst, "—" ise
  * bilinmiyor demek. İkisini karıştırmamak için ayrı tutuluyor.
  */
-export async function HeroStats() {
+export async function LiveStats() {
   const stats = await getPublicStats();
 
   const items: { value: string; label: string; unknown: boolean }[] = [
@@ -32,13 +35,13 @@ export async function HeroStats() {
   ];
 
   return (
-    <dl className="mt-9 flex flex-wrap gap-x-10 gap-y-5 border-t border-line pt-7">
+    <dl className="mt-16 flex flex-wrap gap-x-14 gap-y-6 border-t border-line pt-8">
       {items.map((s) => (
         <div key={s.label}>
-          <dd className={`stat text-3xl ${s.unknown ? 'text-muted' : 'text-ink'}`}>
+          <dd className={`stat text-[2rem] leading-none ${s.unknown ? 'text-muted' : 'text-ink'}`}>
             [{s.value}]
           </dd>
-          <dt className="label-mono mt-1 text-muted">{s.label}</dt>
+          <dt className="label-mono mt-2 text-muted">{s.label}</dt>
         </div>
       ))}
     </dl>

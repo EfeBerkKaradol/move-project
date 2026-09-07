@@ -46,7 +46,7 @@ export default async function DriverTripPage({ params }: { params: Promise<{ id:
           {canAdvance && (
             <form action={async () => { 'use server'; await advanceTrip(trip.id, trip.nextStage!); }}>
               <p className="label-mono text-muted">Sıradaki aşama</p>
-              <button type="submit" className="mt-2 w-full rounded-field bg-amber px-6 py-5 text-lg font-bold text-[var(--amber-ink)] transition hover:bg-[var(--amber-hover)] hover:shadow-[0_6px_18px_rgb(244_159_44_/_0.30)] active:translate-y-px">
+              <button type="submit" className="mt-2 w-full rounded-field bg-route px-6 py-5 text-lg font-bold text-[var(--route-ink)] transition hover:bg-[var(--route-hover)] hover:shadow-[0_6px_18px_rgb(244_159_44_/_0.30)] active:translate-y-px">
                 {TRIP_STAGE_LABELS[trip.nextStage!]}
               </button>
             </form>

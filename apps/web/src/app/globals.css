@@ -1,12 +1,16 @@
 @import "tailwindcss";
 
 /*
- * Taşıyoruz tasarım sistemi — "Taşıyoruz Nakliye Ana Sayfa" tasarımından türetildi.
+ * KARINCA tasarım sistemi.
  *
- * Bu tasarım açık/koyu tema değiştirmiyor: bölümler sabit olarak koyu ya da krem.
- * Bu yüzden prefers-color-scheme yerine BÖLÜM KAPSAMLI tema sınıfları kullanılıyor
- * (.theme-dark / .theme-cream). Her sınıf aynı token setini yeniden tanımlıyor,
- * bileşenler token üzerinden yazıldığı için ikisinde de doğru çalışıyor.
+ * Renk dağılımı bilinçli: ~%70 sıcak açık zemin, %20 beyaz yüzey, %8 koyu tipografi,
+ * %2 vurgu. Lime (--route) yalnızca ürünün çekirdek fikrini işaret eden yerlerde
+ * kullanılır: rota, eşleşme, seçili durum, birincil eylem, ilerleme. Dekoratif
+ * kullanılırsa "burada bir şey oluyor" sinyali değersizleşir.
+ *
+ * Tema açık/koyu değişmiyor: bölümler sabit olarak açık ya da koyu. Bu yüzden
+ * prefers-color-scheme yerine BÖLÜM KAPSAMLI sınıflar var (.theme-cream / .theme-dark);
+ * her ikisi de aynı token setini yeniden tanımlar, bileşenler token üzerinden yazılır.
  */
 
 @theme inline {
@@ -16,66 +20,82 @@
   --color-ink: var(--ink);
   --color-muted: var(--muted);
   --color-line: var(--line);
-  --color-amber: var(--amber);
-  --color-amber-hover: var(--amber-hover);
-  --color-amber-ink: var(--amber-ink);
-  --color-amber-soft: var(--amber-soft);
 
-  --radius-card: 1rem;
-  --radius-field: 0.625rem;
+  --color-route: var(--route);
+  --color-route-hover: var(--route-hover);
+  --color-route-ink: var(--route-ink);
+  --color-route-soft: var(--route-soft);
+  --color-route-deep: var(--route-deep);
+  --color-blue: var(--blue);
+  --color-warning: var(--warning);
+  --color-success: var(--success);
+
+  /* 12–20px: yumuşak ama SaaS balonu değil */
+  --radius-card: 1.125rem;
+  --radius-field: 0.75rem;
 
   --font-sans: var(--font-archivo), ui-sans-serif, system-ui, sans-serif;
   --font-mono: var(--font-plex-mono), ui-monospace, SFMono-Regular, monospace;
 
-  --shadow-card: 0 1px 2px rgb(13 16 21 / 0.06), 0 10px 30px rgb(13 16 21 / 0.06);
-  --shadow-lift: 0 2px 6px rgb(13 16 21 / 0.10), 0 22px 48px rgb(13 16 21 / 0.16);
+  --shadow-card: 0 1px 2px rgb(23 26 25 / 0.04), 0 8px 24px rgb(23 26 25 / 0.06);
+  --shadow-lift: 0 2px 6px rgb(23 26 25 / 0.08), 0 18px 40px rgb(23 26 25 / 0.14);
 }
 
-/* Amber her iki temada da aynı — markanın sabiti */
+/* Vurgu renkleri her iki temada da aynı — markanın sabiti */
 :root {
-  --amber: #f49f2c;
-  /* Hover'da koyulaşan amber — beyaz/koyu yazıyla kontrastı korur */
-  --amber-hover: #d9860f;
-  --amber-ink: #0d1015;
-  --amber-soft: #fdf3e2;
+  --route: #b8e86a;
+  --route-hover: #a8dc50;
+  --route-ink: #14210a;
+  --route-soft: #eef8dc;
+  /* Lime açık zeminde yazı olarak okunmuyor (1.4:1). Vurgu METNİ ve ikonlar için
+     aynı ailenin koyusu: kremde 5.8:1, soluk lime üstünde 5.9:1 — ikisi de AA. */
+  --route-deep: #42690f;
+  --blue: #4b8dff;
+  --warning: #ff9b52;
+  --success: #8bcf62;
 }
 
-.theme-dark {
-  color: var(--ink);
-  --bg: #0d1015;
-  --surface: #151a20;
-  --surface-2: #1b2128;
-  --ink: #ffffff;
-  --muted: #99a1aa;
-  --line: rgb(255 255 255 / 0.09);
-}
-
+/* Sayfanın varsayılanı: sıcak açık */
 .theme-cream {
   color: var(--ink);
-  --bg: #f5f4f0;
+  --bg: #f4f2ec;
   --surface: #ffffff;
-  --surface-2: #f9f8f4;
-  --ink: #0d1015;
-  --muted: #5b6470;
-  --line: #e7e6e1;
+  --surface-2: #eceae2;
+  --ink: #171a19;
+  /* Marka paleti #737873 diyordu; krem zeminde 4.02:1 çıkıyor ve gövde metni için
+     AA'yı (4.5) geçmiyor. Aynı gri, okunacak kadar koyultuldu: 4.8:1. */
+  --muted: #676c67;
+  --line: #e3e2dc;
+}
+
+/* Yalnızca hero ve vurgulanan bölümler: kömür grisi, saf siyah değil */
+.theme-dark {
+  color: var(--ink);
+  --bg: #171a19;
+  --surface: #1f2321;
+  --surface-2: #282c2a;
+  --ink: #ffffff;
+  --muted: #9aa09b;
+  --line: rgb(255 255 255 / 0.11);
 }
 
 body {
-  background: #0d1015;
-  color: #ffffff;
+  background: #f4f2ec;
+  color: #171a19;
 }
 
 h1, h2, h3 {
-  letter-spacing: -0.03em;
+  letter-spacing: -0.035em;
   text-wrap: balance;
   font-weight: 800;
 }
 
-/* Tasarımın imzası: köşeli parantez içinde monospace sayılar */
+/* Köşeli parantez içinde monospace sayılar */
 .stat {
   font-family: var(--font-mono);
   font-weight: 700;
   letter-spacing: -0.02em;
+  font-variant-numeric: tabular-nums;
 }
 
 /* Küçük, harf aralıklı, monospace etiketler */
@@ -84,6 +104,16 @@ h1, h2, h3 {
   font-size: 0.6875rem;
   letter-spacing: 0.12em;
   text-transform: uppercase;
+}
+
+/* Klavyeyle gezinen herkes nerede olduğunu görmeli */
+:where(a, button, input, select, textarea, [tabindex]):focus-visible {
+  outline: 2px solid var(--route);
+  outline-offset: 2px;
+  border-radius: 4px;
+}
+.theme-cream :where(a, button, input, select, textarea, [tabindex]):focus-visible {
+  outline-color: var(--route-deep);
 }
 
 /* ── Hareket ──────────────────────────────────────────────────────── */
@@ -120,4 +150,23 @@ h1, h2, h3 {
 @media (prefers-reduced-motion: reduce) {
   .animate-ring { animation: none !important; }
   [data-reveal] { opacity: 1; transform: none; animation: none !important; }
+}
+
+/* ── Hero sahnesi ─────────────────────────────────────────────────── */
+
+/* Sarmalayıcının ekran boyunu aşan kısmı kaydırma mesafesidir; içerideki sticky
+   katman ekranda sabit kalır ve anlatı bu mesafe boyunca ilerler. Mobilde mesafe
+   kısa: uzun bir animasyon tüneli telefonda sabır sınavına dönüyor. */
+[data-hero] { height: 175vh; }
+
+@media (min-width: 768px) {
+  [data-hero] { height: 280vh; }
+}
+
+/* Hareket azaltılmışsa tünel tamamen kalkar: sahne tek ekranda, anlatının
+   tamamlandığı durumda (yüklü dönüş + kapanış) durur. */
+@media (prefers-reduced-motion: reduce) {
+  [data-hero] { height: auto; }
+  [data-hero] > div { position: static; height: auto; }
+  [data-hero] .h-\[100svh\] { height: auto; min-height: 100svh; }
 }

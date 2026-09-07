@@ -65,7 +65,7 @@ export default async function ListingPage({ params }: { params: Promise<{ id: st
           ) : (
             <ul className="mt-3 space-y-3">
               {[...offers].sort((a, b) => Number(a.amount.amount) - Number(b.amount.amount)).map((o) => (
-                <li key={o.id} className={`rounded-card border p-4 ${o.id === listing.awardedOfferId ? 'border-amber bg-[var(--amber-soft)]' : 'border-line bg-surface'}`}>
+                <li key={o.id} className={`rounded-card border p-4 ${o.id === listing.awardedOfferId ? 'border-route bg-[var(--route-soft)]' : 'border-line bg-surface'}`}>
                   <div className="flex flex-wrap items-center gap-x-4 gap-y-2">
                     <span className="font-bold">{o.carrierDisplayName ?? 'Araç sahibi'}</span>
                     {o.verified && (
@@ -90,7 +90,7 @@ export default async function ListingPage({ params }: { params: Promise<{ id: st
                   {o.note && <p className="mt-2 text-sm text-muted">“{o.note}”</p>}
                   {open && o.status === 'SUBMITTED' && (
                     <form action={async () => { 'use server'; await acceptOffer(listing.id, o.id); }} className="mt-3">
-                      <button type="submit" className="min-h-11 rounded-field bg-amber px-4 py-2.5 text-sm font-bold text-[var(--amber-ink)] transition hover:bg-[var(--amber-hover)] hover:shadow-[0_6px_18px_rgb(244_159_44_/_0.30)] active:translate-y-px">Bu teklifi kabul et</button>
+                      <button type="submit" className="min-h-11 rounded-field bg-route px-4 py-2.5 text-sm font-bold text-[var(--route-ink)] transition hover:bg-[var(--route-hover)] hover:shadow-[0_6px_18px_rgb(244_159_44_/_0.30)] active:translate-y-px">Bu teklifi kabul et</button>
                     </form>
                   )}
                 </li>
@@ -116,10 +116,10 @@ export default async function ListingPage({ params }: { params: Promise<{ id: st
                 </div>
               )}
               {trip.stage === 'DELIVERED' && (
-                <div className="mt-4 rounded-field bg-[var(--amber-soft)] p-3">
+                <div className="mt-4 rounded-field bg-[var(--route-soft)] p-3">
                   <p className="text-sm">Taşıyıcı teslimi bildirdi{trip.proofOfDelivery ? ` — teslim alan: ${trip.proofOfDelivery.receivedByName.replace(/\.$/, '')}` : ''}. Yükünüzü aldıysanız onaylayın.</p>
                   <form action={async () => { 'use server'; await confirmDelivery(trip.id, listing.id); }} className="mt-3">
-                    <button type="submit" className="min-h-11 rounded-field bg-amber px-4 py-2.5 text-sm font-bold text-[var(--amber-ink)] transition hover:bg-[var(--amber-hover)] hover:shadow-[0_6px_18px_rgb(244_159_44_/_0.30)] active:translate-y-px">Teslimatı onayla</button>
+                    <button type="submit" className="min-h-11 rounded-field bg-route px-4 py-2.5 text-sm font-bold text-[var(--route-ink)] transition hover:bg-[var(--route-hover)] hover:shadow-[0_6px_18px_rgb(244_159_44_/_0.30)] active:translate-y-px">Teslimatı onayla</button>
                   </form>
                 </div>
               )}
@@ -129,7 +129,7 @@ export default async function ListingPage({ params }: { params: Promise<{ id: st
                   <div className="mt-4">
                     {myRating ? (
                       <p className="text-sm text-muted">
-                        Puanın: <span className="text-amber">{'★'.repeat(myRating.score)}</span>
+                        Puanın: <span className="text-[var(--route-deep)]">{'★'.repeat(myRating.score)}</span>
                         {myRating.comment ? ` · “${myRating.comment}”` : ''}
                       </p>
                     ) : (
@@ -146,7 +146,7 @@ export default async function ListingPage({ params }: { params: Promise<{ id: st
           )}
           {open && (
             <form action={async () => { 'use server'; await cancelListing(listing.id); }} className="mt-4">
-              <button type="submit" className="min-h-11 rounded-field border border-line px-4 py-2.5 text-sm font-semibold transition hover:border-amber hover:bg-surface-2">İlanı iptal et</button>
+              <button type="submit" className="min-h-11 rounded-field border border-line px-4 py-2.5 text-sm font-semibold transition hover:border-route hover:bg-surface-2">İlanı iptal et</button>
             </form>
           )}
         </aside>
