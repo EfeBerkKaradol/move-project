@@ -3,6 +3,10 @@
 # Kullanımı: Render → New → Blueprint → bu repoyu seç. Aşağıda `sync: false` yazan
 # değerler kuruluma başlarken sana tek tek sorulur (Neon ve Upstash bilgileri).
 #
+# Yorumlardaki adresler ÖRNEKTİR, olduğu gibi yapıştırılmaz — kendi panellerinden
+# aldığın gerçek değerleri gir. Örnek adres girilirse servis "UnknownHostException"
+# ile açılmaz.
+#
 # ⚠️ Ücretsiz plan 15 dakika istek gelmezse servisi uyutur; sonraki istek ~1 dakika
 # bekler. Keycloak ve API için ayrı ayrı geçerli, yani ilk giriş yavaş olabilir.
 # Ücretsiz plan 512 MB bellek veriyor; ikisi de bu sınırda ayarlandı.
@@ -24,7 +28,10 @@ services:
       # Keycloak kendi tablolarını ayrı bir veritabanında tutmalı: API'nin Flyway
       # göçleriyle aynı şemayı paylaşırlarsa tablo adları çakışabilir.
       - key: KC_DB_URL
-        sync: false            # jdbc:postgresql://<neon-host>/keycloak?sslmode=require
+        # ÖRNEK (kendi Neon adresinle değiştir, ep-... kısmı sana özel):
+        #   jdbc:postgresql://ep-ornek-1234.c-4.us-east-2.aws.neon.tech/keycloak?sslmode=require
+        # Veritabanı adı API'ninkinden FARKLI olmalı (keycloak / neondb).
+        sync: false
       - key: KC_DB_USERNAME
         sync: false
       - key: KC_DB_PASSWORD
@@ -70,13 +77,17 @@ services:
     healthCheckPath: /actuator/health
     envVars:
       - key: DATABASE_URL
-        sync: false            # jdbc:postgresql://<neon-host>/neondb?sslmode=require
+        # ÖRNEK: jdbc:postgresql://ep-ornek-1234.c-4.us-east-2.aws.neon.tech/neondb?sslmode=require
+        # 'jdbc:' öneki şart; Neon'un verdiği postgresql://... doğrudan çalışmaz.
+        sync: false
       - key: DATABASE_USERNAME
         sync: false
       - key: DATABASE_PASSWORD
         sync: false
       - key: REDIS_URL
-        sync: false            # rediss://default:<parola>@<host>:6379
+        # ÖRNEK: rediss://default:AbC123@ornek-12345.upstash.io:6379
+        # Şema çift s olmalı; TLS oradan okunuyor.
+        sync: false
       # Render host'u şemasız veriyor ("x.onrender.com"); şemayı ayrıca söylüyoruz.
       # API ikisini birleştirip https://x.onrender.com/realms/tasiyoruz üretiyor.
       - key: KEYCLOAK_HOST
@@ -94,9 +105,9 @@ services:
       - key: TASIYORUZ_QUOTE_SIGNING_SECRET
         generateValue: true
       - key: TASIYORUZ_CORS_ALLOWED_ORIGINS
-        sync: false            # https://<vercel-adresin>
+        sync: false            # ÖRNEK: https://move-project-web.vercel.app
       - key: NEXT_PUBLIC_SITE_URL
-        sync: false            # https://<vercel-adresin> — e-postalardaki bağlantılar
+        sync: false            # ÖRNEK: https://move-project-web.vercel.app (e-postalardaki bağlantılar)
       # Dosya deposu ve SMTP henüz yoksa boş bırak: belge yükleme ve bildirim
       # açıkça "yapılandırılmamış" der, uygulama yine açılır.
       - key: STORAGE_ACCESS_KEY
