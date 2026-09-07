@@ -84,6 +84,48 @@ jdbc:postgresql://<neon-host>/keycloak?sslmode=require
 
 ---
 
+### 3b. Keycloak şemasını önceden kur (ücretsiz planda zorunlu)
+
+Keycloak ilk açılışında Liquibase ile ~100 tablo kuruyor. Ücretsiz planın 0.1
+CPU'sunda bu iş açılışı çok uzatıyor; ölçüldü (0.1 CPU / 512 MB):
+
+| Açılış | Süre |
+|---|---|
+| İlk (boş veritabanı, şema kuruluyor) | **335 s** |
+| İkinci (şema hazır) | **113 s** |
+
+Render'ın port tarama penceresi ~5 dakika. İlk açılış onu aşıyor ve dağıtım
+"no open ports detected" ile düşüyor — üstelik uygulama aslında çalışıyor.
+Sonraki her açılış rahatça sığıyor.
+
+Çözüm: şemayı bir kez kendi bilgisayarından kur, Render'ın gördüğü ilk açılış
+zaten "ikinci açılış" olsun. Aynı imaj, aynı veritabanı:
+
+```bash
+docker build -t tasiyoruz-keycloak-seed infra/docker/keycloak
+```
+
+```bash
+docker run --rm \
+  -e KC_DB_URL="<Render'daki KC_DB_URL ile aynı>" \
+  -e KC_DB_USERNAME=neondb_owner \
+  -e KC_DB_PASSWORD='<Neon parolan>' \
+  -e KC_BOOTSTRAP_ADMIN_USERNAME=admin \
+  -e KC_BOOTSTRAP_ADMIN_PASSWORD='<Render'daki KC_BOOTSTRAP_ADMIN_PASSWORD>' \
+  -e KC_HOSTNAME=tasiyoruz-keycloak.onrender.com \
+  -e KC_HOSTNAME_STRICT=false -e KC_HTTP_ENABLED=true \
+  tasiyoruz-keycloak-seed
+```
+
+`started in ...s` satırını görünce Ctrl-C ile durdur. Şema ve realm artık Neon'da.
+
+**Yönetici parolası burada belirleniyor.** `KC_BOOTSTRAP_ADMIN_PASSWORD` yalnızca
+veritabanı boşken hesabı oluşturur; sonradan değişmez. Bu yüzden Render'ın ürettiği
+parolayı (Dashboard → tasiyoruz-keycloak → Environment) kopyalayıp burada kullan —
+yoksa panele Render'daki parolayla giremezsin.
+
+---
+
 ### 4. Keycloak ve API — Render Blueprint
 
 Repoda **`render.yaml`** hazır: iki servisi de tanımlıyor, aralarındaki adres
