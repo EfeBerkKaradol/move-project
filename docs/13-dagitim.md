@@ -19,13 +19,41 @@
 Hepsi ücretsiz başlar; kart isteyenler ücretlendirmez.
 
 ### 1. Veritabanı — Neon
-`neon.tech` → yeni proje → **PostGIS eklentisini aç**:
+`neon.tech` → yeni proje → **PostGIS eklentisini aç** (SQL Editor):
 ```sql
 CREATE EXTENSION IF NOT EXISTS postgis;
 ```
-Bağlantı dizesini not al. Flyway migration'ları ilk açılışta kendiliğinden koşar.
+"Statement executed successfully" görmen yeterli; sonuç satırı dönmez.
+
+**Bağlantı dizesini al:** sol üstteki yeşil **Connect** düğmesi → *Connection string*.
+Şuna benzer bir şey verir:
+```
+postgresql://neondb_owner:AbC123xyz@ep-cool-name-12345.eu-central-1.aws.neon.tech/neondb?sslmode=require
+```
+Parolayı yalnızca bir kez gösterir; kaybedersen Branch → **Credentials** ekranından
+sıfırlarsın.
+
+**Üç parçaya ayır.** Spring bu dizeyi olduğu gibi kabul etmez, JDBC biçimi ister:
+
+| Değişken | Değer | Yukarıdaki örnekte |
+|---|---|---|
+| `DATABASE_URL` | `jdbc:postgresql://` + host + `/` + veritabanı + `?sslmode=require` | `jdbc:postgresql://ep-cool-name-12345.eu-central-1.aws.neon.tech/neondb?sslmode=require` |
+| `DATABASE_USERNAME` | `://` ile `:` arasındaki kısım | `neondb_owner` |
+| `DATABASE_PASSWORD` | `:` ile `@` arasındaki kısım | `AbC123xyz` |
+
+Yani: başına `jdbc:` ekle, `kullanıcı:parola@` kısmını URL'den çıkar, ayrı değişkenlere koy.
+
+Flyway migration'ları API ilk açıldığında kendiliğinden koşar; tabloları elle
+oluşturmana gerek yok.
 
 ### 2. Redis — Upstash
+`upstash.com` → Create Database → bölge olarak Avrupa (eu-central-1) seç.
+Veritabanı sayfasında **Connect** → *Redis URL* sekmesindeki `rediss://...` dizesini
+kopyala. Parola dizenin içinde geliyor, ayrıştırmana gerek yok:
+```
+REDIS_URL=rediss://default:AbC123xyz@eu1-xxx.upstash.io:6379
+```
+Şemanın `rediss://` (çift s) olduğundan emin ol; TLS'i o belirtiyor.
 `upstash.com` → yeni Redis → TLS'li bağlantı bilgisini not al.
 
 ### 3. Keycloak — Render (ya da Koyeb)
