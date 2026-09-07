@@ -16,7 +16,10 @@ services:
     region: frankfurt
     dockerfilePath: ./infra/docker/keycloak/Dockerfile
     dockerContext: ./infra/docker/keycloak
-    healthCheckPath: /health/ready
+    # /health/ready yönetim portunda (9000) yayınlanıyor, Render ise 8080'e bakıyor
+    # ve 404 alıp servisi sağlıksız sayıyordu. Bu uç ana portta 200 dönüyor ve
+    # ayrıca realm'in içe aktarıldığını da doğruluyor.
+    healthCheckPath: /realms/tasiyoruz
     envVars:
       # Keycloak kendi tablolarını ayrı bir veritabanında tutmalı: API'nin Flyway
       # göçleriyle aynı şemayı paylaşırlarsa tablo adları çakışabilir.
@@ -42,8 +45,14 @@ services:
         value: xforwarded
       - key: KC_HTTP_ENABLED
         value: "true"          # TLS'i Render sonlandırıyor; içeride düz HTTP
-      - key: JAVA_OPTS_APPEND
-        value: -XX:MaxRAMPercentage=70 -XX:+UseSerialGC
+      # Keycloak iki port açıyor: 8080 uygulama, 9000 yönetim. Hangisine
+      # yönlendirileceği Render'ın taramasına bırakılmıyor.
+      - key: PORT
+        value: "8080"
+      # JAVA_OPTS_APPEND yok: imaj belleği zaten kapsayıcıya göre ayarlıyor
+      # (UseG1GC + RAMPercentage). Buraya eklenen -XX:+UseSerialGC varsayılan
+      # toplayıcıyla çakışıp JVM'i açılışta öldürüyordu ("Multiple garbage
+      # collectors selected"), servis hiç ayağa kalkmıyordu.
 
   # ── API ────────────────────────────────────────────────────────────
   - type: web
