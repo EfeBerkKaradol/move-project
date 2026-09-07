@@ -83,6 +83,9 @@ services:
         value: https
       - key: KEYCLOAK_ADMIN_CLIENT_SECRET
         sync: false            # Keycloak → Clients → tasiyoruz-api → Credentials
+      # Tomcat 8080'i dinliyor; Render'ın taramasına bırakmak yerine açıkça söylüyoruz.
+      - key: PORT
+        value: "8080"
       - key: TASIYORUZ_QUOTE_SIGNING_SECRET
         generateValue: true
       - key: TASIYORUZ_CORS_ALLOWED_ORIGINS
