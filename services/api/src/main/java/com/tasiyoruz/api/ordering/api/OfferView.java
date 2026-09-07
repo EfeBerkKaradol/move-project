@@ -6,19 +6,22 @@ import java.time.Instant;
 /**
  * Teklifin karşılaştırma görünümü.
  *
- * <p>{@code rating} ve {@code completedJobs} henüz null: taşıyıcı profili ve puanlama
- * modülü gelmedi. Uydurma sayı yerine boş gösteriliyor.
+ * <p>Ad, araç ve plaka doğrulanmış taşıyıcı profilinden geliyor; {@code verified}
+ * profilin onaylı olduğunu söylüyor. Puan ve tamamlanan iş sayısı burada değil:
+ * puanlama modülü ayrı uçtan okunuyor (/carriers/{id}/rating), çünkü pazar yeri
+ * puanlamaya bağımlı olsaydı modüller arasında döngü oluşurdu.
  */
 public record OfferView(
         String id,
         String listingId,
         String carrierId,
         String carrierDisplayName,
+        String vehicleTypeCode,
+        String plate,
+        boolean verified,
         Money amount,
         String note,
         Instant estimatedPickupAt,
         OfferStatus status,
-        Double rating,
-        Integer completedJobs,
         Instant submittedAt,
         Instant respondedAt) {}

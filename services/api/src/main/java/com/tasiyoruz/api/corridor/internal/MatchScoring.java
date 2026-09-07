@@ -13,16 +13,20 @@ import java.time.Instant;
  * çekildi, ağırlıklar toplamı 1; böylece puan koridorlar arasında karşılaştırılabilir
  * ve veritabanında {@code CHECK (score BETWEEN 0 AND 1)} ile doğrulanabiliyor.
  *
- * <p><strong>Taşıyıcı puanı bileşeni yok.</strong> Değerlendirme modülü henüz boş;
- * olmayan bir veriyi sabit 1 ile doldurmak puanı sessizce bozardı. Modül geldiğinde
- * ağırlıklar yeniden dağıtılacak.
+ * <p>Taşıyıcı puanı bileşeni: eşleşen ilan aynı; puan yüksek taşıyıcıya biraz daha
+ * öne çıkar. Hiç puanı olmayan taşıyıcı nötr (0,5) sayılıyor — yeni taşıyıcıyı
+ * cezalandırmak da ödüllendirmek de haksız olurdu.
  */
 final class MatchScoring {
 
     /** Sapma en ağır bileşen: koridorun varlık sebebi rotayı bozmadan yük bulmak. */
-    static final double W_DETOUR = 0.50;
-    static final double W_TIME = 0.30;
-    static final double W_VALUE = 0.20;
+    static final double W_DETOUR = 0.45;
+    static final double W_TIME = 0.25;
+    static final double W_VALUE = 0.15;
+    static final double W_RATING = 0.15;
+
+    /** Puanı olmayan taşıyıcının varsayılan uyumu. */
+    static final double NEUTRAL_RATING_FIT = 0.5;
 
     /**
      * Tutar bileşeninin yarı doyum noktası: sapma kilometresi başına bu kadar TL
@@ -72,8 +76,14 @@ final class MatchScoring {
         return perKm / (perKm + REFERENCE_TRY_PER_KM);
     }
 
-    static double score(double detourFit, double timeFit, double valueFit) {
-        return clamp(W_DETOUR * detourFit + W_TIME * timeFit + W_VALUE * valueFit);
+    /** 1-5 ortalamayı 0-1'e çeker; puan yoksa nötr. */
+    static double ratingFit(Double averageScore) {
+        if (averageScore == null) return NEUTRAL_RATING_FIT;
+        return clamp((averageScore - 1) / 4.0);
+    }
+
+    static double score(double detourFit, double timeFit, double valueFit, double ratingFit) {
+        return clamp(W_DETOUR * detourFit + W_TIME * timeFit + W_VALUE * valueFit + W_RATING * ratingFit);
     }
 
     private static double clamp(double v) {

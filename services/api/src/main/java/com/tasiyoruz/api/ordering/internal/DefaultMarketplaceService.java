@@ -76,6 +76,11 @@ class DefaultMarketplaceService implements MarketplaceService {
                 && r.pickupWindowEnd().isBefore(r.pickupWindowStart())) {
             throw badRequest("Alış penceresinin bitişi başlangıçtan önce olamaz.");
         }
+        // Geçmiş pencereyle yayınlanan ilan anında süresi dolmuş sayılırdı ve beş dakika
+        // içinde kapanırdı; kullanıcı ne olduğunu anlamazdı
+        if (r.pickupWindowEnd() != null && r.pickupWindowEnd().isBefore(Instant.now(clock))) {
+            throw badRequest("Alış penceresi geçmişte olamaz.");
+        }
 
         // Referans fiyat sunucuda hesaplanır — istemcinin gönderdiği tutara güvenilmez
         var quote = pricing.quote(new QuoteRequest(
@@ -160,7 +165,8 @@ class DefaultMarketplaceService implements MarketplaceService {
                     respond(offer, OfferStatus.REJECTED, now);
                 }
             }
-            events.publishEvent(new ListingExpired(listing.getId().toString(), listing.getShipperId()));
+            events.publishEvent(new ListingExpired(listing.getId().toString(), listing.getListingNumber(),
+                    route(listing), listing.getShipperId()));
         }
         return overdue.size();
     }
@@ -234,7 +240,9 @@ class DefaultMarketplaceService implements MarketplaceService {
                     r.amount(), r.note(), r.estimatedPickupAt(), now));
         }
 
-        events.publishEvent(new OfferSubmitted(listingId, offer.getId().toString(), carrierId, r.amount()));
+        events.publishEvent(new OfferSubmitted(listingId, listing.getListingNumber(), route(listing),
+                listing.getShipperId(), offer.getId().toString(), carrierId, offerName(carrierId, carrierDisplayName),
+                r.amount()));
         return view(offer);
     }
 
@@ -284,8 +292,8 @@ class DefaultMarketplaceService implements MarketplaceService {
         // @Version: aynı anda ikinci kabul/iptal gelirse commit'te
         // ObjectOptimisticLockingFailureException → 409
 
-        events.publishEvent(new ListingAwarded(listingId, offerId, chosen.getCarrierId(), shipperId,
-                chosen.getAmount()));
+        events.publishEvent(new ListingAwarded(listingId, listing.getListingNumber(), route(listing), offerId,
+                chosen.getCarrierId(), shipperId, chosen.getAmount()));
         return view(listing);
     }
 
@@ -303,6 +311,14 @@ class DefaultMarketplaceService implements MarketplaceService {
         } catch (IllegalArgumentException e) {
             return Optional.empty();
         }
+    }
+
+    /** Bildirim metni için: "İstanbul, Kadıköy → Ankara, Çankaya". */
+    private String route(LoadListing l) {
+        var from = geo.district(l.getPickupDistrictId().toString());
+        var to = geo.district(l.getDropoffDistrictId().toString());
+        return from.map(d -> d.cityName() + ", " + d.name()).orElse("?")
+                + " → " + to.map(d -> d.cityName() + ", " + d.name()).orElse("?");
     }
 
     private ListingView view(LoadListing l) {
@@ -323,10 +339,24 @@ class DefaultMarketplaceService implements MarketplaceService {
                 d.map(District::cityName).orElse(null), d.map(District::name).orElse(null), floor, elevator);
     }
 
+    /**
+     * Teklifte görünen ad doğrulanmış profilden geliyor; teklif kaydındaki ad yalnızca
+     * profil bulunamazsa (eski kayıt) yedek. Ana sayfa "doğrulanmış araç sahibi" diyor,
+     * teklif kartı kullanıcının kendi yazdığı adı gösteremez.
+     */
+    private String offerName(String carrierId, String fallback) {
+        return carriers.summary(carrierId).map(s -> s.publicName()).orElse(fallback);
+    }
+
     private OfferView view(CarrierOffer o) {
+        var profile = carriers.summary(o.getCarrierId());
         return new OfferView(o.getId().toString(), o.getListingId().toString(), o.getCarrierId(),
-                o.getCarrierDisplayName(), Money.tryOf(o.getAmount()), o.getNote(), o.getEstimatedPickupAt(),
-                o.getStatus(), null, null, o.getSubmittedAt(), o.getRespondedAt());
+                profile.map(p -> p.publicName()).orElse(o.getCarrierDisplayName()),
+                profile.map(p -> p.vehicleTypeCode()).orElse(null),
+                profile.map(p -> p.plate()).orElse(null),
+                profile.map(p -> p.status() == com.tasiyoruz.api.fleet.api.CarrierStatus.APPROVED).orElse(false),
+                Money.tryOf(o.getAmount()), o.getNote(), o.getEstimatedPickupAt(),
+                o.getStatus(), o.getSubmittedAt(), o.getRespondedAt());
     }
 
     // Domain'in paket-özel mutasyonlarına erişim (aynı modül, farklı paket)

@@ -27,5 +27,7 @@ class DocumentExpiryJob {
     void run() {
         int expired = carriers.expireOverdueDocuments();
         if (expired > 0) log.info("Süresi dolan belge sayısı: {}", expired);
+        int warned = carriers.warnExpiringDocuments();
+        if (warned > 0) log.info("Süre uyarısı gönderilen belge sayısı: {}", warned);
     }
 }

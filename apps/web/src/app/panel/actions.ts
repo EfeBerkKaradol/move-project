@@ -5,7 +5,7 @@ import { revalidatePath } from 'next/cache';
 import { redirect } from 'next/navigation';
 import { ApiError, apiFetch } from '@/lib/api-server';
 
-export type ActionState = { error?: string };
+export type ActionState = { error?: string; ok?: boolean };
 
 export async function publishListing(_prev: ActionState, form: FormData): Promise<ActionState> {
   const body: CreateListingRequest = {
@@ -65,4 +65,22 @@ export async function confirmDelivery(tripId: string, listingId: string): Promis
   revalidatePath(`/panel/ilan/${listingId}`);
   revalidatePath('/panel');
   return {};
+}
+
+/** Tamamlanan işi puanla (iş başına bir kez). */
+export async function rateCarrier(_prev: ActionState, form: FormData): Promise<ActionState> {
+  const tripId = String(form.get('tripId'));
+  const listingId = String(form.get('listingId'));
+  const score = Number(form.get('score'));
+  if (!(score >= 1 && score <= 5)) return { error: 'Puan seç.' };
+  try {
+    await apiFetch(`/trips/${tripId}/rating`, {
+      method: 'POST',
+      body: JSON.stringify({ score, comment: String(form.get('comment') ?? '').trim() || null }),
+    });
+  } catch (e) {
+    return { error: e instanceof ApiError ? e.message : 'Puan kaydedilemedi.' };
+  }
+  revalidatePath(`/panel/ilan/${listingId}`);
+  return { ok: true };
 }

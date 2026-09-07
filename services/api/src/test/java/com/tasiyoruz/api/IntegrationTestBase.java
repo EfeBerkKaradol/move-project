@@ -20,6 +20,7 @@ import org.testcontainers.utility.DockerImageName;
  */
 @SpringBootTest
 @Testcontainers
+@org.springframework.context.annotation.Import(TestClockConfig.class)
 public abstract class IntegrationTestBase {
 
     @ServiceConnection
@@ -56,5 +57,10 @@ public abstract class IntegrationTestBase {
         registry.add("tasiyoruz.storage.bucket", () -> "tasiyoruz-test");
         registry.add("tasiyoruz.storage.path-style", () -> true);
         registry.add("tasiyoruz.storage.create-bucket", () -> true);
+        // Testte SMTP yok; gönderim kapalı, kayıt SKIPPED olarak tutulur. Açık kalsaydı
+        // her bildirim 5 sn bağlantı zaman aşımı bekler, test süresi patlardı.
+        registry.add("tasiyoruz.notification.enabled", () -> false);
+        // Keycloak yönetim istemcisi de yok; rol eşitleme kapalı çalışır
+        registry.add("tasiyoruz.keycloak.admin.client-secret", () -> "");
     }
 }

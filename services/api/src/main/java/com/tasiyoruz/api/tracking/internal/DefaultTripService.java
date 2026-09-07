@@ -118,7 +118,8 @@ class DefaultTripService implements TripService {
         var now = Instant.now(clock);
         TripAccess.deliver(trip, pod.receivedByName(), pod.note(), now);
         events.save(TripEvent.of(trip.getId(), TripStage.DELIVERED, "DRIVER", "Teslim alan: " + pod.receivedByName(), now));
-        publisher.publishEvent(new TripDelivered(tripId, trip.getListingId().toString(), trip.getShipperId(), carrierId));
+        publisher.publishEvent(new TripDelivered(tripId, trip.getListingId().toString(), trip.getShipperId(), carrierId,
+                trip.getCarrierDisplayName(), pod.receivedByName(), trip.getAgreedAmount()));
         return view(trip);
     }
 
@@ -132,7 +133,8 @@ class DefaultTripService implements TripService {
         var now = Instant.now(clock);
         TripAccess.complete(trip, now);
         events.save(TripEvent.of(trip.getId(), TripStage.COMPLETED, "SHIPPER", "Teslimat onaylandı", now));
-        publisher.publishEvent(new TripCompleted(tripId, trip.getListingId().toString(), shipperId, trip.getCarrierId()));
+        publisher.publishEvent(new TripCompleted(tripId, trip.getListingId().toString(), shipperId, trip.getCarrierId(),
+                trip.getAgreedAmount()));
         return view(trip);
     }
 

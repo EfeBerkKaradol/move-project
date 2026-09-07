@@ -55,6 +55,9 @@ dependencies {
     // api dokümantasyonu → OpenAPI → TS tipleri
     implementation("org.springdoc:springdoc-openapi-starter-webmvc-ui:2.7.0")
 
+    // e-posta bildirimleri — yerelde Mailhog, üretimde gerçek SMTP (ANAHTARLAR #20)
+    implementation("org.springframework.boot:spring-boot-starter-mail")
+
     // nesne deposu — taşıyıcı belgeleri. S3 uyumlu API: yerelde MinIO, üretimde
     // Türkiye'de barındırılan S3 uyumlu bir sağlayıcı; kod değişmiyor (docs/03).
     implementation("software.amazon.awssdk:s3")

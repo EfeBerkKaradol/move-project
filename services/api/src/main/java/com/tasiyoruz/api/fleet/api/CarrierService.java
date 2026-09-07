@@ -44,6 +44,9 @@ public interface CarrierService {
     /** Süresi dolan belgeleri işaretler ve taşıyıcıyı askıya alır (FR-2.4). */
     int expireOverdueDocuments();
 
+    /** Süresi 30/7/1 gün kalan belgeler için uyarı olayı yayınlar (FR-2.4). */
+    int warnExpiringDocuments();
+
     /** Onaylı belgelerden süresi verilen gün içinde dolacaklar, en yakın önce. */
     List<ExpiringDocumentView> documentsExpiringWithin(int days);
 

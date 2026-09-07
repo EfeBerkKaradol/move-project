@@ -6,6 +6,6 @@
  */
 @org.springframework.modulith.ApplicationModule(
         displayName = "Yönetim",
-        allowedDependencies = { "corridor::api", "fleet::api", "ordering::api", "pricing::api", "tracking::api" }
+        allowedDependencies = { "corridor::api", "fleet::api", "notification::api", "ordering::api", "pricing::api", "tracking::api" }
 )
 package com.tasiyoruz.api.admin;

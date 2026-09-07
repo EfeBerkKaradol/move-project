@@ -173,16 +173,51 @@ export type OfferView = {
   id: string;
   listingId: string;
   carrierId: string;
+  /** Doğrulanmış profilden; profil yoksa teklif kaydındaki ad. */
   carrierDisplayName: string | null;
+  vehicleTypeCode: string | null;
+  plate: string | null;
+  /** Profil onaylı mı. */
+  verified: boolean;
   amount: Money;
   note: string | null;
   estimatedPickupAt: string | null;
   status: OfferStatus;
-  /** Taşıyıcı profili gelene kadar null — uydurma sayı gösterilmez. */
-  rating: number | null;
-  completedJobs: number | null;
   submittedAt: string;
   respondedAt: string | null;
+};
+
+// ── Puanlama ────────────────────────────────────────────────────────
+
+export type CarrierRatingView = {
+  carrierId: string;
+  /** Hiç puan yoksa null — uydurma 5,0 gösterilmez. */
+  averageScore: number | null;
+  ratingCount: number;
+  completedJobs: number;
+};
+
+export type RatingView = {
+  id: string;
+  tripId: string;
+  carrierId: string;
+  score: number;
+  comment: string | null;
+  createdAt: string;
+};
+
+// ── Bildirim geçmişi (operasyon) ────────────────────────────────────
+
+export type NotificationView = {
+  id: string;
+  recipientId: string;
+  recipient: string | null;
+  kind: string;
+  subject: string;
+  status: 'SENT' | 'FAILED' | 'SKIPPED';
+  error: string | null;
+  createdAt: string;
+  sentAt: string | null;
 };
 
 export type CreateListingRequest = {

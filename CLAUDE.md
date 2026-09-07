@@ -30,9 +30,12 @@ Test kullanıcıları (şifre `tasiyoruz`), hepsi `@tasiyoruz.local`:
 | `operasyon` | OPS_AGENT | `/yonetim` |
 | `admin` | ADMIN | `/yonetim` |
 
-⚠️ `nakliyeci` kullanıcısının onaylı taşıyıcı başvurusu **yok**. Teklif verebilmesi için
-önce `/sofor-ol` üzerinden başvurup `/yonetim/basvurular` ekranından onaylanması
-gerekiyor — belge doğrulamasının yaptırımı bu.
+Teklif verebilmek için onaylı taşıyıcı başvurusu gerekiyor (belge doğrulamasının
+yaptırımı). Yerel veritabanında `nakliyeci` onaylı; sıfırdan kurulan ortamda `/sofor-ol`
+üzerinden başvurup `/yonetim/basvurular` ekranından onaylamak gerekir. Onay, Keycloak'ta
+DRIVER rolünü otomatik verir; askı geri alır.
+
+E-postalar yerelde Mailhog'a düşer: http://localhost:8025
 
 **Eksik anahtarlar:** [ANAHTARLAR.md](ANAHTARLAR.md) — hangi dış servisin beklendiği ve
 neyin bloke olduğu orada. Gerçek değerler `.env` dosyalarında, repoya girmez.

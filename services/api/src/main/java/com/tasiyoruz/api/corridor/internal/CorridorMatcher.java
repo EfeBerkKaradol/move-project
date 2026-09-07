@@ -9,6 +9,7 @@ import com.tasiyoruz.api.fleet.api.CarrierDirectory;
 import com.tasiyoruz.api.geo.api.District;
 import com.tasiyoruz.api.geo.api.GeoService;
 import com.tasiyoruz.api.ordering.api.ListingView;
+import com.tasiyoruz.api.rating.api.RatingService;
 import java.math.BigDecimal;
 import java.math.RoundingMode;
 import java.time.Clock;
@@ -37,16 +38,19 @@ class CorridorMatcher {
     private final GeoService geo;
     private final FleetService fleet;
     private final CarrierDirectory carriers;
+    private final RatingService ratings;
     private final Clock clock;
 
     CorridorMatcher(CorridorRepository corridors, CorridorMatchRepository matches, DetourCalculator detours,
-                    GeoService geo, FleetService fleet, CarrierDirectory carriers, Clock clock) {
+                    GeoService geo, FleetService fleet, CarrierDirectory carriers, RatingService ratings,
+                    Clock clock) {
         this.corridors = corridors;
         this.matches = matches;
         this.detours = detours;
         this.geo = geo;
         this.fleet = fleet;
         this.carriers = carriers;
+        this.ratings = ratings;
         this.clock = clock;
     }
 
@@ -87,7 +91,8 @@ class CorridorMatcher {
             double score = MatchScoring.score(
                     MatchScoring.detourFit(detourKm, corridor.getDetourToleranceKm()),
                     timeFit,
-                    MatchScoring.valueFit(listing.estimatedAmount().amount(), detourKm));
+                    MatchScoring.valueFit(listing.estimatedAmount().amount(), detourKm),
+                    MatchScoring.ratingFit(ratings.summaryOf(corridor.getCarrierId()).averageScore()));
 
             // Yazma çakışmaya dayanıklı: olay yeniden teslim edilse ya da tarama
             // dinleyiciyle aynı anda çalışsa bile ikinci kayıt oluşmaz

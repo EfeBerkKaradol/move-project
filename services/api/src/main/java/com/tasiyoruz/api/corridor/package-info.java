@@ -7,6 +7,6 @@
  */
 @org.springframework.modulith.ApplicationModule(
         displayName = "Boş dönüş koridorları",
-        allowedDependencies = { "catalog::api", "fleet::api", "geo::api", "ordering::api", "pricing::api" }
+        allowedDependencies = { "catalog::api", "fleet::api", "geo::api", "ordering::api", "pricing::api", "rating::api" }
 )
 package com.tasiyoruz.api.corridor;

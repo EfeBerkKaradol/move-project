@@ -114,9 +114,10 @@ fazlaysa uygundur. Bu, rota motoruna (docs/03) ikinci bir çağrı tipi ekliyor:
 >
 > 1. **Puan formülü.** Ham `1/sapmaKm` kullanılmadı; sapma sıfıra yaklaşınca sonsuza
 >    gidip diğer bileşenleri eziyordu. Her bileşen 0-1 aralığına çekildi, ağırlıklar
->    toplamı 1 (sapma 0,50 · zaman uyumu 0,30 · sapma km'si başına kazanç 0,20).
-> 2. **Taşıyıcı puanı bileşeni yok.** Değerlendirme modülü boş; olmayan veriyi sabitle
->    doldurmak sıralamayı sessizce bozardı. Modül gelince ağırlıklar yeniden dağıtılacak.
+>    toplamı 1 (sapma 0,45 · zaman uyumu 0,25 · sapma km'si başına kazanç 0,15 ·
+>    taşıyıcı puanı 0,15).
+> 2. **Taşıyıcı puanı bileşeni** puanlama modülüyle geldi. Hiç puanı olmayan taşıyıcı
+>    nötr (0,5) sayılıyor: yeni taşıyıcıyı cezalandırmak da ödüllendirmek de haksız.
 >
 > Eşleştirme `ListingPublished` olayını dinliyor. Olay yeniden teslim edilebildiği ve
 > koridor kurulurken yapılan tarama aynı anda çalışabildiği için yazma

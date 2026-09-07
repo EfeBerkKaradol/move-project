@@ -4,8 +4,11 @@ import static com.tasiyoruz.api.fleet.internal.FleetExceptions.*;
 
 import com.tasiyoruz.api.catalog.api.FleetService;
 import com.tasiyoruz.api.fleet.api.*;
+import com.tasiyoruz.api.fleet.api.FleetEvents.CarrierApplicationRejected;
 import com.tasiyoruz.api.fleet.api.FleetEvents.CarrierApproved;
 import com.tasiyoruz.api.fleet.api.FleetEvents.CarrierSuspended;
+import com.tasiyoruz.api.fleet.api.FleetEvents.DocumentExpiringSoon;
+import com.tasiyoruz.api.fleet.api.FleetEvents.DocumentRejected;
 import com.tasiyoruz.api.fleet.domain.CarrierDocument;
 import com.tasiyoruz.api.fleet.domain.CarrierProfile;
 import com.tasiyoruz.api.fleet.domain.DomainAccess;
@@ -246,6 +249,8 @@ class DefaultCarrierService implements CarrierService, CarrierDirectory {
             DomainAccess.approveDocument(document, now);
         } else {
             DomainAccess.rejectDocument(document, decision.reason(), now);
+            events.publishEvent(new DocumentRejected(document.getProfile().getCarrierId(),
+                    document.getKind().displayName(), decision.reason()));
         }
         return view(document.getProfile());
     }
@@ -278,8 +283,31 @@ class DefaultCarrierService implements CarrierService, CarrierDirectory {
                     profile.getVehicleTypeCode(), profile.getPlate()));
         } else {
             DomainAccess.reject(profile, decision.reason(), now);
+            events.publishEvent(new CarrierApplicationRejected(carrierId, decision.reason()));
         }
         return view(profile);
+    }
+
+    /** Uyarı eşikleri (FR-2.4): her eşikte bir kez, günlük taramada tam o gün. */
+    static final long[] EXPIRY_WARNING_DAYS = {30, 7, 1};
+
+    @Override
+    public int warnExpiringDocuments() {
+        var today = LocalDate.now(clock.withZone(TR));
+        int warned = 0;
+        for (var d : documents.findByStatusAndExpiresOnLessThanEqualOrderByExpiresOnAsc(
+                DocumentStatus.APPROVED, today.plusDays(30))) {
+            if (d.getProfile().getStatus() != CarrierStatus.APPROVED) continue;
+            long left = java.time.temporal.ChronoUnit.DAYS.between(today, d.getExpiresOn());
+            for (long threshold : EXPIRY_WARNING_DAYS) {
+                if (left == threshold) {
+                    events.publishEvent(new DocumentExpiringSoon(d.getProfile().getCarrierId(),
+                            d.getKind().displayName(), d.getExpiresOn(), left));
+                    warned++;
+                }
+            }
+        }
+        return warned;
     }
 
     @Override

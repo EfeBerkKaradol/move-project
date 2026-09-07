@@ -1,10 +1,24 @@
 spring:
+  modulith:
+    events:
+      # Dinleyici düşerse (örn. Keycloak kapalı) olay tamamlanmamış kalır; açılışta yeniden denenir
+      republish-outstanding-events-on-restart: true
   config:
     # services/api/.env varsa okunur (KEY=VALUE). Yoksa sessizce atlanır; üretimde
     # değerler gerçek ortam değişkenlerinden gelir. Şablon: .env.example
     import: optional:file:.env[.properties]
   application:
     name: tasiyoruz-api
+  mail:
+    host: ${SMTP_HOST:localhost}
+    port: ${SMTP_PORT:1025}
+    username: ${SMTP_USERNAME:}
+    password: ${SMTP_PASSWORD:}
+    properties:
+      mail.smtp.auth: ${SMTP_AUTH:false}
+      mail.smtp.starttls.enable: ${SMTP_STARTTLS:false}
+      mail.smtp.connectiontimeout: 5000
+      mail.smtp.timeout: 5000
   servlet:
     multipart:
       # Belge yükleme sınırı DocumentUploadPolicy'de 8 MB. Sunucu sınırı ondan büyük
@@ -67,6 +81,21 @@ tasiyoruz:
   maps:
     # Google Maps Platform (ANAHTARLAR #1). Boşsa takribî rota sağlayıcısı devrede.
     api-key: ${GOOGLE_MAPS_API_KEY:}
+  notification:
+    # E-postadaki bağlantıların kökü ve gönderen adresi. Yerelde Mailhog (localhost:1025,
+    # arayüz http://localhost:8025); üretimde gerçek SMTP spring.mail.* ile (ANAHTARLAR #20).
+    from: ${NOTIFICATION_FROM:no-reply@tasiyoruz.local}
+    site-url: ${NEXT_PUBLIC_SITE_URL:http://localhost:3000}
+    enabled: ${NOTIFICATION_ENABLED:true}
+  keycloak:
+    admin:
+      # Servis hesaplı istemci (realm'de tasiyoruz-api). Onaylanan taşıyıcıya DRIVER
+      # rolü vermek ve bildirim için e-posta okumak üzere yönetim API'si çağrılıyor.
+      # Gizli anahtar boşsa rol eşitleme ve e-posta çözümleme kapalı (ANAHTARLAR #19).
+      base-url: ${KEYCLOAK_ADMIN_BASE_URL:http://localhost:8081}
+      realm: ${KEYCLOAK_REALM:tasiyoruz}
+      client-id: ${KEYCLOAK_ADMIN_CLIENT_ID:tasiyoruz-api}
+      client-secret: ${KEYCLOAK_ADMIN_CLIENT_SECRET:tasiyoruz-api-dev-secret}
   storage:
     # Taşıyıcı belgeleri için S3 uyumlu nesne deposu. Yerelde docker-compose'daki
     # MinIO; üretimde Türkiye'de barındırılan bir sağlayıcı (ANAHTARLAR #18).

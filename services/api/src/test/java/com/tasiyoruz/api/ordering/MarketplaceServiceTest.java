@@ -8,6 +8,7 @@ import com.tasiyoruz.api.IntegrationTestBase;
 import com.tasiyoruz.api.geo.api.GeoService;
 import com.tasiyoruz.api.ordering.api.*;
 import java.math.BigDecimal;
+import java.time.Duration;
 import java.util.List;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -23,6 +24,7 @@ class MarketplaceServiceTest extends IntegrationTestBase {
     @Autowired MarketplaceService marketplace;
     @Autowired GeoService geo;
     @Autowired com.tasiyoruz.api.fleet.api.CarrierService carriers;
+    @Autowired com.tasiyoruz.api.MutableClock clock;
 
     static final String SHIPPER = "shipper-1", CARRIER_A = "carrier-a", CARRIER_B = "carrier-b";
 
@@ -176,22 +178,37 @@ class MarketplaceServiceTest extends IntegrationTestBase {
 
     @Test
     void suresiDolanIlanKapanir_bekleyenTekliflerReddedilir() {
-        // Alış penceresi geçmiş planlı ilan: yayın anında zaten süresi dolmuş sayılır
-        var gecmis = marketplace.publish(SHIPPER, new CreateListingRequest(
+        var l = publish(); // anlık ilan: 6 saat teklif toplar
+        marketplace.submitOffer(CARRIER_A, "Ali D.", l.id(), offer("9000"));
+        assertThat(marketplace.expireOverdueListings()).as("Henüz süresi dolmadı").isZero();
+
+        clock.advance(Duration.ofHours(7));
+        try {
+            assertThat(marketplace.expireOverdueListings()).isPositive();
+
+            var sonra = marketplace.listing(l.id()).orElseThrow();
+            assertThat(sonra.status())
+                    .as("Arayüzdeki 'süresi doldu' rozeti ancak bu geçişle görünebilir")
+                    .isEqualTo(ListingStatus.EXPIRED);
+            assertThat(marketplace.offersOf(CARRIER_A)).filteredOn(o -> o.listingId().equals(l.id()))
+                    .allMatch(o -> o.status() == OfferStatus.REJECTED);
+        } finally {
+            clock.reset();
+        }
+    }
+
+    @Test
+    void gecmisAlisPenceresiyleIlanYayinlanamaz() {
+        // Aksi hâlde ilan anında süresi dolmuş sayılır, beş dakika içinde kapanır ve
+        // kullanıcı neden kapandığını anlamazdı
+        assertThatThrownBy(() -> marketplace.publish(SHIPPER, new CreateListingRequest(
                 "SCHEDULED", "KAMYONET",
                 new CreateListingRequest.Stop(district("34", "kadikoy"), 0, true),
                 new CreateListingRequest.Stop(district("06", "cankaya"), 0, true),
-                List.of(), "Süresi geçmiş ilan",
-                java.time.Instant.now().minus(java.time.Duration.ofHours(2)),
-                java.time.Instant.now().minus(java.time.Duration.ofHours(1))));
-        assertThat(gecmis.status()).isEqualTo(ListingStatus.OPEN);
-
-        int kapanan = marketplace.expireOverdueListings();
-        assertThat(kapanan).isPositive();
-
-        var sonra = marketplace.listing(gecmis.id()).orElseThrow();
-        assertThat(sonra.status())
-                .as("Arayüzdeki 'süresi doldu' rozeti ancak bu geçişle görünebilir")
-                .isEqualTo(ListingStatus.EXPIRED);
+                List.of(), "Geçmiş",
+                java.time.Instant.now().minus(Duration.ofHours(2)),
+                java.time.Instant.now().minus(Duration.ofHours(1)))))
+                .isInstanceOf(ResponseStatusException.class)
+                .hasMessageContaining("geçmişte olamaz");
     }
 }

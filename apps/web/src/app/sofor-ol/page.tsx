@@ -97,8 +97,8 @@ export default async function DriverSignupPage() {
 
       {profile?.status === 'APPROVED' && (
         <p className="mt-3 text-sm text-muted">
-          Başvurun onaylandı. Panelin görünmüyorsa erişim yetkisi henüz tanımlanmamış
-          olabilir; bu adım şu an operasyon ekibi tarafından elle yapılıyor.
+          Başvurun onaylandı ve araç sahibi yetkin verildi. Panel açılmadıysa çıkış yapıp
+          tekrar gir; yetki oturum yenilendiğinde devreye giriyor.
         </p>
       )}
 

@@ -11,8 +11,8 @@ Bir maddeyi hallettiğinde söyle, kutusunu işaretleyeyim.
 
 | | Faz 1 | Altyapı | Üretim | Faz 3–4 | Faz 5 | Toplam |
 |---|---|---|---|---|---|---|
-| Bekleyen | 3 | 5 | 3 | 3 | 3 | 17 |
-| Tamamlanan | 0 | 0 | 0 | 0 | 0 | 0 |
+| Bekleyen | 3 | 4 | 3 | 3 | 3 | 16 |
+| Tamamlanan | 0 | 1 | 0 | 0 | 0 | 1 |
 
 ---
 
@@ -107,19 +107,20 @@ da operasyon rolü kontrolüyle erişiliyor; imzalı doğrudan indirme linki yok
 
 ---
 
-### [ ] 19. Keycloak yönetim istemcisi (taşıyıcı rolü atamak için)
-**Ne için:** Başvuru onaylandığında kullanıcıya `DRIVER` realm rolünün verilmesi.
-Bugün onay `CarrierApproved` olayını yayınlıyor ama **rolü kimse atamıyor** — operasyon
-ekibi Keycloak arayüzünden elle veriyor. Otomatikleşmesi için servis hesabı gerekiyor.
+### [x] 19. Keycloak yönetim istemcisi (taşıyıcı rolü atamak için)
+**Ne için:** Başvuru onaylandığında kullanıcıya `DRIVER` rolünün verilmesi, askıda geri
+alınması ve bildirim için kullanıcı e-postasının okunması.
 
-**Nereye:** `services/api/.env`
-```
-KEYCLOAK_ADMIN_CLIENT_ID=tasiyoruz-api
-KEYCLOAK_ADMIN_CLIENT_SECRET=...
-```
+**Durum:** Dış anahtar değilmiş; Keycloak kendi konteynerimiz. Realm dosyasında
+`tasiyoruz-api` istemcisine servis hesabı ve gizli anahtar tanımlandı, `realm-management`
+altında `view-realm`, `manage-users`, `view-users`, `query-users` yetkileri verildi.
+Yerelde çalışıyor. Üretimde yalnızca gizli anahtarı değiştir:
 
-**Şu an bloke olan:** Onaydan sonra rol atamanın otomatikleşmesi. Başvuru, belge
-yükleme ve onay akışının tamamı bu olmadan çalışıyor.
+`services/api/.env`
+```
+KEYCLOAK_ADMIN_BASE_URL=https://kimlik.tasiyoruz.com
+KEYCLOAK_ADMIN_CLIENT_SECRET=<güçlü-bir-değer>
+```
 
 ---
 
@@ -135,7 +136,10 @@ dışı sağlayıcılar e-posta adresini işler; ADR-0005 gereği tercih edilmiy
 host, port, from, starttls/ssl, kullanıcı adı ve parola.
 
 **Şu an bloke olan:** Hiçbir şey — yerelde Mailhog ile uçtan uca çalışıyor. Üretimde
-SMTP olmadan kimse kaydını tamamlayamaz, çünkü doğrulama postası gitmez.
+SMTP olmadan kimse kaydını tamamlayamaz, çünkü doğrulama postası gitmez. Uygulamanın
+kendi bildirimleri (teklif geldi, teslim edildi, belge reddedildi...) de aynı SMTP'yi
+kullanıyor; adres `services/api/.env` içinde `SMTP_HOST`, `SMTP_PORT`, `SMTP_USERNAME`,
+`SMTP_PASSWORD`, `SMTP_AUTH=true`, `SMTP_STARTTLS=true`.
 
 ---
 

@@ -1,4 +1,4 @@
-import type { ListingView, OfferView, TripView } from '@tasiyoruz/contracts';
+import type { CarrierRatingView, ListingView, OfferView, RatingView, TripView } from '@tasiyoruz/contracts';
 import { TRIP_STAGE_LABELS } from '@tasiyoruz/contracts';
 import { formatPrice } from '@tasiyoruz/shared';
 import type { Metadata } from 'next';
@@ -11,6 +11,7 @@ import { TripPhotos } from '@/components/app/TripPhotos';
 import { TripTimeline } from '@/components/app/TripTimeline';
 import { ApiError, apiFetch } from '@/lib/api-server';
 import { acceptOffer, cancelListing, confirmDelivery } from '../../actions';
+import { RatingForm } from './RatingForm';
 
 export const metadata: Metadata = { title: 'İlan' };
 export const dynamic = 'force-dynamic';
@@ -35,6 +36,16 @@ export default async function ListingPage({ params }: { params: Promise<{ id: st
   const trip = listing.status === 'AWARDED'
     ? await apiFetch<TripView>(`/trips/by-listing/${listing.id}`).catch(() => null)
     : null;
+  // Puanlar ayrı uçtan: pazar yeri puanlamaya bağımlı olsaydı modüller döngüye girerdi
+  const ratingById = new Map<string, CarrierRatingView>();
+  if (offers.length > 0) {
+    const ids = [...new Set(offers.map((o) => o.carrierId))].join(',');
+    const ratings = await apiFetch<CarrierRatingView[]>(`/carriers/ratings?ids=${ids}`).catch(() => [] as CarrierRatingView[]);
+    for (const r of ratings) ratingById.set(r.carrierId, r);
+  }
+  const myRating = trip?.stage === 'COMPLETED'
+    ? await apiFetch<RatingView>(`/trips/${trip.id}/rating`).catch(() => null)
+    : null;
 
   return (
     <Shell eyebrow={listing.listingNumber} title={open ? 'Teklifler toplanıyor' : 'İlan'}>
@@ -57,10 +68,25 @@ export default async function ListingPage({ params }: { params: Promise<{ id: st
                 <li key={o.id} className={`rounded-card border p-4 ${o.id === listing.awardedOfferId ? 'border-amber bg-[var(--amber-soft)]' : 'border-line bg-surface'}`}>
                   <div className="flex flex-wrap items-center gap-x-4 gap-y-2">
                     <span className="font-bold">{o.carrierDisplayName ?? 'Araç sahibi'}</span>
-                    <span className="label-mono text-muted">{o.rating == null ? 'puan yok' : `★ ${o.rating}`} · {o.completedJobs == null ? 'iş geçmişi yok' : `${o.completedJobs} iş`}</span>
+                    {o.verified && (
+                      <span className="inline-flex items-center gap-1 rounded-full bg-[#dff0e5] px-2.5 py-1 text-xs font-semibold text-[#1f6b45]">
+                        <svg viewBox="0 0 16 16" className="size-3.5" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden><path d="m3.5 8.5 3 3 6-7" /></svg>
+                        Doğrulanmış
+                      </span>
+                    )}
                     <span className="stat ml-auto text-lg">{formatPrice(o.amount.amount)}</span>
                     <StatusPill status={o.status} />
                   </div>
+                  <p className="label-mono mt-2 text-muted">
+                    {o.vehicleTypeCode ? `${o.vehicleTypeCode} · ${o.plate}` : 'araç bilgisi yok'}
+                    {' · '}
+                    {(() => {
+                      const r = ratingById.get(o.carrierId);
+                      if (!r) return 'puan yok';
+                      const puan = r.averageScore == null ? 'puan yok' : `★ ${r.averageScore.toFixed(1)} (${r.ratingCount})`;
+                      return `${puan} · ${r.completedJobs} iş`;
+                    })()}
+                  </p>
                   {o.note && <p className="mt-2 text-sm text-muted">“{o.note}”</p>}
                   {open && o.status === 'SUBMITTED' && (
                     <form action={async () => { 'use server'; await acceptOffer(listing.id, o.id); }} className="mt-3">
@@ -97,7 +123,21 @@ export default async function ListingPage({ params }: { params: Promise<{ id: st
                   </form>
                 </div>
               )}
-              {trip.stage === 'COMPLETED' && <p className="mt-3 text-sm font-semibold text-[#1f6b45]">Taşıma tamamlandı. Teşekkürler.</p>}
+              {trip.stage === 'COMPLETED' && (
+                <div className="mt-4 border-t border-line pt-4">
+                  <p className="text-sm font-semibold text-[#1f6b45]">Taşıma tamamlandı. Teşekkürler.</p>
+                  <div className="mt-4">
+                    {myRating ? (
+                      <p className="text-sm text-muted">
+                        Puanın: <span className="text-amber">{'★'.repeat(myRating.score)}</span>
+                        {myRating.comment ? ` · “${myRating.comment}”` : ''}
+                      </p>
+                    ) : (
+                      <RatingForm tripId={trip.id} listingId={listing.id} />
+                    )}
+                  </div>
+                </div>
+              )}
             </>
           ) : listing.status === 'AWARDED' ? (
             <p className="mt-2">Taşıyıcı seçildi, iş açılıyor… Sayfayı yenileyin.</p>

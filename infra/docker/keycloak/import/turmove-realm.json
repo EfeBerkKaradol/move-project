@@ -127,8 +127,13 @@
     {
       "clientId": "tasiyoruz-api",
       "name": "Taşıyoruz API",
-      "bearerOnly": true,
-      "publicClient": false
+      "bearerOnly": false,
+      "publicClient": false,
+      "serviceAccountsEnabled": true,
+      "standardFlowEnabled": false,
+      "directAccessGrantsEnabled": false,
+      "secret": "tasiyoruz-api-dev-secret",
+      "redirectUris": []
     }
   ],
   "users": [
@@ -203,6 +208,19 @@
       "realmRoles": [
         "ADMIN"
       ]
+    },
+    {
+      "username": "service-account-tasiyoruz-api",
+      "enabled": true,
+      "serviceAccountClientId": "tasiyoruz-api",
+      "clientRoles": {
+        "realm-management": [
+          "view-realm",
+          "manage-users",
+          "view-users",
+          "query-users"
+        ]
+      }
     }
   ],
   "registrationAllowed": true,

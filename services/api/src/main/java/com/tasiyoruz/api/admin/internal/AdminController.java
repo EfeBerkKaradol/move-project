@@ -5,6 +5,8 @@ import com.tasiyoruz.api.fleet.api.CarrierProfileView;
 import com.tasiyoruz.api.fleet.api.CarrierService;
 import com.tasiyoruz.api.fleet.api.CarrierStatus;
 import com.tasiyoruz.api.fleet.api.ExpiringDocumentView;
+import com.tasiyoruz.api.notification.api.NotificationLog;
+import com.tasiyoruz.api.notification.api.NotificationView;
 import com.tasiyoruz.api.ordering.api.ListingStatus;
 import com.tasiyoruz.api.ordering.api.ListingView;
 import com.tasiyoruz.api.ordering.api.MarketplaceService;
@@ -35,13 +37,22 @@ class AdminController {
     private final MarketplaceService marketplace;
     private final TripService trips;
     private final CarrierService carriers;
+    private final NotificationLog notifications;
 
     AdminController(OverviewService overview, MarketplaceService marketplace, TripService trips,
-                    CarrierService carriers) {
+                    CarrierService carriers, NotificationLog notifications) {
         this.overview = overview;
         this.marketplace = marketplace;
         this.trips = trips;
         this.carriers = carriers;
+        this.notifications = notifications;
+    }
+
+    @GetMapping("/notifications")
+    @Operation(summary = "Son bildirimler; gitmeyen postalar hatasıyla görünür")
+    List<NotificationView> notifications(@RequestParam(defaultValue = "100") int limit,
+                                         @RequestParam(required = false) String recipientId) {
+        return recipientId == null ? notifications.recent(limit) : notifications.forRecipient(recipientId);
     }
 
     @GetMapping("/overview")
