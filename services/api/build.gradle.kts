@@ -71,8 +71,8 @@ dependencies {
     testImplementation("org.springframework.boot:spring-boot-testcontainers")
     testImplementation("org.testcontainers:junit-jupiter")
     testImplementation("org.testcontainers:postgresql")
-    testImplementation("com.redis:testcontainers-redis:2.2.2")
-    testImplementation("com.tngtech.archunit:archunit-junit5:1.3.0")
+    testImplementation("com.redis:testcontainers-redis:2.2.4")
+    testImplementation("com.tngtech.archunit:archunit-junit5:1.5.0")
     testImplementation("org.testcontainers:minio")
     testRuntimeOnly("org.junit.platform:junit-platform-launcher")
 }
