@@ -69,55 +69,105 @@ docker exec tasiyoruz-redis redis-cli --tls -u "<rediss:// adresin>" PING
 `PONG` dönmeli.
 `upstash.com` → yeni Redis → TLS'li bağlantı bilgisini not al.
 
-### 3. Keycloak — Render (ya da Koyeb)
-Docker imajı: `quay.io/keycloak/keycloak:26.0`
-Komut: `start --optimized --hostname=https://<keycloak-adresi>`
-Ortam:
-```
-KC_DB=postgres
-KC_DB_URL=jdbc:postgresql://<neon-host>/<db>?sslmode=require
-KC_DB_USERNAME=…
-KC_DB_PASSWORD=…
-KC_BOOTSTRAP_ADMIN_USERNAME=admin
-KC_BOOTSTRAP_ADMIN_PASSWORD=<güçlü bir parola>
-KC_HEALTH_ENABLED=true
-```
-Açıldıktan sonra admin panelinden `infra/docker/keycloak/import/tasiyoruz-realm.json`
-dosyasını **Realm oluştur → içe aktar** ile yükle. Sonra:
-- `tasiyoruz-web` istemcisinde **Valid redirect URIs**: `https://<web-adresi>/*`
-- **Web origins**: `https://<web-adresi>`
-- **Credentials** sekmesinden istemci sırrını kopyala (yereldeki dev sırrını kullanma)
-- Tema: `infra/docker/keycloak/themes` klasörünü imaja eklemen gerekir; Render'da
-  bunun için küçük bir Dockerfile yazılır (`FROM quay.io/keycloak/keycloak:26.0` +
-  `COPY themes /opt/keycloak/themes`).
+### 3. Keycloak için ikinci veritabanı — Neon
 
-### 4. API — Render
-`services/api/Dockerfile` hazır. Ortam:
+Keycloak kendi tablolarını oluşturuyor ve API'nin Flyway göçleriyle **aynı şemayı
+paylaşamaz**; tablo adları çakışabilir. Neon'da aynı proje içinde ikinci bir
+veritabanı aç:
+
+Neon → sol menüde **Postgres database** → **Tables** yanındaki veritabanı seçicisi →
+*Create database* → adı `keycloak`. Bağlantı bilgileri aynı, yalnızca URL'in sonundaki
+veritabanı adı değişiyor:
 ```
-SPRING_DATASOURCE_URL=jdbc:postgresql://<neon-host>/<db>?sslmode=require
-SPRING_DATASOURCE_USERNAME=…
-SPRING_DATASOURCE_PASSWORD=…
-SPRING_DATA_REDIS_URL=rediss://…            (Upstash)
-SPRING_SECURITY_OAUTH2_RESOURCESERVER_JWT_ISSUER_URI=https://<keycloak-adresi>/realms/tasiyoruz
-TASIYORUZ_CORS_ALLOWED_ORIGINS=https://<web-adresi>
-TASIYORUZ_QUOTE_SIGNING_SECRET=<openssl rand -base64 48>
+jdbc:postgresql://<neon-host>/keycloak?sslmode=require
 ```
 
-### 5. Web — Vercel ortam değişkenleri
+---
+
+### 4. Keycloak ve API — Render Blueprint
+
+Repoda **`render.yaml`** hazır: iki servisi de tanımlıyor, aralarındaki adres
+bağlantılarını Render kendisi kuruyor.
+
+**Render → New → Blueprint → repoyu seç.** Kurulum sırasında aşağıdaki değerler
+tek tek sorulur:
+
+| Sorulan | Ne gireceksin |
+|---|---|
+| `KC_DB_URL` | `jdbc:postgresql://<neon-host>/keycloak?sslmode=require` |
+| `KC_DB_USERNAME` · `KC_DB_PASSWORD` | Neon kullanıcı adı ve parolası |
+| `DATABASE_URL` | `jdbc:postgresql://<neon-host>/neondb?sslmode=require` |
+| `DATABASE_USERNAME` · `DATABASE_PASSWORD` | Aynı Neon bilgileri |
+| `REDIS_URL` | Upstash `rediss://...` adresi |
+| `KEYCLOAK_ADMIN_CLIENT_SECRET` | **Şimdilik boş bırak** — Keycloak açıldıktan sonra dolduracaksın |
+| `TASIYORUZ_CORS_ALLOWED_ORIGINS` | Vercel adresin, örn. `https://move-project-web.vercel.app` |
+| `NEXT_PUBLIC_SITE_URL` | Aynı Vercel adresi |
+| `STORAGE_*` · `SMTP_*` | Boş bırak — henüz yok, uygulama yine açılır |
+
+Keycloak yönetici parolasını Render üretiyor: servis açıldıktan sonra
+**tasiyoruz-keycloak → Environment → `KC_BOOTSTRAP_ADMIN_PASSWORD`** altından oku.
+
+⚠️ **Ücretsiz plan 15 dakika istek gelmezse servisi uyutuyor.** Uyanması yaklaşık bir
+dakika sürüyor, yani ilk giriş yavaş olacak. İki servis ayrı ayrı uyuduğu için bazen
+iki kez beklersin. Bu bir hata değil.
+
+---
+
+### 5. Keycloak açıldıktan sonra — 4 ayar
+
+Dağıtım imajındaki realm, geliştirme kolaylıklarından arındırılmış hâli:
+test kullanıcıları ve repoda yazılı istemci sırları **yok**, HTTPS zorunlu.
+Aşağıdakileri bir kez yapman gerekiyor.
+
+**a) Web istemcisinin adreslerini gir.**
+Clients → `tasiyoruz-web` → Settings:
+- *Valid redirect URIs*: `https://<vercel-adresin>/*`
+- *Valid post logout redirect URIs*: `https://<vercel-adresin>/*`
+- *Web origins*: `https://<vercel-adresin>`
+
+**b) İki istemci sırrını al.**
+- Clients → `tasiyoruz-web` → **Credentials** → sırrı kopyala → Vercel'de
+  `AUTH_KEYCLOAK_SECRET`
+- Clients → `tasiyoruz-api` → **Credentials** → sırrı kopyala → Render'da
+  `KEYCLOAK_ADMIN_CLIENT_SECRET` (API'yi yeniden başlatmayı unutma)
+
+**c) Kendi hesabını aç.**
+Test kullanıcıları imajda yok. Siteden normal şekilde kayıt ol
+(`https://<vercel-adresin>/giris` → Hesap oluştur). Kayıt olan herkes yük veren
+olarak başlıyor.
+
+**d) Kendine operasyon yetkisi ver.**
+Keycloak → Users → kendi hesabın → Role mapping → Assign role → `OPS_AGENT`
+(ve istersen `ADMIN`). Çıkış yapıp tekrar gir; `/yonetim` paneli açılır.
+
+---
+
+### 6. Web — Vercel ortam değişkenleri
 Project → Settings → Environment Variables:
 ```
 NEXT_PUBLIC_API_URL=https://<api-adresi>
+NEXT_PUBLIC_SITE_URL=https://<vercel-adresin>
 AUTH_KEYCLOAK_ISSUER=https://<keycloak-adresi>/realms/tasiyoruz
 AUTH_KEYCLOAK_ID=tasiyoruz-web
-AUTH_KEYCLOAK_SECRET=<Keycloak Credentials'tan>
+AUTH_KEYCLOAK_SECRET=<5b adımında kopyaladığın>
 AUTH_SECRET=<openssl rand -base64 32>
-AUTH_URL=https://<web-adresi>
+AUTH_URL=https://<vercel-adresin>
 ```
-Sonra **yeniden dağıt** — ortam değişkenleri derleme anında gömülür.
+Sonra **yeniden dağıt** — `NEXT_PUBLIC_` ile başlayanlar derleme anında gömülüyor.
+
+---
+
+### 7. SMTP gelince açılacak ayar
+
+Dağıtım realm'inde e-posta doğrulama **kapalı**; SMTP olmadan açık olsaydı kimse
+kaydını tamamlayamazdı. SMTP'yi ayarladığında (ANAHTARLAR Adım 3):
+Realm settings → **Email** sekmesini doldur, sonra **Login** sekmesinde
+*Verify email* seçeneğini aç.
 
 ## Sıra önemli
 
-Keycloak → API → Web. Her biri bir öncekinin adresini ister.
+Neon → Upstash → Blueprint (Keycloak + API) → Keycloak ayarları → Vercel.
+Her adım bir öncekinin adresini ya da sırrını istiyor.
 
 ## ⚠️ Veri ikametgâhı
 
