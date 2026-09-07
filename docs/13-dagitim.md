@@ -47,13 +47,26 @@ Flyway migration'ları API ilk açıldığında kendiliğinden koşar; tablolar�
 oluşturmana gerek yok.
 
 ### 2. Redis — Upstash
-`upstash.com` → Create Database → bölge olarak Avrupa (eu-central-1) seç.
-Veritabanı sayfasında **Connect** → *Redis URL* sekmesindeki `rediss://...` dizesini
-kopyala. Parola dizenin içinde geliyor, ayrıştırmana gerek yok:
+`upstash.com` → Create Database → bölge olarak Avrupa seç.
+
+Bağlantı ekranı çoğu zaman **redis-cli** komutu olarak verir:
+```
+redis-cli --tls -u redis://default:AbC123xyz@eu1-xxx.upstash.io:6379
+```
+⚠️ Bunu olduğu gibi kopyalama. `redis-cli` TLS'i ayrı bir `--tls` bayrağıyla alıyor;
+bizim yapılandırmada TLS **şemanın içinde** olmalı. İki şey yap: komut kısmını at,
+`redis://` yerine `rediss://` (çift s) yaz.
+
 ```
 REDIS_URL=rediss://default:AbC123xyz@eu1-xxx.upstash.io:6379
 ```
-Şemanın `rediss://` (çift s) olduğundan emin ol; TLS'i o belirtiyor.
+Parola dizenin içinde geliyor, ayrıştırmana gerek yok.
+
+Doğrulamak istersen (yerel Redis konteynerinden):
+```bash
+docker exec tasiyoruz-redis redis-cli --tls -u "<rediss:// adresin>" PING
+```
+`PONG` dönmeli.
 `upstash.com` → yeni Redis → TLS'li bağlantı bilgisini not al.
 
 ### 3. Keycloak — Render (ya da Koyeb)
