@@ -181,3 +181,71 @@ Redis, S3 uyumlu depolama, konteyner) — taşıma mekanik bir iş.
 Bir VPS (Türkiye'de: Vargonen, Doruk, Natro) kirala, `docker compose` ile aynı
 yığını çalıştır. Tek fatura, veri Türkiye'de, ADR-0005 ile uyumlu. Karşılığında
 sunucu bakımını sen üstlenirsin. Gerçek kullanıcıya çıkarken doğru yol muhtemelen bu.
+
+## Bir şey çalışmıyorsa: değer denetim listesi
+
+Çoğu arıza yanlış *değer* değil, yanlış *biçim* ya da eksik kalan ikinci kopyadır.
+Sırayla kontrol et.
+
+### Aynı parola iki serviste birden duruyor
+
+Neon rolünün (`neondb_owner`) parolası **iki yerde** kayıtlı. Parolayı yenilediğinde
+ikisini birden güncellemezsen, güncellemediğin servis açılmaz:
+
+| Servis | Değişken |
+|---|---|
+| `tasiyoruz-api` | `DATABASE_PASSWORD` |
+| `tasiyoruz-keycloak` | `KC_DB_PASSWORD` |
+
+Aynı şey kullanıcı adı için de geçerli (`DATABASE_USERNAME` / `KC_DB_USERNAME`).
+İki servis farklı veritabanlarına bağlanır ama rol aynıdır.
+
+### Biçim tuzakları
+
+**`jdbc:` öneki zorunlu.** Neon panelden `postgresql://...` verir; JDBC sürücüsü bunu
+tanımaz ve `No suitable driver found` der. Doğrusu `jdbc:postgresql://...`.
+
+**Kullanıcı adı ve parola URL'den çıkarılır.** Neon'un verdiği dizede ikisi de gömülü
+gelir; ayrı değişkenlere taşınır ve URL'de bırakılmaz:
+
+    Neon'un verdiği : postgresql://neondb_owner:PAROLA@ep-xxx.neon.tech/neondb?sslmode=require
+    DATABASE_URL    : jdbc:postgresql://ep-xxx.neon.tech/neondb?sslmode=require
+    DATABASE_USERNAME: neondb_owner
+    DATABASE_PASSWORD: PAROLA
+
+`channel_binding=require` kalabilir, sürücü onu yok sayıyor (denendi).
+
+**Redis şeması çift s olmalı.** Upstash panelden bir `redis-cli` komutu verir; komut
+kısmı ve tırnaklar atılır, şema `rediss://` yapılır. TLS şemadan okunuyor —
+`redis://` bırakılırsa uygulama açılışta Redis'e bağlanamadan takılır:
+
+    panelin verdiği : redis-cli --tls -u redis://default:TOKEN@xxx.upstash.io:6379
+    REDIS_URL       : rediss://default:TOKEN@xxx.upstash.io:6379
+
+**Keycloak veritabanı ayrı olmalı.** `KC_DB_URL` API'ninkiyle aynı veritabanını
+göstermemeli; Keycloak kendi tablolarını kurar, Flyway'in yönettiği şemayla
+karışırlar.
+
+### Günlükteki imzasından tanı
+
+Render → servis → Logs. Aradığın satır genelde en sonda değil, ortada:
+
+| Günlükte gördüğün | Anlamı |
+|---|---|
+| `No suitable driver found` | `jdbc:` öneki eksik |
+| `password authentication failed` | Parola eski ya da yanlış serviste güncellenmiş |
+| `FATAL: database "..." does not exist` | Veritabanı adı yanlış |
+| `The server does not support SSL` | Neon dışı bir adrese `sslmode=require` gitmiş |
+| `Multiple garbage collectors selected` | `JAVA_OPTS_APPEND` imajın kendi ayarıyla çakışıyor |
+| `no open HTTP ports detected` | Uygulama açıldı ama Render beklemeyi bıraktı (açılış çok yavaş) |
+| `Nesne deposu anahtarları yok` | Uyarı, hata değil — belge yükleme kapalı, uygulama çalışır |
+| `SMTP yapılandırılmamış` | Uyarı, hata değil — bildirimler yalnızca kayda yazılır |
+
+Son iki satır **sorun değil**; anahtarlar girilene kadar öyle kalması bekleniyor.
+
+### Boş bırakılabilecekler
+
+Bunlar girilmediğinde ilgili işlev kapalı çalışır, servis yine açılır:
+`STORAGE_*`, `SMTP_*`, `KEYCLOAK_ADMIN_CLIENT_SECRET`. Yani bir servis hiç
+açılmıyorsa suçlu bunlar değil — veritabanı ya da Redis değerlerine bak.
+
