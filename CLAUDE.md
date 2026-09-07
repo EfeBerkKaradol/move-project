@@ -37,8 +37,10 @@ DRIVER rolünü otomatik verir; askı geri alır.
 
 E-postalar yerelde Mailhog'a düşer: http://localhost:8025
 
-**Eksik anahtarlar:** [ANAHTARLAR.md](ANAHTARLAR.md) — hangi dış servisin beklendiği ve
-neyin bloke olduğu orada. Gerçek değerler `.env` dosyalarında, repoya girmez.
+**Eksik anahtarlar:** [ANAHTARLAR.md](ANAHTARLAR.md) — adım sırasına göre dizilmiş;
+her maddede nasıl alınacağı ve hangi dosyaya gireceği yazıyor. Başlıklardaki `#N`
+eski madde numaraları; kod yorumları onlara atıf yapıyor, dosyanın sonunda dizini var.
+Gerçek değerler `.env` dosyalarında, repoya girmez.
 
 ## Uymak zorunda olduğun kurallar
 
