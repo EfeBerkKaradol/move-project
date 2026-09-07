@@ -9,7 +9,7 @@ FROM python:3.12-alpine AS realm
 WORKDIR /w
 COPY import/ ./import/
 COPY prepare-realm.py .
-RUN python prepare-realm.py import/turmove-realm.json /w/tasiyoruz-realm.json
+RUN python prepare-realm.py import/tasiyoruz-realm.json /w/tasiyoruz-realm.json
 
 FROM quay.io/keycloak/keycloak:26.0.8 AS build
 ENV KC_DB=postgres
