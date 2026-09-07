@@ -49,10 +49,15 @@ services:
       # yönlendirileceği Render'ın taramasına bırakılmıyor.
       - key: PORT
         value: "8080"
-      # JAVA_OPTS_APPEND yok: imaj belleği zaten kapsayıcıya göre ayarlıyor
-      # (UseG1GC + RAMPercentage). Buraya eklenen -XX:+UseSerialGC varsayılan
-      # toplayıcıyla çakışıp JVM'i açılışta öldürüyordu ("Multiple garbage
-      # collectors selected"), servis hiç ayağa kalkmıyordu.
+      # Yalnızca C1 derleyicisi. 0.2 CPU / 512 MB ile ölçüldüğünde açılış 219s'den
+      # 139s'ye, bellek 461 MB'den 380 MB'ye indi (512 MB sınırında %90 → %74).
+      # Render'ın port taraması 200 saniyeyi aşan açılışlarda vazgeçiyor.
+      #
+      # Buraya GC bayrağı EKLENMEZ: imaj zaten -XX:+UseG1GC veriyor, ikincisi
+      # "Multiple garbage collectors selected" ile JVM'i açılışta öldürüyor.
+      # TieredStopAtLevel bir GC bayrağı değil, çakışmadığı ölçülerek doğrulandı.
+      - key: JAVA_OPTS_APPEND
+        value: -XX:TieredStopAtLevel=1
 
   # ── API ────────────────────────────────────────────────────────────
   - type: web
