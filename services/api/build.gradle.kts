@@ -53,7 +53,7 @@ dependencies {
     implementation("io.micrometer:micrometer-registry-prometheus")
 
     // api dokümantasyonu → OpenAPI → TS tipleri
-    implementation("org.springdoc:springdoc-openapi-starter-webmvc-ui:2.7.0")
+    implementation("org.springdoc:springdoc-openapi-starter-webmvc-ui:3.1.0")
 
     // e-posta bildirimleri — yerelde Mailhog, üretimde gerçek SMTP (ANAHTARLAR #20)
     implementation("org.springframework.boot:spring-boot-starter-mail")
