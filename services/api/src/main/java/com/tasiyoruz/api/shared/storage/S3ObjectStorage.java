@@ -31,7 +31,17 @@ class S3ObjectStorage implements ObjectStorage {
         }
         this.client = builder.build();
         this.bucket = props.bucket();
-        if (props.createBucket()) ensureBucket();
+        // Kova hazırlığı açılışı kilitlemez. Depo erişilemezse yalnızca belge yükleme
+        // çalışmaz; ilan, teklif ve takip ayakta kalır. Bu kontrol yapıcıdan yayıldığında
+        // tüm API açılmıyordu — bir özelliğin arızası ürünün tamamını düşürmemeli.
+        if (props.createBucket()) {
+            try {
+                ensureBucket();
+            } catch (RuntimeException e) {
+                log.error("Nesne deposu kovası hazırlanamadı ({}): {} — belge yükleme çalışmayabilir",
+                        bucket, e.getMessage());
+            }
+        }
     }
 
     private void ensureBucket() {

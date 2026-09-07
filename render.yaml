@@ -63,16 +63,15 @@ services:
         sync: false
       - key: REDIS_URL
         sync: false            # rediss://default:<parola>@<host>:6379
-      - key: KEYCLOAK_ISSUER_URI
+      # Render host'u şemasız veriyor ("x.onrender.com"); şemayı ayrıca söylüyoruz.
+      # API ikisini birleştirip https://x.onrender.com/realms/tasiyoruz üretiyor.
+      - key: KEYCLOAK_HOST
         fromService:
           type: web
           name: tasiyoruz-keycloak
-          property: hostport
-      - key: KEYCLOAK_ADMIN_BASE_URL
-        fromService:
-          type: web
-          name: tasiyoruz-keycloak
-          property: hostport
+          property: host
+      - key: KEYCLOAK_SCHEME
+        value: https
       - key: KEYCLOAK_ADMIN_CLIENT_SECRET
         sync: false            # Keycloak → Clients → tasiyoruz-api → Credentials
       - key: TASIYORUZ_QUOTE_SIGNING_SECRET

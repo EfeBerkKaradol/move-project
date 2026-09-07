@@ -10,8 +10,10 @@ spring:
   application:
     name: tasiyoruz-api
   mail:
-    host: ${SMTP_HOST:localhost}
-    port: ${SMTP_PORT:1025}
+    # Varsayılan boş: değişken verilmeyen bir ortamda "SMTP yok" demek, sessizce
+    # localhost'a bağlanmaya çalışmaktan iyi. Yereldeki Mailhog'u bootRun veriyor.
+    host: ${SMTP_HOST:}
+    port: ${SMTP_PORT:25}
     username: ${SMTP_USERNAME:}
     password: ${SMTP_PASSWORD:}
     properties:
@@ -53,9 +55,12 @@ spring:
     oauth2:
       resourceserver:
         jwt:
-          # Keycloak'ın herkese açık adresi. Render'da servis adresi buraya
-          # otomatik geliyor; realm yolunu biz ekliyoruz.
-          issuer-uri: ${KEYCLOAK_ISSUER_URI:http://localhost:8081}/realms/${KEYCLOAK_REALM:tasiyoruz}
+          # Keycloak'ın herkese açık adresi.
+          #
+          # Render servis adresini şemasız veriyor (örn. "x.onrender.com"), o yüzden
+          # şema ayrı bir değişken. Tam adresi elle vermek istersen KEYCLOAK_ISSUER_URI
+          # yeter; o zaman şema ve host yok sayılır.
+          issuer-uri: ${KEYCLOAK_ISSUER_URI:${KEYCLOAK_SCHEME:http}://${KEYCLOAK_HOST:localhost:8081}}/realms/${KEYCLOAK_REALM:tasiyoruz}
 
 server:
   port: 8080
@@ -71,6 +76,13 @@ management:
     health:
       probes:
         enabled: true
+  health:
+    mail:
+      # Posta göstergesi kapalı. Sağlık ucu "buraya trafik gelsin mi" sorusunu yanıtlar;
+      # SMTP'nin arızası ya da hiç yapılandırılmamış olması buna hayır dedirtmemeli —
+      # bildirim gönderimi zaten tek tek SKIPPED/FAILED olarak kaydediliyor. Açık
+      # bırakıldığında Render sağlık kontrolü düşüyor ve çalışan API dağıtımdan atılıyor.
+      enabled: false
 
 springdoc:
   api-docs:
@@ -99,22 +111,26 @@ tasiyoruz:
       # Servis hesaplı istemci (realm'de tasiyoruz-api). Onaylanan taşıyıcıya DRIVER
       # rolü vermek ve bildirim için e-posta okumak üzere yönetim API'si çağrılıyor.
       # Gizli anahtar boşsa rol eşitleme ve e-posta çözümleme kapalı (ANAHTARLAR #19).
-      base-url: ${KEYCLOAK_ADMIN_BASE_URL:http://localhost:8081}
+      # issuer-uri ile aynı mantık: şema ayrı, çünkü Render host'u şemasız veriyor
+      base-url: ${KEYCLOAK_ADMIN_BASE_URL:${KEYCLOAK_SCHEME:http}://${KEYCLOAK_HOST:localhost:8081}}
       realm: ${KEYCLOAK_REALM:tasiyoruz}
       client-id: ${KEYCLOAK_ADMIN_CLIENT_ID:tasiyoruz-api}
-      client-secret: ${KEYCLOAK_ADMIN_CLIENT_SECRET:tasiyoruz-api-dev-secret}
+      client-secret: ${KEYCLOAK_ADMIN_CLIENT_SECRET:}
   storage:
     # Taşıyıcı belgeleri için S3 uyumlu nesne deposu. Yerelde docker-compose'daki
     # MinIO; üretimde Türkiye'de barındırılan bir sağlayıcı (ANAHTARLAR #18).
     # Anahtar verilmezse belge yükleme açıkça reddeder, sessizce kaybetmez.
-    endpoint: ${STORAGE_ENDPOINT:http://localhost:9000}
+    # Varsayılanlar boş. Yerel MinIO değerleri build.gradle.kts'teki bootRun'da:
+    # ortak yapılandırmaya konsalardı dağıtımda değişken verilmediğinde üretim
+    # localhost:9000'e bağlanmaya çalışır ve açılışta ölürdü.
+    endpoint: ${STORAGE_ENDPOINT:}
     region: ${STORAGE_REGION:us-east-1}
     bucket: ${STORAGE_BUCKET:tasiyoruz-belgeler}
-    access-key: ${STORAGE_ACCESS_KEY:tasiyoruz}
-    secret-key: ${STORAGE_SECRET_KEY:tasiyoruz123}
+    access-key: ${STORAGE_ACCESS_KEY:}
+    secret-key: ${STORAGE_SECRET_KEY:}
     # MinIO sanal-host adreslemeyi localhost'ta çözemez
     path-style: ${STORAGE_PATH_STYLE:true}
-    create-bucket: ${STORAGE_CREATE_BUCKET:true}
+    create-bucket: ${STORAGE_CREATE_BUCKET:false}
 
 logging:
   level:

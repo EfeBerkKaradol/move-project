@@ -106,3 +106,26 @@ tasks.withType<Test> {
         exceptionFormat = org.gradle.api.tasks.testing.logging.TestExceptionFormat.SHORT
     }
 }
+
+/*
+ * Yerel geliştirme değerleri.
+ *
+ * Bunlar application.yml'de varsayılan olarak duruyordu; Render'da STORAGE_* verilmeyince
+ * üretim localhost:9000'deki MinIO'ya bağlanmaya çalıştı ve uygulama hiç açılmadı. Yerel
+ * kolaylık artık yerel çalıştırma görevinde: dağıtılan imaj bunları görmez, değişken
+ * verilmediğinde ilgili işlev "yapılandırılmamış" diyerek kapalı çalışır.
+ *
+ * Kabuktan verilen değer üstün gelir, böylece gerçek bir sağlayıcıyla denemek mümkün.
+ */
+tasks.named<org.springframework.boot.gradle.tasks.run.BootRun>("bootRun") {
+    val yerel = mapOf(
+        "STORAGE_ENDPOINT" to "http://localhost:9000",   // docker-compose'daki MinIO
+        "STORAGE_ACCESS_KEY" to "tasiyoruz",
+        "STORAGE_SECRET_KEY" to "tasiyoruz123",
+        "STORAGE_CREATE_BUCKET" to "true",
+        "SMTP_HOST" to "localhost",                      // Mailhog
+        "SMTP_PORT" to "1025",
+        "KEYCLOAK_ADMIN_CLIENT_SECRET" to "tasiyoruz-api-dev-secret",
+    )
+    yerel.forEach { (anahtar, deger) -> environment(anahtar, System.getenv(anahtar) ?: deger) }
+}

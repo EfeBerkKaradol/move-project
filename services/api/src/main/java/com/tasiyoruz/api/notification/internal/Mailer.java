@@ -7,6 +7,7 @@ import java.time.Instant;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.ObjectProvider;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.mail.SimpleMailMessage;
 import org.springframework.mail.javamail.JavaMailSender;
@@ -28,17 +29,24 @@ class Mailer {
 
     private static final Logger log = LoggerFactory.getLogger(Mailer.class);
 
-    /** SMTP yapılandırılmamışsa bean yok; gönderim SKIPPED olarak kaydedilir, uygulama açılır. */
+    /** SMTP yapılandırılmamışsa gönderim SKIPPED olarak kaydedilir, uygulama açılır. */
     private final ObjectProvider<JavaMailSender> sender;
+    /**
+     * Bean'in varlığına bakmak yetmiyor: Spring, {@code spring.mail.host} boş dizeyle
+     * <em>tanımlıysa</em> da gönderici üretiyor. O durumda her bildirim localhost'a
+     * bağlanmaya çalışıp FAILED olurdu; adres yoksa baştan SKIPPED demek doğru olan.
+     */
+    private final boolean smtpConfigured;
     private final UserDirectory users;
     private final NotificationRepository repo;
     private final NotificationProperties props;
     private final Clock clock;
 
     Mailer(ObjectProvider<JavaMailSender> sender, UserDirectory users, NotificationRepository repo,
-           NotificationProperties props, Clock clock) {
+           NotificationProperties props, Clock clock, @Value("${spring.mail.host:}") String mailHost) {
         this.sender = sender; this.users = users; this.repo = repo; this.props = props; this.clock = clock;
-        if (sender.getIfAvailable() == null) {
+        this.smtpConfigured = mailHost != null && !mailHost.isBlank();
+        if (!smtpConfigured || sender.getIfAvailable() == null) {
             log.warn("SMTP yapılandırılmamış (spring.mail.host boş) — bildirimler yalnızca kayda yazılır (ANAHTARLAR #20)");
         }
     }
@@ -57,7 +65,7 @@ class Mailer {
             log.warn("Bildirim atlandı ({}): alıcı e-postası çözülemedi — {}", kind, recipientId);
             return;
         }
-        var mail = sender.getIfAvailable();
+        var mail = smtpConfigured ? sender.getIfAvailable() : null;
         if (!props.enabled() || mail == null) {
             repo.save(Notification.email(recipientId, user.email(), kind, subject, body,
                     Notification.Status.SKIPPED, mail == null ? "SMTP yapılandırılmamış" : "Gönderim kapalı", now));
