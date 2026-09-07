@@ -18,12 +18,12 @@ export function CancelListing({ listingId }: { listingId: string }) {
   }
 
   return (
-    <form action={action} className="flex flex-wrap items-end gap-2">
+    <form action={action} className="flex flex-wrap items-end gap-3">
       <input type="hidden" name="listingId" value={listingId} />
       <label className="min-w-0 flex-1 text-sm">
         <span className="label-mono block text-muted">Kapatma gerekçesi</span>
         <input name="reason" required maxLength={500} autoFocus placeholder="Örn. Yük tarifi kurallara aykırı"
-          className="mt-1 min-h-11 w-full rounded-field border border-line bg-surface-2 px-3 py-2.5 outline-none transition hover:border-muted focus:border-amber focus:ring-2 focus:ring-amber/25" />
+          className="mt-2 min-h-11 w-full rounded-field border border-line bg-surface-2 px-3 py-2.5 outline-none transition hover:border-muted focus:border-amber focus:ring-2 focus:ring-amber/25" />
       </label>
       <button type="submit" disabled={pending}
         className="min-h-11 rounded-field border border-[#8a2a1f] px-4 py-2.5 text-sm font-bold text-[#8a2a1f] transition hover:bg-[#f7e0dd]">

@@ -67,7 +67,7 @@ export default async function OpsOverviewPage() {
         ) : (
           <ul className="divide-y divide-line overflow-hidden rounded-card border border-line bg-surface shadow-card">
             {attention.map((a, i) => (
-              <li key={i} className="flex flex-wrap items-center gap-3 px-4 py-3">
+              <li key={i} className="flex flex-wrap items-center gap-4 px-5 py-4">
                 <span className={`size-2 shrink-0 rounded-full ${a.tone === 'red' ? 'bg-[#c0392b]' : 'bg-amber'}`} aria-hidden />
                 <span className="min-w-0 flex-1 text-sm">{a.text}</span>
                 <Link href={a.href} className="inline-flex min-h-11 items-center rounded-field border border-line px-3 text-sm font-semibold transition hover:border-amber hover:bg-surface-2">
@@ -80,7 +80,7 @@ export default async function OpsOverviewPage() {
       </Section>
 
       <Section title="Bugün">
-        <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
+        <div className="grid gap-5 sm:grid-cols-2 xl:grid-cols-4">
           <StatCard label="İncelenecek başvuru" value={o.carriersPendingReview}
             context={o.carriersPendingReview ? 'Onay bekleyen taşıyıcı' : 'Kuyruk boş'}
             href="/yonetim/basvurular?durum=PENDING_REVIEW" tone={o.carriersPendingReview ? 'amber' : 'neutral'} />
@@ -97,7 +97,7 @@ export default async function OpsOverviewPage() {
       </Section>
 
       <Section title="Genel">
-        <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
+        <div className="grid gap-5 sm:grid-cols-2 xl:grid-cols-4">
           <StatCard label="Onaylı taşıyıcı" value={o.approvedCarriers}
             context={o.suspendedCarriers ? `${o.suspendedCarriers} askıda` : 'Askıda taşıyıcı yok'}
             href="/yonetim/basvurular?durum=APPROVED" tone={o.suspendedCarriers ? 'red' : 'neutral'} />
@@ -108,12 +108,12 @@ export default async function OpsOverviewPage() {
         </div>
       </Section>
 
-      <div className="grid gap-8 lg:grid-cols-2">
+      <div className="grid gap-10 lg:grid-cols-2">
         <Section title="Son ilanlar" action={<Link href="/yonetim/ilanlar" className="inline-flex min-h-11 items-center px-2 text-sm font-semibold underline underline-offset-4 hover:text-[#8a5c10]">Tümü</Link>}>
           {open.length === 0 ? <EmptyState>Açık ilan yok.</EmptyState> : (
             <ul className="divide-y divide-line overflow-hidden rounded-card border border-line bg-surface shadow-card">
               {open.slice(0, 5).map((l) => (
-                <li key={l.id} className="flex flex-wrap items-center gap-x-3 gap-y-1 px-4 py-3">
+                <li key={l.id} className="flex flex-wrap items-center gap-x-4 gap-y-2 px-5 py-4">
                   <span className="label-mono text-muted">{l.listingNumber}</span>
                   <RouteLine l={l} />
                   <span className="ml-auto flex items-center gap-2">
@@ -130,7 +130,7 @@ export default async function OpsOverviewPage() {
           {activeTrips.length === 0 ? <EmptyState>Devam eden iş yok.</EmptyState> : (
             <ul className="divide-y divide-line overflow-hidden rounded-card border border-line bg-surface shadow-card">
               {activeTrips.slice(0, 5).map((t) => (
-                <li key={t.id} className="flex flex-wrap items-center gap-x-3 gap-y-1 px-4 py-3">
+                <li key={t.id} className="flex flex-wrap items-center gap-x-4 gap-y-2 px-5 py-4">
                   <span className="text-sm font-semibold">{t.carrierDisplayName ?? 'Taşıyıcı'}</span>
                   <Pill tone={t.stage === 'DELIVERED' ? 'amber' : 'neutral'}>{TRIP_STAGE_LABELS[t.stage]}</Pill>
                   <span className="stat ml-auto text-sm">{formatPrice(t.agreedAmount.amount)}</span>
@@ -143,17 +143,17 @@ export default async function OpsOverviewPage() {
 
       {pending.length > 0 && (
         <Section title="Kuyruktaki başvurular" action={<Link href="/yonetim/basvurular" className="inline-flex min-h-11 items-center px-2 text-sm font-semibold underline underline-offset-4 hover:text-[#8a5c10]">Tümü</Link>}>
-          <ul className="grid gap-3 sm:grid-cols-2 xl:grid-cols-3">
+          <ul className="grid gap-5 sm:grid-cols-2 xl:grid-cols-3">
             {pending.slice(0, 6).map((c) => (
               <li key={c.id}>
                 <Link href={`/yonetim/basvurular/${c.carrierId}`}
-                  className="block rounded-card border border-line bg-surface p-4 shadow-card transition hover:-translate-y-px hover:shadow-lift">
+                  className="block rounded-card border border-line bg-surface p-5 shadow-card transition hover:-translate-y-px hover:shadow-lift">
                   <div className="flex items-center justify-between gap-2">
                     <span className="truncate font-semibold">{c.companyName ?? c.displayName}</span>
                     <Pill tone="amber">{CARRIER_STATUS_LABELS[c.status]}</Pill>
                   </div>
-                  <p className="label-mono mt-1 text-muted">{c.vehicleTypeCode} · {c.plate} · {c.documents.length} belge</p>
-                  {c.submittedAt && <p className="mt-1 text-xs text-muted">{ago(c.submittedAt)} gönderildi</p>}
+                  <p className="label-mono mt-3 text-muted">{c.vehicleTypeCode} · {c.plate} · {c.documents.length} belge</p>
+                  {c.submittedAt && <p className="mt-2 text-xs text-muted">{ago(c.submittedAt)} gönderildi</p>}
                 </Link>
               </li>
             ))}

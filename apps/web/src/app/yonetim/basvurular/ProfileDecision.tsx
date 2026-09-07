@@ -17,7 +17,7 @@ export function ProfileDecision({
   const [reasonOpen, setReasonOpen] = useState(mode === 'suspend');
 
   return (
-    <form action={action} className="mt-4 flex flex-wrap items-end gap-2 border-t border-line pt-4">
+    <form action={action} className="mt-5 flex flex-wrap items-end gap-3 border-t border-line pt-5">
       <input type="hidden" name="carrierId" value={carrierId} />
       {mode === 'review' && <input type="hidden" name="approved" value={reasonOpen ? 'false' : 'true'} />}
 
@@ -28,7 +28,7 @@ export function ProfileDecision({
           </span>
           <input name="reason" required maxLength={500}
             placeholder={mode === 'review' ? 'Örn. Ruhsat ile plaka uyuşmuyor' : 'Örn. Belgeler doğrulanamadı'}
-            className="mt-1 min-h-11 w-full rounded-field border border-line bg-surface-2 px-3 py-2.5 outline-none transition hover:border-muted focus:border-amber focus:ring-2 focus:ring-amber/25" />
+            className="mt-2 min-h-11 w-full rounded-field border border-line bg-surface-2 px-3 py-2.5 outline-none transition hover:border-muted focus:border-amber focus:ring-2 focus:ring-amber/25" />
         </label>
       )}
 

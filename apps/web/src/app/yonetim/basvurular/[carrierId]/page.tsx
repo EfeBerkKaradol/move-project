@@ -28,24 +28,24 @@ export default async function OpsCarrierDetailPage({ params }: { params: Promise
       title={c.companyName ?? c.displayName}
       actions={<Pill tone={CARRIER_TONE[c.status]}>{CARRIER_STATUS_LABELS[c.status]}</Pill>}
     >
-      <div className="grid gap-6 lg:grid-cols-[minmax(0,2fr)_minmax(0,1fr)]">
+      <div className="grid gap-10 lg:grid-cols-[minmax(0,2fr)_minmax(0,1fr)]">
         <div>
           <Section title={`Belgeler · ${approved}/${c.documents.length} onaylı${pending ? ` · ${pending} bekliyor` : ''}`}>
             {c.missingDocuments.length > 0 && (
-              <p className="mb-3 rounded-field bg-[var(--amber-soft)] px-3 py-2 text-sm text-[#8a5c10]">
+              <p className="mb-5 rounded-field bg-[var(--amber-soft)] px-4 py-3 text-sm text-[#8a5c10]">
                 Eksik belge: {c.missingDocuments.length}. Taşıyıcı yüklemeden başvuru incelemeye gelmez.
               </p>
             )}
             {c.documents.length === 0
               ? <p className="text-sm text-muted">Henüz belge yüklenmemiş.</p>
-              : <ul className="grid gap-3 xl:grid-cols-2">{c.documents.map((d) => <DocumentReview key={d.id} document={d} />)}</ul>}
+              : <ul className="grid gap-5 xl:grid-cols-2">{c.documents.map((d) => <DocumentReview key={d.id} document={d} />)}</ul>}
           </Section>
         </div>
 
-        <aside className="space-y-4 lg:sticky lg:top-6 lg:self-start">
-          <div className="rounded-card border border-line bg-surface p-5 shadow-card">
+        <aside className="space-y-6 lg:sticky lg:top-8 lg:self-start">
+          <div className="rounded-card border border-line bg-surface p-6 shadow-card">
             <p className="label-mono text-muted">Başvuru</p>
-            <dl className="mt-3 space-y-2 text-sm">
+            <dl className="mt-5 space-y-3 text-sm">
               <Row k="Ad soyad" v={c.displayName} />
               {c.companyName && <Row k="Unvan" v={c.companyName} />}
               {c.taxId && <Row k="Vergi no" v={c.taxId} mono />}
@@ -57,15 +57,15 @@ export default async function OpsCarrierDetailPage({ params }: { params: Promise
               {c.reviewedAt && <Row k="Karar" v={when(c.reviewedAt)} />}
             </dl>
             {c.reviewNote && (
-              <p className="mt-4 rounded-field bg-surface-2 px-3 py-2 text-sm text-muted">Not: {c.reviewNote}</p>
+              <p className="mt-5 rounded-field bg-surface-2 px-4 py-3 text-sm text-muted">Not: {c.reviewNote}</p>
             )}
           </div>
 
-          <div className="rounded-card border border-line bg-surface p-5 shadow-card">
+          <div className="rounded-card border border-line bg-surface p-6 shadow-card">
             <p className="label-mono text-muted">Karar</p>
             {c.status === 'PENDING_REVIEW' && (
               <>
-                <p className="mt-2 text-sm text-muted">
+                <p className="mt-3 text-sm text-muted">
                   {allApproved
                     ? 'Tüm belgeler onaylı; başvuru onaylanabilir.'
                     : 'Önce her belgeyi tek tek onayla; sunucu eksikle onaya izin vermez.'}
@@ -75,7 +75,7 @@ export default async function OpsCarrierDetailPage({ params }: { params: Promise
             )}
             {c.status === 'APPROVED' && (
               <>
-                <p className="mt-2 text-sm text-muted">Taşıyıcı iş alabiliyor. Askıya alırsan teklif veremez.</p>
+                <p className="mt-3 text-sm text-muted">Taşıyıcı iş alabiliyor. Askıya alırsan teklif veremez.</p>
                 <ProfileDecision carrierId={c.carrierId} mode="suspend" />
               </>
             )}
@@ -89,7 +89,7 @@ export default async function OpsCarrierDetailPage({ params }: { params: Promise
               </form>
             )}
             {(c.status === 'DRAFT' || c.status === 'REJECTED') && (
-              <p className="mt-2 text-sm text-muted">
+              <p className="mt-3 text-sm text-muted">
                 {c.status === 'DRAFT' ? 'Taşıyıcı henüz incelemeye göndermedi.' : 'Reddedildi; taşıyıcı düzeltip yeniden gönderebilir.'}
               </p>
             )}
@@ -102,7 +102,7 @@ export default async function OpsCarrierDetailPage({ params }: { params: Promise
 
 function Row({ k, v, mono = false }: { k: string; v: string; mono?: boolean }) {
   return (
-    <div className="flex justify-between gap-3">
+    <div className="flex justify-between gap-4">
       <dt className="text-muted">{k}</dt>
       <dd className={`text-right font-semibold ${mono ? 'label-mono' : ''}`}>{v}</dd>
     </div>

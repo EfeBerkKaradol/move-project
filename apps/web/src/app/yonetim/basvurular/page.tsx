@@ -38,11 +38,11 @@ export default async function OpsCarriersPage({
 
   const columns: Column<CarrierProfileView>[] = [
     {
-      key: 'ad', header: 'Taşıyıcı',
+      key: 'ad', header: 'Taşıyıcı', className: 'min-w-[14rem]',
       cell: (c) => (
         <div>
           <p className="font-semibold">{c.companyName ?? c.displayName}</p>
-          {c.companyName && <p className="text-xs text-muted">Yetkili: {c.displayName}</p>}
+          {c.companyName && <p className="mt-1 text-xs text-muted">Yetkili: {c.displayName}</p>}
         </div>
       ),
     },
@@ -78,11 +78,11 @@ export default async function OpsCarriersPage({
       <FilterTabs items={FILTERS} selected={q ? '' : selected}
         hrefFor={(v) => `/yonetim/basvurular?durum=${v}`} />
       {q && (
-        <p className="mt-3 text-sm text-muted">
+        <p className="mt-4 text-sm text-muted">
           &ldquo;{q}&rdquo; için {rows.length} sonuç, tüm durumlarda.
         </p>
       )}
-      <div className="mt-4">
+      <div className="mt-6">
         <DataTable
           rows={rows}
           columns={columns}

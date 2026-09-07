@@ -33,7 +33,7 @@ export function OpsShell({
   children: React.ReactNode;
 }) {
   const nav = (
-    <nav aria-label="Operasyon menüsü" className="flex flex-col gap-1">
+    <nav aria-label="Operasyon menüsü" className="flex flex-col gap-2">
       {OPS_NAV.map((item) => {
         const isActive = active === item.href || (item.href !== '/yonetim' && active.startsWith(item.href));
         const badge = badges[item.href];
@@ -42,7 +42,7 @@ export function OpsShell({
             key={item.href}
             href={item.href}
             aria-current={isActive ? 'page' : undefined}
-            className={`flex min-h-11 items-center gap-3 rounded-field px-3 text-sm font-semibold transition focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-amber ${
+            className={`flex min-h-12 items-center gap-3 rounded-field px-4 text-sm font-semibold transition focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-amber ${
               isActive ? 'bg-amber text-[var(--amber-ink)]' : 'text-muted hover:bg-surface-2 hover:text-ink'
             }`}
           >
@@ -65,10 +65,10 @@ export function OpsShell({
   );
 
   const identity = (
-    <div className="border-t border-line pt-4">
+    <div className="border-t border-line pt-5">
       <p className="truncate text-sm font-semibold text-ink">{user.name}</p>
       <p className="label-mono mt-0.5 text-muted">{user.role}</p>
-      <div className="mt-3 grid gap-2 xl:grid-cols-2">
+      <div className="mt-4 grid gap-3 xl:grid-cols-2">
         <Link href="/" className="inline-flex min-h-11 items-center justify-center rounded-field border border-line text-sm font-semibold text-ink transition hover:border-amber hover:bg-surface-2">
           Siteye dön
         </Link>
@@ -84,7 +84,7 @@ export function OpsShell({
   return (
     <div className="theme-cream min-h-screen bg-bg text-ink md:grid md:grid-cols-[13.5rem_minmax(0,1fr)] xl:grid-cols-[16rem_minmax(0,1fr)]">
       {/* Masaüstü kenar çubuğu */}
-      <aside className="theme-dark sticky top-0 hidden h-screen flex-col gap-6 overflow-y-auto border-r border-line bg-bg p-4 md:flex xl:p-5">
+      <aside className="theme-dark sticky top-0 hidden h-screen flex-col gap-8 overflow-y-auto border-r border-line bg-bg p-5 md:flex xl:p-6">
         <Brand />
         <div className="flex-1">{nav}</div>
         {identity}
@@ -102,7 +102,7 @@ export function OpsShell({
             </svg>
           </span>
         </summary>
-        <div className="space-y-5 border-t border-line p-5">
+        <div className="space-y-6 border-t border-line p-6">
           {nav}
           {identity}
         </div>
@@ -142,16 +142,16 @@ export function OpsPage({
   children: React.ReactNode;
 }) {
   return (
-    <main className="mx-auto max-w-7xl px-5 py-8 md:px-6 lg:px-8 lg:py-10">
-      <header className="flex flex-wrap items-end justify-between gap-4">
+    <main className="mx-auto max-w-7xl px-5 py-10 md:px-8 lg:px-12 lg:py-14">
+      <header className="flex flex-wrap items-end justify-between gap-6">
         <div>
           {eyebrow && <p className="label-mono text-[#8a5c10]">{eyebrow}</p>}
-          <h1 className="mt-2 text-[clamp(1.6rem,3vw,2.2rem)] leading-[1.08]">{title}</h1>
-          {description && <p className="mt-2 max-w-2xl text-sm text-muted">{description}</p>}
+          <h1 className="mt-3 text-[clamp(1.7rem,3vw,2.4rem)] leading-[1.08]">{title}</h1>
+          {description && <p className="mt-3 max-w-2xl text-sm text-muted">{description}</p>}
         </div>
         {actions && <div className="flex flex-wrap items-center gap-2">{actions}</div>}
       </header>
-      <div className="mt-7">{children}</div>
+      <div className="mt-10">{children}</div>
     </main>
   );
 }

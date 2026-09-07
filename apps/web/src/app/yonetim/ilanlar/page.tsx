@@ -42,11 +42,11 @@ export default async function OpsListingsPage({
 
   const columns: Column<ListingView>[] = [
     {
-      key: 'no', header: 'İlan',
+      key: 'no', header: 'İlan', className: 'min-w-[18rem]',
       cell: (l) => (
         <div>
           <p className="label-mono whitespace-nowrap text-muted">{l.listingNumber}</p>
-          <p className="font-semibold">
+          <p className="mt-1.5 font-semibold">
             {l.pickup.cityName}, {l.pickup.districtName} <span className="text-muted">→</span> {l.dropoff.cityName}, {l.dropoff.districtName}
           </p>
         </div>
@@ -67,7 +67,7 @@ export default async function OpsListingsPage({
       cell: (l) => (
         <div className="whitespace-nowrap text-muted">
           <p>{ago(l.publishedAt)}</p>
-          {l.status === 'OPEN' && <p className="text-xs">son {when(l.expiresAt)}</p>}
+          {l.status === 'OPEN' && <p className="mt-1 text-xs">son {when(l.expiresAt)}</p>}
         </div>
       ),
     },
@@ -85,8 +85,8 @@ export default async function OpsListingsPage({
       actions={<SearchForm placeholder="İlan no, il, ilçe, yük" value={q} hidden={{ durum: selected }} />}
     >
       <FilterTabs items={FILTERS} selected={q ? '' : selected} hrefFor={(v) => `/yonetim/ilanlar?durum=${v}`} />
-      {q && <p className="mt-3 text-sm text-muted">&ldquo;{q}&rdquo; için {rows.length} sonuç, tüm durumlarda.</p>}
-      <div className="mt-4">
+      {q && <p className="mt-4 text-sm text-muted">&ldquo;{q}&rdquo; için {rows.length} sonuç, tüm durumlarda.</p>}
+      <div className="mt-6">
         <DataTable rows={rows} columns={columns} rowKey={(l) => l.id}
           empty={q ? 'Eşleşen ilan yok.' : 'Bu durumda ilan yok.'} />
       </div>

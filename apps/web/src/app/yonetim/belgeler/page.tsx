@@ -39,7 +39,7 @@ export default async function OpsDocumentsPage({ searchParams }: { searchParams:
       description="Süresi dolan belge taşıyıcıyı otomatik askıya alır. Önceden haber verirsen askı hiç gerekmez."
     >
       <FilterTabs items={WINDOWS} selected={days} hrefFor={(v) => `/yonetim/belgeler?gun=${v}`} />
-      <div className="mt-4">
+      <div className="mt-6">
         <DataTable rows={rows} columns={columns}
           rowKey={(d) => `${d.carrierId}-${d.kind}`}
           rowHref={(d) => `/yonetim/basvurular/${d.carrierId}`}

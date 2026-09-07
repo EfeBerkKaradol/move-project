@@ -26,8 +26,8 @@ export function DocumentReview({ document: doc }: { document: CarrierDocumentVie
   const isPdf = doc.contentType === 'application/pdf';
 
   return (
-    <li className="rounded-card border border-line bg-surface p-4">
-      <div className="flex flex-wrap items-center gap-x-3 gap-y-2">
+    <li className="rounded-card border border-line bg-surface p-5">
+      <div className="flex flex-wrap items-center gap-x-4 gap-y-2">
         <span className="font-semibold">{doc.kindDisplayName}</span>
         <span className={`rounded-full px-2.5 py-1 text-xs font-semibold ${TONE[doc.status]}`}>
           {DOCUMENT_STATUS_LABELS[doc.status]}
@@ -39,7 +39,7 @@ export function DocumentReview({ document: doc }: { document: CarrierDocumentVie
         )}
       </div>
 
-      <div className="mt-3 overflow-hidden rounded-field border border-line bg-surface-2">
+      <div className="mt-4 overflow-hidden rounded-field border border-line bg-surface-2">
         {isPdf ? (
           <a href={src} target="_blank" rel="noreferrer"
             className="flex min-h-11 items-center px-3 text-sm font-semibold underline underline-offset-4">
@@ -55,12 +55,12 @@ export function DocumentReview({ document: doc }: { document: CarrierDocumentVie
       </div>
 
       {doc.rejectionReason && (
-        <p className="mt-2 rounded-field bg-[#f7e0dd] px-3 py-2 text-sm text-[#8a2a1f]">
+        <p className="mt-4 rounded-field bg-[#f7e0dd] px-4 py-3 text-sm text-[#8a2a1f]">
           Red gerekçesi: {doc.rejectionReason}
         </p>
       )}
 
-      <form action={action} className="mt-3 flex flex-wrap items-end gap-2">
+      <form action={action} className="mt-5 flex flex-wrap items-end gap-3">
         <input type="hidden" name="documentId" value={doc.id} />
         <input type="hidden" name="approved" value={rejecting ? 'false' : 'true'} />
         {rejecting && (
@@ -68,7 +68,7 @@ export function DocumentReview({ document: doc }: { document: CarrierDocumentVie
             <span className="label-mono block text-muted">Red gerekçesi</span>
             <input name="reason" required maxLength={500} autoFocus
               placeholder="Örn. Belge okunmuyor, yeniden çekin"
-              className="mt-1 min-h-11 w-full rounded-field border border-line bg-surface-2 px-3 py-2.5 outline-none transition hover:border-muted focus:border-amber focus:ring-2 focus:ring-amber/25" />
+              className="mt-2 min-h-11 w-full rounded-field border border-line bg-surface-2 px-3 py-2.5 outline-none transition hover:border-muted focus:border-amber focus:ring-2 focus:ring-amber/25" />
           </label>
         )}
         <button type="submit" disabled={pending}

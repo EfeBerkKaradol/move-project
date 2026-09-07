@@ -62,7 +62,7 @@ export default async function OpsTripsPage({
       cell: (t) => (
         <div>
           <p className="font-semibold">{t.carrierDisplayName ?? 'Taşıyıcı'}</p>
-          <p className="text-xs text-muted">başladı {ago(t.startedAt)}</p>
+          <p className="mt-1 text-xs text-muted">başladı {ago(t.startedAt)}</p>
         </div>
       ),
     },
@@ -93,7 +93,7 @@ export default async function OpsTripsPage({
     >
       <FilterTabs items={FILTERS.map((f) => ({ ...f, count: counts[f.value] }))} selected={q ? '' : selected}
         hrefFor={(v) => `/yonetim/isler?durum=${v}`} />
-      <div className="mt-4">
+      <div className="mt-6">
         <DataTable rows={rows} columns={columns} rowKey={(t) => t.id}
           empty={q ? 'Eşleşen iş yok.' : 'Bu durumda iş yok.'} />
       </div>
