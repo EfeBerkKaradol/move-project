@@ -67,7 +67,7 @@ export default async function OpsTripsPage({
       ),
     },
     { key: 'asama', header: 'Aşama', cell: (t) => <Pill tone={tripTone(t.stage)}>{TRIP_STAGE_LABELS[t.stage]}</Pill> },
-    { key: 'ilerleme', header: 'İlerleme', hideOnMobile: true, cell: (t) => <Progress stage={t.stage} /> },
+    { key: 'ilerleme', header: 'İlerleme', hideOnMobile: true, secondary: true, cell: (t) => <Progress stage={t.stage} /> },
     {
       key: 'kanit', header: 'Kanıt',
       cell: (t) => (
@@ -77,10 +77,10 @@ export default async function OpsTripsPage({
         </span>
       ),
     },
-    { key: 'tutar', header: 'Tutar', align: 'right', cell: (t) => <span className="stat">{formatPrice(t.agreedAmount.amount)}</span> },
+    { key: 'tutar', header: 'Tutar', align: 'right', cell: (t) => <span className="stat whitespace-nowrap">{formatPrice(t.agreedAmount.amount)}</span> },
     {
-      key: 'zaman', header: 'Teslim', hideOnMobile: true,
-      cell: (t) => <span className="text-muted">{t.deliveredAt ? when(t.deliveredAt) : '—'}</span>,
+      key: 'zaman', header: 'Teslim', hideOnMobile: true, secondary: true,
+      cell: (t) => <span className="whitespace-nowrap text-muted">{t.deliveredAt ? when(t.deliveredAt) : '—'}</span>,
     },
   ];
 

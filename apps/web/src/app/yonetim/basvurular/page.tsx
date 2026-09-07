@@ -46,7 +46,7 @@ export default async function OpsCarriersPage({
         </div>
       ),
     },
-    { key: 'arac', header: 'Araç', cell: (c) => <span className="label-mono">{c.vehicleTypeCode} · {c.plate}</span> },
+    { key: 'arac', header: 'Araç', cell: (c) => <span className="label-mono whitespace-nowrap">{c.vehicleTypeCode} · {c.plate}</span> },
     { key: 'durum', header: 'Durum', cell: (c) => <Pill tone={CARRIER_TONE[c.status]}>{CARRIER_STATUS_LABELS[c.status]}</Pill> },
     {
       key: 'belge', header: 'Belgeler',
@@ -63,7 +63,7 @@ export default async function OpsCarriersPage({
       },
     },
     {
-      key: 'zaman', header: 'Gönderim', hideOnMobile: true,
+      key: 'zaman', header: 'Gönderim', hideOnMobile: true, secondary: true,
       cell: (c) => <span className="text-muted">{c.submittedAt ? ago(c.submittedAt) : '—'}</span>,
     },
   ];

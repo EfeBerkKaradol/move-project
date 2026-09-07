@@ -45,7 +45,7 @@ export default async function OpsListingsPage({
       key: 'no', header: 'İlan',
       cell: (l) => (
         <div>
-          <p className="label-mono text-muted">{l.listingNumber}</p>
+          <p className="label-mono whitespace-nowrap text-muted">{l.listingNumber}</p>
           <p className="font-semibold">
             {l.pickup.cityName}, {l.pickup.districtName} <span className="text-muted">→</span> {l.dropoff.cityName}, {l.dropoff.districtName}
           </p>
@@ -54,18 +54,18 @@ export default async function OpsListingsPage({
     },
     { key: 'durum', header: 'Durum', cell: (l) => <Pill tone={LISTING_TONE[l.status]}>{STATUS_LABEL[l.status]}</Pill> },
     {
-      key: 'arac', header: 'Araç · km', hideOnMobile: true,
-      cell: (l) => <span className="label-mono">{l.vehicleTypeCode} · {(l.estimate.distanceMeters / 1000).toFixed(0)} km</span>,
+      key: 'arac', header: 'Araç · km', hideOnMobile: true, secondary: true,
+      cell: (l) => <span className="label-mono whitespace-nowrap">{l.vehicleTypeCode} · {(l.estimate.distanceMeters / 1000).toFixed(0)} km</span>,
     },
     {
       key: 'teklif', header: 'Teklif', align: 'right',
       cell: (l) => <Pill tone={l.offerCount ? 'green' : l.status === 'OPEN' ? 'amber' : 'neutral'}>{l.offerCount}</Pill>,
     },
-    { key: 'tutar', header: 'Tarife', align: 'right', cell: (l) => <span className="stat">{formatPrice(l.estimatedAmount.amount)}</span> },
+    { key: 'tutar', header: 'Tarife', align: 'right', cell: (l) => <span className="stat whitespace-nowrap">{formatPrice(l.estimatedAmount.amount)}</span> },
     {
-      key: 'zaman', header: 'Yayın', hideOnMobile: true,
+      key: 'zaman', header: 'Yayın', hideOnMobile: true, secondary: true,
       cell: (l) => (
-        <div className="text-muted">
+        <div className="whitespace-nowrap text-muted">
           <p>{ago(l.publishedAt)}</p>
           {l.status === 'OPEN' && <p className="text-xs">son {when(l.expiresAt)}</p>}
         </div>

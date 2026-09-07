@@ -136,6 +136,8 @@ export type Column<T> = {
   align?: 'left' | 'right';
   /** Dar ekranda kartta gösterilmesin (ikincil bilgi). */
   hideOnMobile?: boolean;
+  /** Dar masaüstünde (768–1024) sütun gizlensin; kartta yine görünür. */
+  secondary?: boolean;
   className?: string;
 };
 
@@ -160,13 +162,14 @@ export function DataTable<T>({
 
   return (
     <>
-      <div className="hidden overflow-hidden rounded-card border border-line bg-surface shadow-card md:block">
-        <table className="w-full text-sm">
+      {/* Dar masaüstünde tablo yatay kayar; satırları dört satıra kırmaktan iyi */}
+      <div className="hidden overflow-x-auto rounded-card border border-line bg-surface shadow-card md:block">
+        <table className="w-full min-w-[40rem] text-sm">
           <thead className="bg-surface-2">
             <tr>
               {columns.map((c) => (
                 <th key={c.key} scope="col"
-                  className={`label-mono px-4 py-3 font-medium text-muted ${c.align === 'right' ? 'text-right' : 'text-left'}`}>
+                  className={`label-mono whitespace-nowrap px-4 py-3 font-medium text-muted ${c.align === 'right' ? 'text-right' : 'text-left'} ${c.secondary ? 'hidden lg:table-cell' : ''}`}>
                   {c.header}
                 </th>
               ))}
@@ -176,7 +179,7 @@ export function DataTable<T>({
             {rows.map((row) => (
               <tr key={rowKey(row)} className={rowHref ? 'group transition hover:bg-surface-2' : ''}>
                 {columns.map((c, i) => (
-                  <td key={c.key} className={`px-4 py-3 align-middle ${c.align === 'right' ? 'text-right' : ''} ${c.className ?? ''}`}>
+                  <td key={c.key} className={`px-4 py-3 align-middle ${c.align === 'right' ? 'text-right' : ''} ${c.secondary ? 'hidden lg:table-cell' : ''} ${c.className ?? ''}`}>
                     {rowHref && i === 0
                       ? <Link href={rowHref(row)} className="block -m-4 p-4 min-h-11 focus-visible:outline-2 focus-visible:outline-amber">{c.cell(row)}</Link>
                       : c.cell(row)}

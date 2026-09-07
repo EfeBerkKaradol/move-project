@@ -68,11 +68,11 @@ export function OpsShell({
     <div className="border-t border-line pt-4">
       <p className="truncate text-sm font-semibold text-ink">{user.name}</p>
       <p className="label-mono mt-0.5 text-muted">{user.role}</p>
-      <div className="mt-3 flex gap-2">
-        <Link href="/" className="inline-flex min-h-11 flex-1 items-center justify-center rounded-field border border-line text-sm font-semibold text-ink transition hover:border-amber hover:bg-surface-2">
+      <div className="mt-3 grid gap-2 xl:grid-cols-2">
+        <Link href="/" className="inline-flex min-h-11 items-center justify-center rounded-field border border-line text-sm font-semibold text-ink transition hover:border-amber hover:bg-surface-2">
           Siteye dön
         </Link>
-        <form action={async () => { 'use server'; redirect(await signOutEverywhere('/')); }} className="flex-1">
+        <form action={async () => { 'use server'; redirect(await signOutEverywhere('/')); }}>
           <button type="submit" className="min-h-11 w-full rounded-field border border-line text-sm font-semibold text-ink transition hover:border-amber hover:bg-surface-2">
             Çıkış
           </button>
@@ -82,16 +82,16 @@ export function OpsShell({
   );
 
   return (
-    <div className="theme-cream min-h-screen bg-bg text-ink lg:grid lg:grid-cols-[16rem_minmax(0,1fr)]">
+    <div className="theme-cream min-h-screen bg-bg text-ink md:grid md:grid-cols-[13.5rem_minmax(0,1fr)] xl:grid-cols-[16rem_minmax(0,1fr)]">
       {/* Masaüstü kenar çubuğu */}
-      <aside className="theme-dark sticky top-0 hidden h-screen flex-col gap-6 border-r border-line bg-bg p-5 lg:flex">
+      <aside className="theme-dark sticky top-0 hidden h-screen flex-col gap-6 overflow-y-auto border-r border-line bg-bg p-4 md:flex xl:p-5">
         <Brand />
         <div className="flex-1">{nav}</div>
         {identity}
       </aside>
 
       {/* Dar ekran: üst çubuk + açılır menü */}
-      <details className="theme-dark group border-b border-line bg-bg lg:hidden">
+      <details className="theme-dark group border-b border-line bg-bg md:hidden">
         <summary className="flex min-h-14 cursor-pointer list-none items-center justify-between px-5 text-ink [&::-webkit-details-marker]:hidden">
           <Brand />
           <span className="inline-flex min-h-11 items-center gap-2 rounded-field border border-line px-3 text-sm font-semibold">
@@ -142,7 +142,7 @@ export function OpsPage({
   children: React.ReactNode;
 }) {
   return (
-    <main className="mx-auto max-w-7xl px-5 py-8 sm:px-8 lg:py-10">
+    <main className="mx-auto max-w-7xl px-5 py-8 md:px-6 lg:px-8 lg:py-10">
       <header className="flex flex-wrap items-end justify-between gap-4">
         <div>
           {eyebrow && <p className="label-mono text-[#8a5c10]">{eyebrow}</p>}

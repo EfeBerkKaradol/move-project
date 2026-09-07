@@ -27,7 +27,7 @@ export default async function OpsDocumentsPage({ searchParams }: { searchParams:
       ),
     },
     { key: 'tasiyici', header: 'Taşıyıcı', cell: (d) => <span className="font-semibold">{d.carrierName}</span> },
-    { key: 'plaka', header: 'Plaka', hideOnMobile: true, cell: (d) => <span className="label-mono">{d.plate}</span> },
+    { key: 'plaka', header: 'Plaka', hideOnMobile: true, secondary: true, cell: (d) => <span className="label-mono whitespace-nowrap">{d.plate}</span> },
     { key: 'belge', header: 'Belge', cell: (d) => d.kindDisplayName },
     { key: 'tarih', header: 'Son geçerlilik', cell: (d) => new Date(d.expiresOn).toLocaleDateString('tr-TR') },
   ];
