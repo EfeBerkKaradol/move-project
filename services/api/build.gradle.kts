@@ -129,3 +129,12 @@ tasks.named<org.springframework.boot.gradle.tasks.run.BootRun>("bootRun") {
     )
     yerel.forEach { (anahtar, deger) -> environment(anahtar, System.getenv(anahtar) ?: deger) }
 }
+
+/*
+ * RenderBlueprintTest depo kökündeki render.yaml'ı okuyor. Dosya testin girdisi
+ * olarak bildirilmezse Gradle görevi "güncel" sayıyor: render.yaml bozulsa bile
+ * testler yeniden çalışmıyor ve guard sessizce işlevsiz kalıyor.
+ */
+tasks.named<Test>("test") {
+    inputs.file("../../render.yaml").withPathSensitivity(PathSensitivity.RELATIVE)
+}

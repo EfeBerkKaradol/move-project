@@ -40,12 +40,16 @@ services:
         value: admin
       - key: KC_BOOTSTRAP_ADMIN_PASSWORD
         generateValue: true    # Render üretir; Dashboard → Environment'tan okursun
-      # Kendi adresini bilmesi gerekiyor; Render servis adresini buraya kendi koyuyor
+      # Kendi herkese açık adresini bilmesi gerekiyor: token'lardaki issuer bundan
+      # üretiliyor ve tarayıcı o adrese yönlendiriliyor.
+      #
+      # `fromService … property: host` KULLANILMAZ — o, iç ağ adını veriyor
+      # ("tasiyoruz-keycloak"), ortaya .onrender.com'suz bir issuer çıkıyor ve
+      # ne tarayıcı ne de API o adrese ulaşabiliyor. Blueprint'te herkese açık
+      # adresi veren bir özellik yok, o yüzden elle yazılıyor.
+      # Kendi alan adına geçince burası ve API'deki KEYCLOAK_HOST birlikte değişir.
       - key: KC_HOSTNAME
-        fromService:
-          type: web
-          name: tasiyoruz-keycloak
-          property: host
+        value: tasiyoruz-keycloak.onrender.com
       - key: KC_HOSTNAME_STRICT
         value: "false"
       - key: KC_PROXY_HEADERS
@@ -88,13 +92,12 @@ services:
         # ÖRNEK: rediss://default:AbC123@ornek-12345.upstash.io:6379
         # Şema çift s olmalı; TLS oradan okunuyor.
         sync: false
-      # Render host'u şemasız veriyor ("x.onrender.com"); şemayı ayrıca söylüyoruz.
-      # API ikisini birleştirip https://x.onrender.com/realms/tasiyoruz üretiyor.
+      # Keycloak'ın herkese açık adresi; API ikisini birleştirip
+      # https://tasiyoruz-keycloak.onrender.com/realms/tasiyoruz üretiyor.
+      # Bu, Keycloak'ın KC_HOSTNAME'iyle BİREBİR aynı olmalı — token'daki issuer
+      # ile API'nin beklediği issuer eşleşmezse her istek 401 döner.
       - key: KEYCLOAK_HOST
-        fromService:
-          type: web
-          name: tasiyoruz-keycloak
-          property: host
+        value: tasiyoruz-keycloak.onrender.com
       - key: KEYCLOAK_SCHEME
         value: https
       - key: KEYCLOAK_ADMIN_CLIENT_SECRET
