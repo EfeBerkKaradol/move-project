@@ -1,13 +1,13 @@
 /**
  * Hero sahnesinin zaman çizelgesi.
  *
- * <p>Saf fonksiyon: scroll ilerlemesi (0–1) girer, sahnenin o andaki bütün durumu
+ * <p>Saf fonksiyon: kaydırma ilerlemesi (0–1) girer, sahnenin o andaki bütün durumu
  * çıkar. React'ten ve DOM'dan bağımsız olması bilinçli — kare başına hesaplanan bu
  * mantığın testi olmadan hangi fazın nerede başladığını kimse doğrulayamaz.
  *
- * <p>Anlatı: yükünü gir → rota çizilir → araç gider → varış → boş dönüş →
- * dönüşe yük bulunur → yüklü dönüş. Her faz ürünün bir mekanizmasını anlatıyor;
- * süslemek için konmuş tek bir hareket yok.
+ * <p>Anlatı iki ölçekte: önce İstanbul'da yükleme ve Boğaz geçişi (Avrupa yakasından
+ * Anadolu yakasına), sonra kamera geri çekilip ülke ölçeğinde Ankara'ya sefer, varış,
+ * boş dönüş ve dönüşe bulunan yük. Her faz ürünün bir mekanizmasını anlatıyor.
  */
 
 export const clamp01 = (n: number) => (n < 0 ? 0 : n > 1 ? 1 : n);
@@ -24,68 +24,125 @@ function window_(p: number, a: number, b: number, c: number, d: number): number 
   return ramp(p, a, b) * (1 - ramp(p, c, d));
 }
 
-export type Leg = 'out' | 'back';
+const mix = (a: number, b: number, t: number) => a + (b - a) * t;
+
+/** Araç hangi yolda: şehir içi, sahne devri, gidiş, dönüş. */
+export type Leg = 'city' | 'handover' | 'out' | 'back';
 
 export type SceneState = {
-  /** Haritanın belirginliği. */
-  mapIn: number;
-  /** Aracın görünürlüğü. */
-  truckIn: number;
-  /** Araç hangi rotada ve o rotanın neresinde. */
+  /** İstanbul yakın planı ve ülke haritasının görünürlüğü (çapraz geçiş). */
+  istanbulIn: number;
+  turkeyIn: number;
+  /** Kamera geri çekilirken haritaların ölçeği. */
+  istanbulZoom: number;
+  turkeyZoom: number;
+
   leg: Leg;
   legProgress: number;
+  /** Sahne devri sırasında aracın iki sahne arasındaki geçiş oranı. */
+  handover: number;
+  truckIn: number;
+
   /** Rota çizgilerinin çizilme oranı. */
+  cityDraw: number;
   outboundDraw: number;
   returnDraw: number;
   /** Dönüş rotasının boştan yüklüye dönüşmesi: 0 kesikli/soluk, 1 dolu/lime. */
   returnLoaded: number;
-  nodes: { istanbul: number; ankara: number; izmir: number };
+
+  nodes: {
+    pickup: number;
+    bridge: number;
+    exit: number;
+    istanbul: number;
+    ankara: number;
+    izmir: number;
+  };
   cards: { cargo: number; match: number; newLoad: number };
-  texts: { intro: number; enterLoad: number; arrival: number; empty: number; outro: number };
+  texts: {
+    intro: number;
+    enterLoad: number;
+    crossing: number;
+    arrival: number;
+    empty: number;
+    outro: number;
+  };
 };
 
 /** Fazların sınırları tek yerde; kaydırmak isteyen buraya bakar. */
 export const MARKS = {
-  mapIn: [0.02, 0.2],
+  mapIn: [0.02, 0.18],
   introOut: [0.1, 0.17],
-  truckIn: [0.15, 0.22],
-  istanbul: [0.14, 0.2],
-  enterLoad: [0.18, 0.25, 0.33, 0.39],
-  outbound: [0.28, 0.55],
-  match: [0.36, 0.43, 0.56, 0.62],
-  ankara: [0.52, 0.57],
-  arrival: [0.56, 0.62, 0.66, 0.71],
-  empty: [0.66, 0.72],
-  newLoad: [0.74, 0.8, 0.9, 0.95],
-  loaded: [0.76, 0.85],
-  back: [0.78, 0.94],
-  izmir: [0.91, 0.96],
-  outro: [0.93, 0.99],
+  truckIn: [0.15, 0.21],
+  pickup: [0.13, 0.19],
+  enterLoad: [0.16, 0.23, 0.28, 0.33],
+  city: [0.22, 0.36],
+  bridge: [0.27, 0.32],
+  crossing: [0.26, 0.31, 0.36, 0.4],
+  handover: [0.36, 0.44],
+  outbound: [0.44, 0.62],
+  match: [0.47, 0.53, 0.62, 0.67],
+  ankara: [0.6, 0.65],
+  arrival: [0.62, 0.67, 0.7, 0.75],
+  empty: [0.7, 0.75],
+  newLoad: [0.76, 0.81, 0.9, 0.95],
+  loaded: [0.78, 0.86],
+  back: [0.8, 0.94],
+  izmir: [0.92, 0.96],
+  outro: [0.94, 0.99],
 } as const;
 
 export function sceneAt(p: number): SceneState {
   const progress = clamp01(p);
   const m = MARKS;
 
+  const mapIn = ramp(progress, m.mapIn[0], m.mapIn[1]);
+  const handover = ramp(progress, m.handover[0], m.handover[1]);
+  const city = ramp(progress, m.city[0], m.city[1]);
   const outbound = ramp(progress, m.outbound[0], m.outbound[1]);
   const back = ramp(progress, m.back[0], m.back[1]);
-  const onReturn = progress >= m.back[0];
 
-  // "Boş dönüş" yazısı, yüklü dönüşe geçerken yerini bırakır
-  const loaded = ramp(progress, m.loaded[0], m.loaded[1]);
+  let leg: Leg;
+  let legProgress: number;
+  if (progress >= m.back[0]) {
+    leg = 'back';
+    legProgress = back;
+  } else if (progress >= m.handover[1]) {
+    leg = 'out';
+    legProgress = outbound;
+  } else if (progress >= m.handover[0]) {
+    leg = 'handover';
+    legProgress = 1;
+  } else {
+    leg = 'city';
+    legProgress = city;
+  }
 
   return {
-    mapIn: ramp(progress, m.mapIn[0], m.mapIn[1]),
+    // Yakın plan geri çekilirken ülke haritası açılıyor; ikisi bir an birlikte var
+    istanbulIn: mapIn * (1 - handover),
+    turkeyIn: handover,
+    // İstanbul biraz küçülür, Türkiye yakından normale gelir: kamera geri çekiliyor
+    istanbulZoom: mix(1, 0.78, handover),
+    turkeyZoom: mix(1.35, 1, handover),
+
+    leg,
+    legProgress,
+    handover,
     truckIn: ramp(progress, m.truckIn[0], m.truckIn[1]),
-    leg: onReturn ? 'back' : 'out',
-    legProgress: onReturn ? back : outbound,
+
+    cityDraw: city,
     outboundDraw: outbound,
     // Dönüş çizgisi araçtan önce belirir: kullanıcı "boş dönecek" fikrini
     // araç hareket etmeden önce görmeli
     returnDraw: ramp(progress, m.empty[0], m.empty[1] + 0.06),
-    returnLoaded: loaded,
+    returnLoaded: ramp(progress, m.loaded[0], m.loaded[1]),
+
     nodes: {
-      istanbul: ramp(progress, m.istanbul[0], m.istanbul[1]),
+      pickup: ramp(progress, m.pickup[0], m.pickup[1]),
+      bridge: ramp(progress, m.bridge[0], m.bridge[1]),
+      exit: ramp(progress, m.city[1] - 0.03, m.city[1]),
+      istanbul: handover,
       ankara: ramp(progress, m.ankara[0], m.ankara[1]),
       izmir: ramp(progress, m.izmir[0], m.izmir[1]),
     },
@@ -97,6 +154,7 @@ export function sceneAt(p: number): SceneState {
     texts: {
       intro: 1 - ramp(progress, m.introOut[0], m.introOut[1]),
       enterLoad: window_(progress, m.enterLoad[0], m.enterLoad[1], m.enterLoad[2], m.enterLoad[3]),
+      crossing: window_(progress, m.crossing[0], m.crossing[1], m.crossing[2], m.crossing[3]),
       arrival: window_(progress, m.arrival[0], m.arrival[1], m.arrival[2], m.arrival[3]),
       // Boş dönüş metni yüklü dönüşe geçince kaybolur — yerini outro alır
       empty: ramp(progress, m.empty[0], m.empty[1]) * (1 - ramp(progress, m.outro[0], m.outro[1])),

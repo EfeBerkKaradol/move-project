@@ -71,9 +71,21 @@ export function Footer() {
           </div>
         </div>
 
-        <p className="label-mono mt-12 border-t border-line pt-6 text-muted">
-          © {new Date().getFullYear()} {BRAND.name} · 81 il · Marka ve kurumsal kimlik geçicidir
-        </p>
+        <div className="mt-12 border-t border-line pt-6">
+          <p className="label-mono text-muted">
+            © {new Date().getFullYear()} {BRAND.name} · 81 il · Marka ve kurumsal kimlik geçicidir
+          </p>
+          {/* Hero'daki haritalar OSM türevi sınır verisinden üretiliyor; ODbL ve
+              CC BY 4.0 atıf istiyor (bkz. components/hero/geo-data.ts). */}
+          <p className="label-mono mt-2 text-muted opacity-70">
+            Harita verisi ©{' '}
+            <a href="https://www.openstreetmap.org/copyright" target="_blank" rel="noreferrer noopener"
+              className="underline underline-offset-2 hover:text-ink">
+              OpenStreetMap
+            </a>{' '}
+            katkıcıları · geoBoundaries (CC BY 4.0)
+          </p>
+        </div>
       </div>
     </footer>
   );

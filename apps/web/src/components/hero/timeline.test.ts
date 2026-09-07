@@ -22,16 +22,18 @@ describe('clamp01', () => {
 });
 
 describe('sceneAt', () => {
-  it('başlangıçta yalnızca açılış metni görünür, harita ve araç yok', () => {
+  it('başlangıçta yalnızca açılış metni var; harita, araç ve rota yok', () => {
     const s = sceneAt(0);
     expect(s.texts.intro).toBe(1);
-    expect(s.mapIn).toBe(0);
+    expect(s.istanbulIn).toBe(0);
+    expect(s.turkeyIn).toBe(0);
     expect(s.truckIn).toBe(0);
-    expect(s.outboundDraw).toBe(0);
+    expect(s.cityDraw).toBe(0);
   });
 
-  it('sonda anlatı tamamlanır: her iki rota çizili, dönüş yüklü, kapanış açık', () => {
+  it('sonda anlatı tamamlanır: her iki bacak çizili, dönüş yüklü, kapanış açık', () => {
     const s = sceneAt(1);
+    expect(s.cityDraw).toBe(1);
     expect(s.outboundDraw).toBe(1);
     expect(s.returnLoaded).toBe(1);
     expect(s.texts.outro).toBe(1);
@@ -40,19 +42,38 @@ describe('sceneAt', () => {
     expect(s.texts.empty).toBe(0);
   });
 
-  it('araç gidiş rotasını dönüşten önce bitirir', () => {
-    const mid = sceneAt(MARKS.outbound[1]);
-    expect(mid.leg).toBe('out');
-    expect(mid.legProgress).toBe(1);
+  it('bacaklar sırayla ilerler: şehir içi → sahne devri → gidiş → dönüş', () => {
+    expect(sceneAt(0.3).leg).toBe('city');
+    expect(sceneAt(MARKS.handover[0] + 0.02).leg).toBe('handover');
+    expect(sceneAt(0.55).leg).toBe('out');
+    expect(sceneAt(0.9).leg).toBe('back');
+  });
 
-    const back = sceneAt(0.9);
-    expect(back.leg).toBe('back');
-    expect(back.legProgress).toBeGreaterThan(0);
+  it('şehir içi bacak, sahne devrinden önce tamamlanır', () => {
+    // Kamera geri çekilirken araç Boğaz'ın ortasında kalmamalı
+    expect(sceneAt(MARKS.handover[0]).cityDraw).toBe(1);
+  });
+
+  it('sahne devri iki haritayı çaprazlar ve kamerayı geri çeker', () => {
+    const before = sceneAt(MARKS.handover[0]);
+    const after = sceneAt(MARKS.handover[1]);
+    expect(before.istanbulIn).toBeGreaterThan(0.9);
+    expect(before.turkeyIn).toBe(0);
+    expect(after.istanbulIn).toBe(0);
+    expect(after.turkeyIn).toBe(1);
+    // Türkiye yakından normale gelir, İstanbul küçülür: kamera geri çekiliyor
+    expect(after.turkeyZoom).toBeLessThan(before.turkeyZoom);
+    expect(after.istanbulZoom).toBeLessThan(before.istanbulZoom);
   });
 
   it('düğümler rotanın sırasına göre aktifleşir', () => {
+    const atBridge = sceneAt(MARKS.bridge[1]);
+    expect(atBridge.nodes.pickup).toBe(1);
+    expect(atBridge.nodes.bridge).toBe(1);
+    expect(atBridge.nodes.ankara).toBe(0);
+    expect(atBridge.nodes.izmir).toBe(0);
+
     const atAnkara = sceneAt(MARKS.ankara[1]);
-    expect(atAnkara.nodes.istanbul).toBe(1);
     expect(atAnkara.nodes.ankara).toBe(1);
     expect(atAnkara.nodes.izmir).toBe(0);
   });

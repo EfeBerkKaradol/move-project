@@ -4,10 +4,10 @@ import { useCallback, useEffect, useRef } from 'react';
 import { ButtonLink } from '@/components/ui/Button';
 import { Icon } from '@/components/ui/Icon';
 import { BRAND } from '@/lib/brand';
+import { HANDOVER } from './geo-data';
 import { SceneCard } from './SceneCard';
+import { SceneMap, toPercent } from './SceneMap';
 import { TruckAsset } from './TruckAsset';
-import { TurkeyMap } from './TurkeyMap';
-import { toPercent } from './map-geometry';
 import { sceneAt } from './timeline';
 import { useMedia, usePrefersReducedMotion, useScrollProgress } from './useScrollProgress';
 
@@ -25,6 +25,7 @@ import { useMedia, usePrefersReducedMotion, useScrollProgress } from './useScrol
 export function HeroScene({ shipperHref, carrierHref }: { shipperHref: string; carrierHref: string }) {
   const wrapperRef = useRef<HTMLDivElement>(null);
   const sceneRef = useRef<HTMLDivElement>(null);
+  const cityRouteRef = useRef<SVGPathElement>(null);
   const outRef = useRef<SVGPathElement>(null);
   const backRef = useRef<SVGPathElement>(null);
 
@@ -32,7 +33,7 @@ export function HeroScene({ shipperHref, carrierHref }: { shipperHref: string; c
   const layersRef = useRef<Map<string, HTMLElement>>(new Map());
   const shownRef = useRef<Map<string, boolean>>(new Map());
   /** Yol uzunlukları sabit; her karede getTotalLength çağırmak gereksiz. */
-  const lengthsRef = useRef<{ out: number; back: number } | null>(null);
+  const lengthsRef = useRef<Map<SVGPathElement, number>>(new Map());
 
   const reduced = usePrefersReducedMotion();
   const isCompact = useMedia('(max-width: 767px)');
@@ -54,20 +55,21 @@ export function HeroScene({ shipperHref, carrierHref }: { shipperHref: string; c
 
     const set = (key: string, value: number | string) => root.style.setProperty(key, String(value));
 
-    // Haritanın taban görünürlüğü: açılışta sahne kapkaranlık olmamalı, rota ve
-    // düğümler siliktir ama oradadır. Kaydırma bunu tam görünürlüğe çıkarır.
-    set('--map-in', 0.2 + s.mapIn * 0.8);
+    set('--ist-in', s.istanbulIn);
+    set('--tr-in', s.turkeyIn);
+    set('--ist-zoom', s.istanbulZoom);
+    set('--tr-zoom', s.turkeyZoom);
     set('--truck-in', s.truckIn);
+    set('--draw-city', s.cityDraw);
     set('--draw-out', s.outboundDraw);
     set('--draw-back', s.returnDraw);
     set('--loaded', s.returnLoaded);
-    set('--n-istanbul', 0.25 + s.nodes.istanbul * 0.75);
-    set('--n-ankara', 0.25 + s.nodes.ankara * 0.75);
-    set('--n-izmir', 0.25 + s.nodes.izmir * 0.75);
+    for (const [id, value] of Object.entries(s.nodes)) set(`--n-${id}`, value);
 
     const alphas: Record<string, number> = {
       intro: s.texts.intro,
       enterLoad: s.texts.enterLoad,
+      crossing: s.texts.crossing,
       arrival: s.texts.arrival,
       empty: s.texts.empty,
       outro: s.texts.outro,
@@ -91,15 +93,28 @@ export function HeroScene({ shipperHref, carrierHref }: { shipperHref: string; c
       }
     }
 
-    const path = s.leg === 'out' ? outRef.current : backRef.current;
-    if (path) {
-      if (!lengthsRef.current) {
-        lengthsRef.current = {
-          out: outRef.current?.getTotalLength() ?? 0,
-          back: backRef.current?.getTotalLength() ?? 0,
-        };
+    // ── Aracın konumu ────────────────────────────────────────────────
+    let x: number;
+    let y: number;
+    let facingRight = true;
+
+    if (s.leg === 'handover') {
+      // Kamera geri çekilirken araç şehir çıkışından ülke ölçeğindeki İstanbul'a
+      // süzülüyor. İki sahne arasında görünmez bir sıçrama olmuyor.
+      x = HANDOVER.from.x + (HANDOVER.to.x - HANDOVER.from.x) * s.handover;
+      y = HANDOVER.from.y + (HANDOVER.to.y - HANDOVER.from.y) * s.handover;
+      facingRight = HANDOVER.to.x >= HANDOVER.from.x;
+    } else {
+      const path =
+        s.leg === 'city' ? cityRouteRef.current : s.leg === 'back' ? backRef.current : outRef.current;
+      if (!path) return;
+
+      let length = lengthsRef.current.get(path);
+      if (length === undefined) {
+        length = path.getTotalLength();
+        lengthsRef.current.set(path, length);
       }
-      const length = s.leg === 'out' ? lengthsRef.current.out : lengthsRef.current.back;
+
       const distance = length * s.legProgress;
       const at = path.getPointAtLength(distance);
       // Yön, noktanın iki yanından örnekleniyor. Yalnızca ileriye bakılsaydı yolun
@@ -107,11 +122,15 @@ export function HeroScene({ shipperHref, carrierHref }: { shipperHref: string; c
       // dönerdi — dönüş bacağının bitişinde tam olarak bu oluyordu.
       const before = path.getPointAtLength(Math.max(0, distance - 2));
       const ahead = path.getPointAtLength(Math.min(length, distance + 2));
-      const { left, top } = toPercent(at.x, at.y);
-      set('--truck-x', `${left}%`);
-      set('--truck-y', `${top}%`);
-      set('--truck-dir', ahead.x >= before.x ? 1 : -1);
+      x = at.x;
+      y = at.y;
+      facingRight = ahead.x >= before.x;
     }
+
+    const { left, top } = toPercent(x, y);
+    set('--truck-x', `${left}%`);
+    set('--truck-y', `${top}%`);
+    set('--truck-dir', facingRight ? 1 : -1);
   }, []);
 
   useScrollProgress(wrapperRef, apply, reduced === false);
@@ -131,9 +150,14 @@ export function HeroScene({ shipperHref, carrierHref }: { shipperHref: string; c
           {/* Mobilde harita alt yarıda ve tam genişlikte; masaüstünde sağ-alt bölgeye
               çekiliyor. Rota, başlık sütununun üzerinden geçmemeli — araç metnin
               üstünden geçerse ikisi de okunmaz oluyor. */}
-          <div className="pointer-events-none absolute inset-x-0 bottom-0 top-[44%] md:bottom-0 md:left-[24%] md:right-0 md:top-[18%]">
+          <div className="pointer-events-none absolute inset-x-0 bottom-0 top-[44%] md:bottom-[4%] md:left-[21%] md:right-0 md:top-[14%]">
             <div className="relative size-full">
-              <TurkeyMap outRef={outRef} backRef={backRef} compact={isCompact === true} />
+              <SceneMap
+                cityRouteRef={cityRouteRef}
+                outRef={outRef}
+                backRef={backRef}
+                compact={isCompact === true}
+              />
 
               {/* Araç: harita kutusunun üstünde, rota noktasına oturuyor */}
               <div
@@ -145,13 +169,13 @@ export function HeroScene({ shipperHref, carrierHref }: { shipperHref: string; c
                   transform: 'translate(-50%, -72%) scaleX(var(--truck-dir, 1))',
                 }}
               >
-                <TruckAsset className="h-auto w-[clamp(7rem,20vw,13rem)] drop-shadow-[0_10px_22px_rgb(0_0_0/0.45)]" />
+                <TruckAsset className="h-auto w-[clamp(5rem,13vw,9.5rem)] drop-shadow-[0_8px_18px_rgb(0_0_0/0.45)]" />
               </div>
 
               {/* Kartlar rotanın çevresinde; mobilde tek bir yuvada üst üste */}
               <SceneCard
                 layer="cardCargo" icon="package" label="Yükün"
-                title="12 ton · Kuru yük" meta={['İstanbul → Ankara', 'Kapalı kasa']}
+                title="12 ton · Kuru yük" meta={['Hadımköy → Ankara', 'Kapalı kasa']}
                 className="left-1/2 top-2 -translate-x-1/2 md:left-[10%] md:top-[34%] md:translate-x-0"
               />
               <SceneCard
@@ -209,10 +233,12 @@ export function HeroScene({ shipperHref, carrierHref }: { shipperHref: string; c
             <div className="pointer-events-none absolute inset-x-6 top-24 max-w-xl md:top-32">
               <PhaseText layer="enterLoad" kicker="Adım 1" title="Yükünü gir."
                 body="Nereden nereye, ne kadar. Araç tipini bilmiyorsan sistem öneriyor." />
+              <PhaseText layer="crossing" kicker="Boğaz geçişi" title="Avrupa yakasından Anadolu yakasına."
+                body="Şehir içi bacak da rotanın parçası: köprü, trafik ve mesafe fiyata giriyor." />
               <PhaseText layer="arrival" kicker="Varış" title="Doğru araç. Doğru rota."
                 body="Teklifleri puan ve tamamlanan işle karşılaştırdın, sen seçtin." />
               <PhaseText layer="empty" kicker="Dönüş" title={<EmptyReturnTitle />}
-                body="453 km dönüş yolu. Araç boş dönerse o mesafeyi kimse kazanmıyor." />
+                body="Ankara–İzmir 580 km. Araç boş dönerse o mesafeyi kimse kazanmıyor." />
               <PhaseText layer="outro" kicker={BRAND.slogan} title="Boş dönme."
                 body="Gittiğin yola uygun yükleri bul; dönüşün de kazansın."
                 action={
