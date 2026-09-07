@@ -124,6 +124,24 @@ veritabanı boşken hesabı oluşturur; sonradan değişmez. Bu yüzden Render'�
 parolayı (Dashboard → tasiyoruz-keycloak → Environment) kopyalayıp burada kullan —
 yoksa panele Render'daki parolayla giremezsin.
 
+**Parolayı kaybettiysen** yeni bir yönetici ekleyebilirsin; veritabanına doğrudan
+dokunmaya gerek yok:
+
+```bash
+docker run --rm \
+  -e KC_DB_URL="<Render'daki KC_DB_URL>" \
+  -e KC_DB_USERNAME=neondb_owner \
+  -e KC_DB_PASSWORD='<Neon parolan>' \
+  -e YENI_PAROLA='<belirlediğin parola>' \
+  --entrypoint /opt/keycloak/bin/kc.sh \
+  tasiyoruz-keycloak-seed \
+  bootstrap-admin user --username kurtarma --password:env YENI_PAROLA --no-prompt --optimized
+```
+
+`admin` zaten var olduğu için yeni bir kullanıcı adı veriliyor. Bununla girip
+`admin` hesabının parolasını panelden yenileyebilir, sonra `kurtarma` kullanıcısını
+silebilirsin.
+
 ---
 
 ### 4. Keycloak ve API — Render Blueprint
