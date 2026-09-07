@@ -4,6 +4,7 @@ import com.tasiyoruz.api.admin.api.OverviewView;
 import com.tasiyoruz.api.fleet.api.CarrierProfileView;
 import com.tasiyoruz.api.fleet.api.CarrierService;
 import com.tasiyoruz.api.fleet.api.CarrierStatus;
+import com.tasiyoruz.api.fleet.api.ExpiringDocumentView;
 import com.tasiyoruz.api.ordering.api.ListingStatus;
 import com.tasiyoruz.api.ordering.api.ListingView;
 import com.tasiyoruz.api.ordering.api.MarketplaceService;
@@ -77,6 +78,12 @@ class AdminController {
     @Operation(summary = "Taşıyıcı başvuruları; durum ile süzülebilir")
     List<CarrierProfileView> carriers(@RequestParam(required = false) CarrierStatus status) {
         return carriers.carriers(status);
+    }
+
+    @GetMapping("/carriers/expiring-documents")
+    @Operation(summary = "Süresi yaklaşan onaylı belgeler, en yakın önce (FR-2.4)")
+    List<ExpiringDocumentView> expiringDocuments(@RequestParam(defaultValue = "30") int days) {
+        return carriers.documentsExpiringWithin(Math.min(Math.max(days, 1), 365));
     }
 
     @PostMapping("/carriers/{carrierId}/suspend")

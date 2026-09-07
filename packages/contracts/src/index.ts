@@ -401,8 +401,21 @@ export type OverviewView = {
   approvedCarriers: number;
   suspendedCarriers: number;
   activeCorridors: number;
+  /** 30 gün içinde süresi dolacak onaylı belge sayısı. */
+  documentsExpiringSoon: number;
   /** Tamamlanan işlerin toplam tutarı — komisyonsuz dönemde ciro değil, hacim. */
   completedVolume: Money;
+};
+
+export type ExpiringDocumentView = {
+  carrierId: string;
+  carrierName: string;
+  plate: string;
+  kind: DocumentKind;
+  kindDisplayName: string;
+  expiresOn: string;
+  /** Negatifse süre dolmuş ama gece taraması henüz işaretlememiş. */
+  daysLeft: number;
 };
 
 

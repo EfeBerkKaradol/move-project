@@ -44,5 +44,8 @@ public interface CarrierService {
     /** Süresi dolan belgeleri işaretler ve taşıyıcıyı askıya alır (FR-2.4). */
     int expireOverdueDocuments();
 
+    /** Onaylı belgelerden süresi verilen gün içinde dolacaklar, en yakın önce. */
+    List<ExpiringDocumentView> documentsExpiringWithin(int days);
+
     record DocumentDownload(java.io.InputStream content, String contentType, long size, String filename) {}
 }

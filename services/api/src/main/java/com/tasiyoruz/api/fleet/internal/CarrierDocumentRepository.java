@@ -17,4 +17,8 @@ interface CarrierDocumentRepository extends JpaRepository<CarrierDocument, UUID>
             where d.status = :status and d.expiresOn is not null and d.expiresOn < :today
             """)
     List<CarrierDocument> findExpired(@Param("status") DocumentStatus status, @Param("today") LocalDate today);
+
+    /** Uyarı listesi (FR-2.4): süresi belirli bir pencerede dolacak onaylı belgeler. */
+    List<CarrierDocument> findByStatusAndExpiresOnLessThanEqualOrderByExpiresOnAsc(
+            DocumentStatus status, LocalDate until);
 }

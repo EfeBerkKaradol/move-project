@@ -1,3 +1,4 @@
+import { NextResponse } from 'next/server';
 import { auth } from '@/auth';
 
 /**
@@ -7,9 +8,16 @@ import { auth } from '@/auth';
  *
  * <p>Sayfalar da kendi kontrolünü yapıyor; ikisi birden gerekli. Middleware yalnızca
  * oturumu görüyor, rolü sayfa biliyor — ve middleware atlanırsa sayfa yine korur.
+ *
+ * <p>İstek yolu {@code x-pathname} başlığıyla düzene iletiliyor: Next düzenlere yolu
+ * vermiyor, operasyon panelinin kenar çubuğu ise hangi sayfada olduğunu bilmek zorunda.
  */
 export default auth((req) => {
-  if (req.auth && req.auth.error !== 'RefreshFailed') return;
+  if (req.auth && req.auth.error !== 'RefreshFailed') {
+    const headers = new Headers(req.headers);
+    headers.set('x-pathname', req.nextUrl.pathname);
+    return NextResponse.next({ request: { headers } });
+  }
   const login = new URL('/giris', req.nextUrl.origin);
   login.searchParams.set('callbackUrl', req.nextUrl.pathname + req.nextUrl.search);
   return Response.redirect(login);

@@ -17,6 +17,9 @@ import org.springframework.stereotype.Service;
 @Service
 class OverviewService {
 
+    /** docs/01 FR-2.4: belge dolmadan 30 gün önce uyarı. */
+    static final int EXPIRY_WARNING_DAYS = 30;
+
     private final MarketplaceService marketplace;
     private final TripService trips;
     private final CarrierService carriers;
@@ -44,6 +47,7 @@ class OverviewService {
                 carriers.carriers(CarrierStatus.APPROVED).size(),
                 carriers.carriers(CarrierStatus.SUSPENDED).size(),
                 corridors.activeCorridorCount(),
+                carriers.documentsExpiringWithin(EXPIRY_WARNING_DAYS).size(),
                 Money.tryOf(completed.stream()
                         .map(TripView::agreedAmount)
                         .map(Money::amount)

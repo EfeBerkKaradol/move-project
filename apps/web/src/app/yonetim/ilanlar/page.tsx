@@ -1,18 +1,12 @@
 import type { ListingStatus, ListingView } from '@tasiyoruz/contracts';
 import { formatPrice } from '@tasiyoruz/shared';
 import type { Metadata } from 'next';
-import Link from 'next/link';
-import { redirect } from 'next/navigation';
-import { auth, canCallApi, homeFor, isOps } from '@/auth';
-import { OpsNav } from '@/components/app/OpsNav';
-import { RouteLine } from '@/components/app/RouteLine';
-import { Shell } from '@/components/app/Shell';
-import { StatusPill } from '@/components/app/StatusPill';
+import { OpsPage } from '@/components/ops/OpsShell';
+import { DataTable, FilterTabs, LISTING_TONE, Pill, SearchForm, ago, when, type Column } from '@/components/ops/ui';
 import { apiFetch } from '@/lib/api-server';
 import { CancelListing } from './CancelListing';
 
 export const metadata: Metadata = { title: 'İlanlar' };
-export const dynamic = 'force-dynamic';
 
 const FILTERS: { value: ListingStatus | 'HEPSI'; label: string }[] = [
   { value: 'OPEN', label: 'Açık' },
@@ -22,69 +16,80 @@ const FILTERS: { value: ListingStatus | 'HEPSI'; label: string }[] = [
   { value: 'HEPSI', label: 'Hepsi' },
 ];
 
+const STATUS_LABEL: Record<ListingStatus, string> = {
+  OPEN: 'Teklif topluyor', AWARDED: 'Taşıyıcı seçildi', EXPIRED: 'Süresi doldu', CANCELLED: 'İptal',
+};
+
+function matches(l: ListingView, q: string): boolean {
+  const n = q.toLocaleLowerCase('tr-TR');
+  const hay = [l.listingNumber, l.pickup.cityName, l.pickup.districtName, l.dropoff.cityName,
+    l.dropoff.districtName, l.vehicleTypeCode, l.cargoDescription]
+    .map((s) => (s ?? '').toLocaleLowerCase('tr-TR')).join(' ');
+  return hay.includes(n);
+}
+
 export default async function OpsListingsPage({
   searchParams,
 }: {
-  searchParams: Promise<{ durum?: string }>;
+  searchParams: Promise<{ durum?: string; q?: string }>;
 }) {
-  const [session, params] = await Promise.all([auth(), searchParams]);
-  if (!canCallApi(session)) redirect('/giris');
-  if (!isOps(session.roles)) redirect(homeFor(session.roles));
-
+  const params = await searchParams;
   const selected = FILTERS.find((f) => f.value === params.durum)?.value ?? 'OPEN';
-  const query = selected === 'HEPSI' ? '' : `?status=${selected}`;
-  const listings = await apiFetch<ListingView[]>(`/admin/listings${query}`);
+  const q = (params.q ?? '').trim();
+  const query = q || selected === 'HEPSI' ? '' : `?status=${selected}`;
+  const all = await apiFetch<ListingView[]>(`/admin/listings${query}`);
+  const rows = q ? all.filter((l) => matches(l, q)) : all;
+
+  const columns: Column<ListingView>[] = [
+    {
+      key: 'no', header: 'İlan',
+      cell: (l) => (
+        <div>
+          <p className="label-mono text-muted">{l.listingNumber}</p>
+          <p className="font-semibold">
+            {l.pickup.cityName}, {l.pickup.districtName} <span className="text-muted">→</span> {l.dropoff.cityName}, {l.dropoff.districtName}
+          </p>
+        </div>
+      ),
+    },
+    { key: 'durum', header: 'Durum', cell: (l) => <Pill tone={LISTING_TONE[l.status]}>{STATUS_LABEL[l.status]}</Pill> },
+    {
+      key: 'arac', header: 'Araç · km', hideOnMobile: true,
+      cell: (l) => <span className="label-mono">{l.vehicleTypeCode} · {(l.estimate.distanceMeters / 1000).toFixed(0)} km</span>,
+    },
+    {
+      key: 'teklif', header: 'Teklif', align: 'right',
+      cell: (l) => <Pill tone={l.offerCount ? 'green' : l.status === 'OPEN' ? 'amber' : 'neutral'}>{l.offerCount}</Pill>,
+    },
+    { key: 'tutar', header: 'Tarife', align: 'right', cell: (l) => <span className="stat">{formatPrice(l.estimatedAmount.amount)}</span> },
+    {
+      key: 'zaman', header: 'Yayın', hideOnMobile: true,
+      cell: (l) => (
+        <div className="text-muted">
+          <p>{ago(l.publishedAt)}</p>
+          {l.status === 'OPEN' && <p className="text-xs">son {when(l.expiresAt)}</p>}
+        </div>
+      ),
+    },
+    {
+      key: 'eylem', header: '', align: 'right',
+      cell: (l) => l.status === 'OPEN' ? <CancelListing listingId={l.id} /> : null,
+    },
+  ];
 
   return (
-    <Shell eyebrow="Operasyon" title="İlanlar">
-      <OpsNav active="/yonetim/ilanlar" />
-
-      <nav aria-label="Durum süzgeci" className="mt-4 flex flex-wrap gap-2">
-        {FILTERS.map((f) => (
-          <Link key={f.value} href={`/yonetim/ilanlar?durum=${f.value}`}
-            aria-current={f.value === selected ? 'true' : undefined}
-            className={`inline-flex min-h-11 items-center rounded-field border px-3.5 text-sm font-semibold transition ${
-              f.value === selected
-                ? 'border-amber bg-[var(--amber-soft)] text-[#8a5c10]'
-                : 'border-line text-muted hover:border-muted hover:text-ink'
-            }`}>
-            {f.label}
-          </Link>
-        ))}
-      </nav>
-
-      {listings.length === 0 ? (
-        <div className="mt-6 rounded-card border border-dashed border-line p-8 text-center">
-          <p className="font-semibold">Bu durumda ilan yok.</p>
-        </div>
-      ) : (
-        <ul className="mt-6 space-y-4">
-          {listings.map((l) => (
-            <li key={l.id} className="rounded-card border border-line bg-surface p-5">
-              <div className="flex flex-wrap items-center gap-x-4 gap-y-2">
-                <span className="label-mono text-muted">{l.listingNumber}</span>
-                <RouteLine l={l} />
-                <StatusPill status={l.status} />
-                <span className="label-mono text-muted">
-                  {l.vehicleTypeCode} · {(l.estimate.distanceMeters / 1000).toFixed(0)} km · {l.offerCount} teklif
-                </span>
-                <span className="ml-auto text-sm text-muted">
-                  tarife tahmini <span className="stat text-ink">{formatPrice(l.estimatedAmount.amount)}</span>
-                </span>
-              </div>
-              {l.cargoDescription && <p className="mt-2 text-sm">{l.cargoDescription}</p>}
-              <p className="label-mono mt-1 text-muted">
-                {new Date(l.publishedAt).toLocaleString('tr-TR')} · son {new Date(l.expiresAt).toLocaleString('tr-TR')}
-              </p>
-              {l.status === 'OPEN' && (
-                <div className="mt-4 border-t border-line pt-4">
-                  <CancelListing listingId={l.id} />
-                </div>
-              )}
-            </li>
-          ))}
-        </ul>
-      )}
-    </Shell>
+    <OpsPage
+      eyebrow="Operasyon"
+      title="İlanlar"
+      description="Açık ilanı gerekçe yazarak kapatabilirsin; bekleyen teklifler reddedilir."
+      actions={<SearchForm placeholder="İlan no, il, ilçe, yük" value={q} hidden={{ durum: selected }} />}
+    >
+      <FilterTabs items={FILTERS} selected={q ? '' : selected} hrefFor={(v) => `/yonetim/ilanlar?durum=${v}`} />
+      {q && <p className="mt-3 text-sm text-muted">&ldquo;{q}&rdquo; için {rows.length} sonuç, tüm durumlarda.</p>}
+      <div className="mt-4">
+        <DataTable rows={rows} columns={columns} rowKey={(l) => l.id}
+          empty={q ? 'Eşleşen ilan yok.' : 'Bu durumda ilan yok.'} />
+      </div>
+    </OpsPage>
   );
 }

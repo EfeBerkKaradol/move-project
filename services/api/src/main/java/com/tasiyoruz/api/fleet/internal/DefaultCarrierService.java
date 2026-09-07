@@ -300,6 +300,24 @@ class DefaultCarrierService implements CarrierService, CarrierDirectory {
         return overdue.size();
     }
 
+    @Override
+    @Transactional(readOnly = true)
+    public List<ExpiringDocumentView> documentsExpiringWithin(int days) {
+        var today = LocalDate.now(clock.withZone(TR));
+        return documents.findByStatusAndExpiresOnLessThanEqualOrderByExpiresOnAsc(
+                        DocumentStatus.APPROVED, today.plusDays(days)).stream()
+                // Yalnızca hâlâ iş alabilen taşıyıcılar; askıdaki zaten listede
+                .filter(d -> d.getProfile().getStatus() == CarrierStatus.APPROVED)
+                .map(d -> new ExpiringDocumentView(
+                        d.getProfile().getCarrierId(),
+                        d.getProfile().getCompanyName() != null
+                                ? d.getProfile().getCompanyName() : d.getProfile().getDisplayName(),
+                        d.getProfile().getPlate(),
+                        d.getKind(), d.getKind().displayName(), d.getExpiresOn(),
+                        java.time.temporal.ChronoUnit.DAYS.between(today, d.getExpiresOn())))
+                .toList();
+    }
+
     // ── yardımcılar ──────────────────────────────────────────────────
 
     private CarrierProfile mine(String carrierId) {

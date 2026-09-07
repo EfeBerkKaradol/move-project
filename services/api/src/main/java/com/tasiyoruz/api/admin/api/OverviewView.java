@@ -17,5 +17,7 @@ public record OverviewView(
         long approvedCarriers,
         long suspendedCarriers,
         long activeCorridors,
+        /** 30 gün içinde süresi dolacak onaylı belge sayısı (FR-2.4). */
+        long documentsExpiringSoon,
         /** Tamamlanan işlerin toplam tutarı — komisyonsuz dönemde ciro değil, hacim. */
         Money completedVolume) {}
