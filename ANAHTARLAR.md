@@ -7,11 +7,34 @@ Bir maddeyi hallettiğinde söyle, kutusunu işaretleyeyim.
 > ve *nereye konacağı* yazar. Gerçek değerler `.env` dosyalarına gider ve bunlar
 > `.gitignore`'da — repoya hiçbir zaman girmez.
 
+## Yerelde ne gerekiyor?
+
+**Hiçbir şey.** `pnpm infra:up && pnpm api && pnpm dev` ile her şey çalışır:
+veritabanı, Redis, Keycloak, dosya deposu (MinIO) ve e-posta (Mailhog) konteynerlerden
+gelir. Aşağıdaki maddelerin tamamı **üretim/staging** içindir.
+
+## Sıra — hangisini önce yapmalısın
+
+| # | İş | Neyi açar | Süre |
+|---|---|---|---|
+| 1 | [#17 Dağıtım hesapları](#-17-konteyner-ve-veritabanı-sağlayıcıları) | Siteyi kendi telefonundan test etmek | 1 saat |
+| 2 | [#13 · #14 · #16 · #15 Üretim sırları](#üretime-çıkarken-ayarlanması-zorunlu) | #17 ile birlikte zorunlu | 15 dk |
+| 3 | [#20 SMTP](#-20-smtp-sunucusu-e-posta-doğrulama-ve-bildirimler) | Kayıt tamamlama + tüm bildirimler | 1 saat |
+| 4 | [#5 Alan adı](#-5-alan-adı) | Marka, paylaşım önizlemesi, arama motoru | 1 gün |
+| 5 | [#18 Nesne deposu](#-18-nesne-deposu-taşıyıcı-belgeleri) | Belge ve fotoğrafların kalıcı saklanması | 1 saat |
+| 6 | [#1 Google Maps](#-1-google-maps-platform-api-anahtarı) | Gerçek mesafe, süre, adres arama | 1 saat |
+| 7 | [#2 SMS](#-2-sms-sağlayıcısı-otp-girişi-için) | Telefonla giriş | Başlık onayı günler sürer |
+| 8 | [#3 Sentry](#-3-sentry-projesi-hata-takibi) | Üretimde hata görünürlüğü | 20 dk |
+| — | #4 · #6 · #7 · #8 · #9 · #10 · #11 | Sonraki fazlar | — |
+
+⚠️ **1 ve 2 birlikte yapılır.** Dağıtımı üretim sırları olmadan açmak, imzalama
+anahtarı `local-development-secret` kalmış bir sistemi internete koymak demek.
+
 ## Durum özeti
 
 | | Faz 1 | Altyapı | Üretim | Faz 3–4 | Faz 5 | Toplam |
 |---|---|---|---|---|---|---|
-| Bekleyen | 3 | 4 | 3 | 3 | 3 | 16 |
+| Bekleyen | 3 | 4 | 4 | 3 | 3 | 17 |
 | Tamamlanan | 0 | 1 | 0 | 0 | 0 | 1 |
 
 ---
@@ -124,22 +147,41 @@ KEYCLOAK_ADMIN_CLIENT_SECRET=<güçlü-bir-değer>
 
 ---
 
-### [ ] 20. SMTP sunucusu (e-posta doğrulama ve şifre sıfırlama)
-**Ne için:** Kayıt sonrası e-posta doğrulama ve "şifremi unuttum" postaları. Keycloak
-realm'inde `verifyEmail` açık; yerelde `docker-compose`'daki Mailhog kullanılıyor
-(http://localhost:8025), üretimde gerçek bir SMTP gerekiyor.
+### [ ] 20. SMTP sunucusu (e-posta doğrulama ve bildirimler)
+**Ne için:** İki ayrı yerde kullanılıyor.
+1. **Keycloak** — kayıt sonrası e-posta doğrulama ve "şifremi unuttum".
+2. **API** — uygulamanın kendi bildirimleri: teklif geldi, teklif kabul edildi,
+   teslim bildirildi, iş tamamlandı, belge reddedildi, belge süresi doluyor...
 
-**Adaylar:** Türkiye'de barındırılan bir posta sağlayıcısı ya da kendi sunucun. Yurt
-dışı sağlayıcılar e-posta adresini işler; ADR-0005 gereği tercih edilmiyor.
+**Yerelde:** Mailhog hazır, hiçbir şey gerekmiyor. Giden postaları gör:
+http://localhost:8025
 
-**Nereye:** Keycloak realm ayarları (Realm settings → Email). Değerler:
-host, port, from, starttls/ssl, kullanıcı adı ve parola.
+**Sağlayıcı:** Türkiye'de barındırılan bir posta sağlayıcısı ya da kendi sunucun.
+Yurt dışı sağlayıcılar e-posta adresini işler; ADR-0005 gereği tercih edilmiyor.
+Alan adını aldıktan sonra çoğu barındırma paketi SMTP'yi birlikte veriyor.
 
-**Şu an bloke olan:** Hiçbir şey — yerelde Mailhog ile uçtan uca çalışıyor. Üretimde
-SMTP olmadan kimse kaydını tamamlayamaz, çünkü doğrulama postası gitmez. Uygulamanın
-kendi bildirimleri (teklif geldi, teslim edildi, belge reddedildi...) de aynı SMTP'yi
-kullanıyor; adres `services/api/.env` içinde `SMTP_HOST`, `SMTP_PORT`, `SMTP_USERNAME`,
-`SMTP_PASSWORD`, `SMTP_AUTH=true`, `SMTP_STARTTLS=true`.
+**Nereye — 1) API bildirimleri:** `services/api/.env`
+```
+SMTP_HOST=mail.tasiyoruz.com
+SMTP_PORT=587
+SMTP_USERNAME=no-reply@tasiyoruz.com
+SMTP_PASSWORD=...
+SMTP_AUTH=true
+SMTP_STARTTLS=true
+NOTIFICATION_FROM=no-reply@tasiyoruz.com
+NEXT_PUBLIC_SITE_URL=https://tasiyoruz.com
+```
+`NEXT_PUBLIC_SITE_URL` e-postadaki bağlantıların kökü; verilmezse postalar
+localhost'a link verir.
+
+**Nereye — 2) Keycloak doğrulama postaları:** Keycloak yönetim arayüzü →
+Realm settings → Email. Aynı host, port, from ve kimlik bilgileri.
+
+**Şu an bloke olan:** Üretimde SMTP olmadan **kimse kaydını tamamlayamaz** (doğrulama
+postası gitmez) ve hiçbir bildirim ulaşmaz. Yerelde her şey uçtan uca çalışıyor.
+
+**Doğrulama:** Panelde **Bildirimler** sayfası (`/yonetim/bildirimler`) her gönderimi
+gösteriyor; gitmeyenler hata metniyle listeleniyor.
 
 ---
 
@@ -206,13 +248,30 @@ mali mühür olmadan üretilemez, o yüzden taklidi yapılmadı.
 ## Staging / dağıtım hesapları
 
 ### [ ] 17. Konteyner ve veritabanı sağlayıcıları
-**Ne için:** API ve Keycloak'ın herkese açık bir adreste çalışması. Vercel'de giriş ve
-fiyat hesaplamanın çalışmamasının tek sebebi bu.
+**Ne için:** API ve Keycloak'ın herkese açık bir adreste çalışması. Vercel'e attığın
+sürümde giriş ve fiyat hesaplamanın çalışmamasının **tek sebebi** bu: Vercel yalnızca
+web arayüzünü çalıştırıyor, arkasında API yok.
 
-**Ücretsiz başlangıç:** Neon (PostgreSQL + PostGIS) · Upstash (Redis) · Render (API + Keycloak)
-**Adım adım:** [docs/13-dagitim.md](docs/13-dagitim.md)
+**Ücretsiz başlangıç paketi** (kredi kartı istemez, staging için yeterli):
 
-⚠️ Bu sağlayıcılar Türkiye'de değil; gerçek kullanıcı verisinden önce ADR-0005.
+| Servis | Sağlayıcı | Ne alacaksın |
+|---|---|---|
+| PostgreSQL + PostGIS | [Neon](https://neon.tech) | Bağlantı dizesi (`postgresql://...`) |
+| Redis | [Upstash](https://upstash.com) | Redis URL'i (`rediss://...`) |
+| API + Keycloak | [Render](https://render.com) | İki servis, iki herkese açık adres |
+| Web | [Vercel](https://vercel.com) | Zaten var |
+
+**Adım adım:** [docs/13-dagitim.md](docs/13-dagitim.md) — sırayla Neon, Upstash,
+Render (Keycloak), Render (API), Vercel. Her adımda hangi değeri nereye yapıştıracağın
+yazıyor.
+
+**Nereye:** Bu sağlayıcıların panelinde, ortam değişkeni olarak. `.env` dosyası
+yüklemiyorsun; Render ve Vercel'in kendi "Environment Variables" ekranları var.
+
+⚠️ Bu sağlayıcıların hiçbiri Türkiye'de değil. **Staging ve kendi testlerin için**
+uygun; gerçek kullanıcı verisi girmeden önce ADR-0005 uyarınca #4'e geçilmeli.
+
+---
 
 ## Üretime çıkarken ayarlanması zorunlu
 
@@ -262,20 +321,24 @@ Deploy adımı eklendiğinde gerekecek: registry kimliği, kubeconfig, ortam ana
 
 ## Nereye ne konur
 
+| Dosya / yer | İçine ne girer |
+|---|---|
+| `services/api/.env` | #13 imzalama anahtarı · #14 CORS · #19 Keycloak yönetim sırrı · #20 SMTP · #18 depo · (#1 Maps, #2 SMS, #3 Sentry, #9 iyzico entegrasyon gelince) |
+| `apps/web/.env.local` | `NEXT_PUBLIC_API_URL` · #16 AUTH_* · #5 site adresi |
+| Vercel → Environment Variables | `apps/web/.env.local`'ın aynısı; `AUTH_TRUST_HOST` yerine `AUTH_URL` |
+| Render → Environment | `services/api/.env`'in aynısı + veritabanı ve Redis bağlantıları |
+| Keycloak → Realm settings → Email | #20 SMTP (doğrulama postaları için ayrıca) |
+
+Şablonlar `.env.example` dosyalarında; repoda duruyorlar ama içleri boş. Kopyala:
+
+```bash
+cp services/api/.env.example services/api/.env
+cp apps/web/.env.example apps/web/.env.local
 ```
-services/api/.env        GOOGLE_MAPS_API_KEY · TASIYORUZ_QUOTE_SIGNING_SECRET · TASIYORUZ_CORS_ALLOWED_ORIGINS
-                         (SMS, Sentry, iyzico satırları yorumda — entegrasyon gelince açılacak)
-apps/web/.env.local      NEXT_PUBLIC_API_URL · AUTH_SECRET · AUTH_KEYCLOAK_ID/SECRET/ISSUER · AUTH_TRUST_HOST
-Vercel                   Web anahtarlarının aynısı, panelden (dosya yüklenmez); AUTH_TRUST_HOST yerine AUTH_URL
-```
 
-**Yerelde neyi doldurman gerekiyor?** Hiçbir şeyi. `apps/web/.env.local` hazır ve dolu
-(giriş için gerekli AUTH_* değerleri yerel Keycloak ile eşleşiyor); `services/api/.env`
-yerelde gerekmiyor, her ayarın çalışan varsayılanı var. Spring `.env`'i
-`spring.config.import` ile okur (üretim değerleri için), Next `.env.local`'ı kendiliğinden yükler.
+**Yerelde neyi doldurman gerekiyor? Hiçbirini.** `apps/web/.env.local` zaten hazır ve
+dolu; `services/api/.env` yerelde hiç gerekmiyor, her ayarın çalışan varsayılanı var.
+Spring `.env`'i `spring.config.import` ile okur, Next `.env.local`'ı kendiliğinden yükler.
 
-Her ikisi de `.gitignore`'da. Şablonları `.env.example` dosyalarında —
-onlar repoda, ama **içleri boş**.
-
-Local geliştirmede dış servislerin hiçbiri gerekmiyor: SMS konsola yazıyor,
-ödeme her zaman başarılı dönüyor, mesafe takribî hesaplanıyor.
+Yerel geliştirmede dış servislerin hiçbiri gerekmiyor: mesafe takribî hesaplanıyor,
+e-posta Mailhog'a düşüyor, dosyalar MinIO'ya yazılıyor, ödeme henüz yok.
