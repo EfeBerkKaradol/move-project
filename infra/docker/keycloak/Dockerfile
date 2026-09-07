@@ -14,7 +14,9 @@ RUN python prepare-realm.py import/tasiyoruz-realm.json /w/tasiyoruz-realm.json
 FROM quay.io/keycloak/keycloak:26.0.8 AS build
 ENV KC_DB=postgres
 ENV KC_HEALTH_ENABLED=true
-ENV KC_METRICS_ENABLED=true
+# Metrikleri kimse toplamıyor; micrometer yığını 512 MB'lık örnekte boşuna yer
+# kaplıyordu. Toplamaya başlandığında true yapılıp imaj yeniden derlenir.
+ENV KC_METRICS_ENABLED=false
 COPY themes /opt/keycloak/themes
 # Yapılandırmayı önceden derle: --optimized ile açılış birkaç kat hızlanıyor,
 # ücretsiz planlarda fark ediyor.
@@ -23,6 +25,17 @@ RUN /opt/keycloak/bin/kc.sh build
 FROM quay.io/keycloak/keycloak:26.0.8
 COPY --from=build /opt/keycloak/ /opt/keycloak/
 COPY --from=realm /w/tasiyoruz-realm.json /opt/keycloak/data/import/tasiyoruz-realm.json
+
+# Tek örnek çalışıyoruz; kümelenme kapalı.
+#
+# Üretim kipinde varsayılan 'ispn' önbelleği JGroups'u ayağa kaldırıyor: UDP ile
+# küme arkadaşı arıyor, Render'ın ağında JGroups olmayan bir şeye çarpıp 5 saniyede
+# bir hata basıyor ve onlarca MB'lık alım tamponları ayırıyor. 512 MB'lık örnek bu
+# yüzden "Out of memory" ile düşüyordu.
+#
+# `cache` bir ÇALIŞMA ZAMANI seçeneği (start --help-all'da var, build'de yok), bu
+# yüzden derleme katmanına değil buraya konuyor; --optimized ile birlikte okunuyor.
+ENV KC_CACHE=local
 
 # Realm yalnızca yoksa içe aktarılır; var olanın üzerine yazmaz. Panelden yaptığın
 # değişiklikler (istemci sırrı, yönlendirme adresleri, SMTP) yeniden dağıtımda korunur.

@@ -64,7 +64,7 @@ services:
       # "Multiple garbage collectors selected" ile JVM'i açılışta öldürüyor.
       # TieredStopAtLevel bir GC bayrağı değil, çakışmadığı ölçülerek doğrulandı.
       - key: JAVA_OPTS_APPEND
-        value: -XX:TieredStopAtLevel=1
+        value: -XX:TieredStopAtLevel=1 -XX:MaxRAMPercentage=50
 
   # ── API ────────────────────────────────────────────────────────────
   - type: web
