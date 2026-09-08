@@ -217,12 +217,59 @@ Sonra **yeniden dağıt** — `NEXT_PUBLIC_` ile başlayanlar derleme anında g�
 
 ---
 
-### 7. SMTP gelince açılacak ayar
+### 7. E-posta doğrulamayı açmak
 
 Dağıtım realm'inde e-posta doğrulama **kapalı**; SMTP olmadan açık olsaydı kimse
-kaydını tamamlayamazdı. SMTP'yi ayarladığında (ANAHTARLAR Adım 3):
-Realm settings → **Email** sekmesini doldur, sonra **Login** sekmesinde
-*Verify email* seçeneğini aç.
+kaydını tamamlayamaz, herkes "doğrulama postanı bekle" ekranında kalırdı. Bu yüzden
+kullanıcıların Keycloak'ta *unverified* görünmesi arıza değil, o kararın sonucu.
+
+Alan adın yoksa da açabilirsin: Brevo'nun ücretsiz katmanı günde 300 e-posta veriyor
+ve tek bir gönderici adresi doğrulamana izin veriyor.
+
+**a) Sağlayıcı hesabı.** brevo.com → kayıt ol → **Senders, Domains & Dedicated IPs** →
+gönderici adresini ekle ve gelen postadaki bağlantıyla doğrula. Sonra hesap menüsü →
+**SMTP & API** → **SMTP** sekmesi → *Generate a new SMTP key*.
+
+⚠️ SMTP anahtarı ile API anahtarı farklı şeyler; SMTP bağlantısı için **SMTP key**
+gerekiyor.
+
+**b) Keycloak'a gir** (doğrulama ve "şifremi unuttum" postalarını o gönderiyor).
+Realm settings → **Email**:
+
+```
+From              <doğruladığın gönderici adresi>
+From display name Taşıyoruz
+Host              smtp-relay.brevo.com
+Port              587
+Enable StartTLS   açık
+Authentication    açık
+Username          <Brevo SMTP login e-postan>
+Password          <SMTP key>
+```
+
+*Test connection* ile dene, sonra Save.
+
+**c) Doğrulamayı aç.** Realm settings → **Login** sekmesi → *Verify email* → açık.
+
+Mevcut kullanıcılar doğrulanmamış durumda kalır; bir sonraki girişlerinde Keycloak
+doğrulama postasını kendisi gönderir. Beklemek istemezsen Users → kullanıcı →
+**Credentials/Details** → *Send email* → *Verify email*.
+
+**d) API bildirimleri** ayrı ayar — Render → `tasiyoruz-api` → Environment:
+
+```
+SMTP_HOST=smtp-relay.brevo.com
+SMTP_PORT=587
+SMTP_USERNAME=<Brevo SMTP login e-postan>
+SMTP_PASSWORD=<SMTP key>
+SMTP_AUTH=true
+SMTP_STARTTLS=true
+```
+
+Bunlar teklif geldi / kabul edildi / teslim bildirildi gibi uygulama bildirimleri için.
+Girilmezse uygulama çalışmaya devam eder, bildirimler yalnızca kayda yazılır.
+
+Kaynak: [Brevo SMTP entegrasyonu](https://developers.brevo.com/docs/smtp-integration)
 
 ## Sıra önemli
 
