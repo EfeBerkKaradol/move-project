@@ -22,7 +22,16 @@ import { useMedia, usePrefersReducedMotion, useScrollProgress } from './useScrol
  * değişkenlerine yazılıyor; opaklık ve kayma CSS tarafında hesaplanıyor. Tek istisna
  * aracın konumu: SVG yolu üzerindeki nokta yalnızca JS ile bulunabiliyor.
  */
-export function HeroScene({ shipperHref, carrierHref }: { shipperHref: string; carrierHref: string }) {
+export function HeroScene({
+  shipperHref,
+  carrierHref,
+  widget,
+}: {
+  shipperHref: string;
+  carrierHref: string;
+  /** Fiyat sorgusu. Geniş ekranda sahnenin sağ sütununda duruyor. */
+  widget?: React.ReactNode;
+}) {
   const wrapperRef = useRef<HTMLDivElement>(null);
   const sceneRef = useRef<HTMLDivElement>(null);
   const cityRouteRef = useRef<SVGPathElement>(null);
@@ -185,7 +194,7 @@ export function HeroScene({ shipperHref, carrierHref }: { shipperHref: string; c
           {/* Mobilde harita alt yarıda ve tam genişlikte; masaüstünde sağ-alt bölgeye
               çekiliyor. Rota, başlık sütununun üzerinden geçmemeli — araç metnin
               üstünden geçerse ikisi de okunmaz oluyor. */}
-          <div className="pointer-events-none absolute inset-x-0 bottom-0 top-[44%] md:bottom-[4%] md:left-[21%] md:right-0 md:top-[14%]">
+          <div className="pointer-events-none absolute inset-x-0 bottom-0 top-[44%] md:bottom-[4%] md:left-[21%] md:right-0 md:top-[14%] lg:left-[23%] lg:right-[34%]">
             <div ref={mapRef} className="relative size-full">
               <SceneMap
                 cityRouteRef={cityRouteRef}
@@ -226,6 +235,17 @@ export function HeroScene({ shipperHref, carrierHref }: { shipperHref: string; c
             </div>
           </div>
 
+          {/* ── FİYAT SORGUSU ──────────────────────────────────────── */}
+          {/* Birincil eylem anlatı boyunca ekranda kalıyor: kullanıcı hikâyeyi
+              izlerken istediği an rota girebilmeli. Yalnızca geniş ekranda —
+              telefonda başlık, widget ve harita aynı ekrana sığmıyor, orada
+              widget hero'nun hemen altındaki kendi bölümünde duruyor. */}
+          {widget && (
+            <div className="pointer-events-auto absolute right-[max(1.5rem,calc((100vw-76rem)/2))] top-1/2 z-10 hidden max-h-[calc(100svh-7rem)] w-[20rem] -translate-y-1/2 overflow-y-auto lg:block xl:w-[22.5rem]">
+              {widget}
+            </div>
+          )}
+
           {/* ── METİN KATMANLARI ───────────────────────────────────── */}
           <div className="relative mx-auto flex h-full max-w-[76rem] flex-col px-6 pt-24 md:pt-32">
             {/* Açılış */}
@@ -253,7 +273,7 @@ export function HeroScene({ shipperHref, carrierHref }: { shipperHref: string; c
                 <br />
                 {BRAND.promise.carrier}
               </p>
-              <div className="mt-8 flex flex-wrap items-start gap-3">
+              <div className="mt-8 flex flex-wrap items-start gap-3 lg:hidden">
                 <ButtonLink href={shipperHref} size="lg" hint="Aracını bul.">
                   Yüküm var
                   <Icon name="arrowRight" size={16} />

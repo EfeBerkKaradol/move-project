@@ -17,7 +17,6 @@ const loadPlaces = () =>
  * edilir — listede olmayan bir yer yazan kullanıcıyı engellemiyoruz.
  */
 export function PlaceSearch({
-  id,
   name,
   label,
   value,
@@ -26,7 +25,6 @@ export function PlaceSearch({
   icon,
   onlyCity,
 }: {
-  id: string;
   name: string;
   label: string;
   value: string;
@@ -36,7 +34,12 @@ export function PlaceSearch({
   /** Verilirse liste bu ille sınırlanır — teslim alanı alış iline kilitleniyor. */
   onlyCity?: string | null;
 }) {
-  const listId = useId();
+  const uid = useId();
+  // Alan kimliği bileşenin kendisinden üretiliyor. Sabit yazıldığında aynı widget
+  // sayfada iki kez render edilince (hero + dar ekran bölümü) iki öğe aynı id'yi
+  // taşıyordu ve <label> yanlış olana, çoğu zaman gizli olana bağlanıyordu.
+  const inputId = `${uid}-${name}`;
+  const listId = `${uid}-liste`;
   const [data, setData] = useState<CityPlaces[] | null>(null);
   const [open, setOpen] = useState(false);
   const [active, setActive] = useState(-1);
@@ -95,7 +98,7 @@ export function PlaceSearch({
 
   return (
     <div ref={rootRef} className="relative">
-      <label htmlFor={id} className="label-mono text-muted">
+      <label htmlFor={inputId} className="label-mono text-muted">
         {label}
         {onlyCity && <span className="ml-2 normal-case text-[var(--route-deep)]">{onlyCity} içinde</span>}
       </label>
@@ -105,7 +108,7 @@ export function PlaceSearch({
           {icon}
         </svg>
         <input
-          id={id}
+          id={inputId}
           name={name}
           value={value}
           onChange={(e) => {

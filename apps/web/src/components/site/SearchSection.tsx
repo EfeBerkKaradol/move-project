@@ -9,12 +9,16 @@ import { Reveal } from './Reveal';
  * sorulmuyor. Kullanıcıyı sekiz alanla karşılamak, henüz fiyatı görmemiş birinden
  * form doldurmasını istemek demek. Kalan adımlar fiyat sayfasında, kullanıcı
  * karşılığını gördükten sonra geliyor.
+ *
+ * <p>Geniş ekranda gizli: orada aynı widget hero'nun sağ sütununda duruyor ve
+ * anlatı boyunca ekranda kalıyor. Aynı formu iki kez göstermek kullanıcıya
+ * hangisinin geçerli olduğunu sordururdu.
  */
 export function SearchSection({ vehicles }: { vehicles: VehicleType[] }) {
   if (vehicles.length === 0) return null;
 
   return (
-    <section className="theme-cream bg-bg pb-20 md:pb-28">
+    <section className="theme-cream bg-bg pb-20 md:pb-28 lg:hidden">
       <div className="mx-auto grid max-w-[76rem] gap-10 px-6 lg:grid-cols-[minmax(0,1fr)_minmax(0,1.1fr)] lg:items-center lg:gap-16">
         <Reveal>
           <p className="label-mono text-muted">Başla</p>

@@ -92,7 +92,6 @@ export function QuoteWidget({ vehicles }: { vehicles: VehicleType[] }) {
             saran bir kapsayıcıya göre konumlanıyor. */}
         <div className="relative space-y-4">
           <PlaceSearch
-            id="nereden"
             name="nereden"
             label="Nereden"
             value={from}
@@ -106,7 +105,6 @@ export function QuoteWidget({ vehicles }: { vehicles: VehicleType[] }) {
             }
           />
           <PlaceSearch
-            id="nereye"
             name="nereye"
             label="Nereye"
             value={to}

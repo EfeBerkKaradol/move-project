@@ -3,6 +3,7 @@ import { Hero } from '@/components/hero/Hero';
 import { Footer } from '@/components/site/Footer';
 import { Header } from '@/components/site/Header';
 import { HowItWorks } from '@/components/site/HowItWorks';
+import { QuoteWidget } from '@/components/site/QuoteWidget';
 import { SearchSection } from '@/components/site/SearchSection';
 import { TrustSection } from '@/components/site/TrustSection';
 import { TwoSidedMarket } from '@/components/site/TwoSidedMarket';
@@ -24,7 +25,11 @@ export default async function HomePage() {
     <>
       <Header overlay />
       <main>
-        <Hero shipperHref={shipperHref} carrierHref={carrierHref} />
+        <Hero
+          shipperHref={shipperHref}
+          carrierHref={carrierHref}
+          widget={vehicles?.length ? <QuoteWidget vehicles={vehicles} /> : null}
+        />
         <HowItWorks />
         <SearchSection vehicles={vehicles ?? []} />
         <TwoSidedMarket shipperHref={shipperHref} carrierHref={carrierHref} />

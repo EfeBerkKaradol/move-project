@@ -146,7 +146,6 @@ export function EstimateFlow({
         <section className="rounded-card border border-line bg-surface p-5 sm:p-6">
           <div className="relative space-y-4">
             <PlaceSearch
-              id="nereden"
               name="nereden"
               label="Nereden"
               value={from}
@@ -160,7 +159,6 @@ export function EstimateFlow({
               }
             />
             <PlaceSearch
-              id="nereye"
               name="nereye"
               label="Nereye"
               value={to}
