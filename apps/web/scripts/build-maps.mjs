@@ -187,10 +187,10 @@ const CITIES = [
 ];
 
 /**
- * Ağın geri kalanı. Rotaya dahil değiller; haritanın Türkiye olduğunu ve
- * kapsamın 81 il olduğunu gösteren küçük düğümler.
+ * Büyükşehirler. Rotaya dahil değiller ama haritada okunuyorlar: etiketli,
+ * belirgin düğümler.
  */
-const NETWORK = [
+const NETWORK_MAJOR = [
   ['Bursa', 29.06, 40.19],
   ['Balıkesir', 27.89, 39.65],
   ['Eskişehir', 30.52, 39.78],
@@ -210,6 +210,43 @@ const NETWORK = [
   ['Erzurum', 41.27, 39.9],
   ['Van', 43.38, 38.49],
 ];
+
+/**
+ * Kalan iller. Etiketsiz ve çok soluk noktalar.
+ *
+ * <p>Yalnızca büyükşehirleri koymak haritayı on sekiz noktalık bir şemaya
+ * indiriyordu; "81 il" iddiası ile ekranda görünen şey uyuşmuyordu. Bunlar
+ * kapsamı gösteriyor, okunmak için değil arka planda doku olmak için varlar —
+ * parlarlarsa rotayı ve büyükşehirleri bastırırlar.
+ */
+const NETWORK_MINOR = [
+  ['Adıyaman', 38.28, 37.76], ['Afyonkarahisar', 30.54, 38.76], ['Ağrı', 43.05, 39.72],
+  ['Aksaray', 34.03, 38.37], ['Amasya', 35.83, 40.65], ['Ardahan', 42.70, 41.11],
+  ['Artvin', 41.82, 41.18], ['Aydın', 27.85, 37.85], ['Bartın', 32.34, 41.64],
+  ['Batman', 41.13, 37.89], ['Bayburt', 40.23, 40.26], ['Bilecik', 29.98, 40.14],
+  ['Bingöl', 40.50, 38.88], ['Bitlis', 42.11, 38.40], ['Bolu', 31.61, 40.74],
+  ['Burdur', 30.29, 37.72], ['Çanakkale', 26.41, 40.15], ['Çankırı', 33.62, 40.60],
+  ['Çorum', 34.95, 40.55], ['Düzce', 31.16, 40.84], ['Edirne', 26.56, 41.68],
+  ['Elazığ', 39.22, 38.68], ['Erzincan', 39.49, 39.75], ['Giresun', 38.39, 40.91],
+  ['Gümüşhane', 39.48, 40.46], ['Hakkari', 43.74, 37.58], ['Hatay', 36.16, 36.20],
+  ['Iğdır', 44.04, 39.92], ['Isparta', 30.55, 37.77], ['Kahramanmaraş', 36.94, 37.58],
+  ['Karabük', 32.62, 41.20], ['Karaman', 33.22, 37.18], ['Kars', 43.10, 40.60],
+  ['Kastamonu', 33.78, 41.38], ['Kilis', 37.12, 36.72], ['Kırıkkale', 33.51, 39.85],
+  ['Kırklareli', 27.22, 41.74], ['Kırşehir', 34.16, 39.15], ['Kocaeli', 29.92, 40.77],
+  ['Kütahya', 29.98, 39.42], ['Manisa', 27.43, 38.62], ['Mardin', 40.74, 37.31],
+  ['Muğla', 28.36, 37.22], ['Muş', 41.75, 38.73], ['Nevşehir', 34.71, 38.62],
+  ['Niğde', 34.68, 37.97], ['Ordu', 37.88, 40.98], ['Osmaniye', 36.25, 37.07],
+  ['Rize', 40.52, 41.02], ['Sakarya', 30.40, 40.78], ['Siirt', 41.94, 37.93],
+  ['Sinop', 35.15, 42.03], ['Şırnak', 42.46, 37.52], ['Tekirdağ', 27.51, 40.98],
+  ['Tokat', 36.55, 40.31], ['Tunceli', 39.54, 39.11], ['Uşak', 29.41, 38.68],
+  ['Yalova', 29.28, 40.65], ['Yozgat', 34.81, 39.82], ['Zonguldak', 31.79, 41.45],
+];
+
+// Harita "81 il" diyor; listeler eksik kalırsa iddia ile ekran ayrışır.
+const ilSayisi = CITIES.length + NETWORK_MAJOR.length + NETWORK_MINOR.length;
+if (ilSayisi !== 81) {
+  throw new Error(`İl listesi eksik ya da fazla: ${ilSayisi} il var, 81 olmalı.`);
+}
 
 /**
  * İstanbul içindeki rota: Avrupa yakasından çıkıp Boğaz'ı geçip Anadolu
@@ -232,9 +269,12 @@ const cities = CITIES.map(([id, label, lon, lat]) => {
   const [x, y] = project2(fitTurkey)([lon, lat]);
   return { id, label, x, y };
 });
-const network = NETWORK.map(([label, lon, lat]) => {
+const network = [
+  ...NETWORK_MAJOR.map(([label, lon, lat]) => ({ label, lon, lat, major: true })),
+  ...NETWORK_MINOR.map(([label, lon, lat]) => ({ label, lon, lat, major: false })),
+].map(({ label, lon, lat, major }) => {
   const [x, y] = project2(fitTurkey)([lon, lat]);
-  return { label, x, y };
+  return { label, x, y, major };
 });
 const cityRoute = CITY_ROUTE.map(project2(fitIstanbul));
 const istanbulNodes = [
@@ -308,8 +348,11 @@ export type MapNode = { id: string; label: string; x: number; y: number };
 
 export const CITIES: MapNode[] = ${JSON.stringify(cities, null, 2).replace(/"([a-z]+)":/g, '$1:')};
 
-/** Rota dışı şehirler — küçük düğüm, ağın kapsamını gösteriyor. */
-export const NETWORK_CITIES: { label: string; x: number; y: number }[] =
+/**
+ * Rota dışı iller. {@code major} olanlar etiketli ve belirgin; kalanlar kapsamı
+ * gösteren soluk noktalar.
+ */
+export const NETWORK_CITIES: { label: string; x: number; y: number; major: boolean }[] =
   ${JSON.stringify(network, null, 2).replace(/"([a-z]+)":/g, '$1:')};
 
 export const ISTANBUL_NODES: MapNode[] = ${JSON.stringify(istanbulNodes, null, 2).replace(/"([a-z]+)":/g, '$1:')};

@@ -278,6 +278,14 @@ Domain       CargoCategoryGrid ölçek referanslı 8 kategori kartı, küçükte
   her alana dokunuşta. Tasarım ölçeği 15px; `globals.css` yalnızca `pointer: coarse`
   altında 16px'e çıkarıyor. Kural katmansız yazıldı: Tailwind yardımcıları
   `@layer utilities` içinde ve katmansız CSS onları özgüllükten bağımsız geçiyor.
+- **Dar ekranda uzun listeler katlanır.** Telefonda bölümler düz bir duvara
+  dönüyordu: yedi araç kartı, beş güven maddesi, hepsi alt alta. `MobileClamp` ilk
+  satırları bırakıp gerisini bir düğmenin arkasına alıyor; `sm` ve üstünde hiçbir şey
+  gizlenmiyor. Kırpılan içerik DOM'da duruyor (arama motoru ve ekran okuyucu için
+  eksilen bir şey yok) ve `focus-within` ile kırpma kendiliğinden kalkıyor —
+  klavyeyle gezen biri görünmeyen bir karta sekmeyle girdiğinde odak kaybolmasın.
+  Yükseklik satır içi stille değil CSS değişkeniyle veriliyor; satır içi stil
+  `sm:max-h-none` kuralını hep yenerdi.
 - **Dar ekranda menü.** 1024 pikselin altında başlıkta hiç gezinme yoktu: yalnızca
   logo ve tek bir eylem duruyordu, "Yük bul", "Nasıl çalışır", "Araçlar" ve hesap
   bağlantıları telefonda da tablette de erişilemiyordu. `MobileMenu` bunları geri

@@ -261,12 +261,18 @@ export function HeroScene({
               widget hero'nun hemen altındaki kendi bölümünde duruyor. */}
           {widget && (
             <div
-              className="group pointer-events-auto absolute right-[max(1.5rem,calc((100vw-76rem)/2))] top-1/2 z-10 hidden max-h-[calc(100svh-7rem)] w-[20rem] -translate-y-1/2 overflow-y-auto lg:block xl:w-[22.5rem]"
+              // Dikey konum ekranın ortasına değil, başlığın ALTINDAN başlayan bir
+              // banda göre: ortalayınca widget'ın üst kenarı sabit başlığın 13 piksel
+              // içine giriyordu. Bant başlıkla arasında ve altta nefes payı bırakıyor;
+              // kart bandın içinde ortalı, sığmazsa kendi içinde kayıyor.
+              className="group pointer-events-auto absolute right-[max(1.5rem,calc((100vw-76rem)/2))] top-[6.75rem] bottom-8 z-10 hidden w-[20rem] flex-col justify-center lg:flex xl:w-[22.5rem]"
               // Taban değer BURADA tanımlı, alt öğede değil: satır içi stil sınıf
               // tabanlı bir geçersiz kılmayı hep yener, değişken alt öğeye satır içi
               // yazıldığında hover/odak kuralı hiçbir zaman devreye girmiyordu.
               style={{ ['--widget-alpha' as string]: 'calc(0.14 + var(--widget-in, 0) * 0.86)' }}
             >
+              {/* Kaydırma kartın kendisinde: bandın üstünde olsaydı kart bandı
+                  doldurur ve dikey ortalama kaybolurdu. */}
               {/*
                 Açılışta silik: sahne ön planda, widget varlığını belli eden bir
                 katman. Kaydırma ilerledikçe öne çıkıyor.
@@ -280,7 +286,7 @@ export function HeroScene({
                 sürükleniyor ve hiçbir zaman hedefe varmıyordu.
               */}
               <div
-                className="opacity-[var(--widget-alpha)] group-focus-within:[--widget-alpha:1] group-hover:[--widget-alpha:1]"
+                className="max-h-full overflow-y-auto opacity-[var(--widget-alpha)] group-focus-within:[--widget-alpha:1] group-hover:[--widget-alpha:1]"
               >
                 {widget}
               </div>

@@ -1,5 +1,6 @@
 import { Icon, type IconName } from '@/components/ui/Icon';
 import { LiveStats } from './LiveStats';
+import { MobileClamp } from './MobileClamp';
 import { Reveal } from './Reveal';
 
 const FEATURES: { icon: IconName; title: string; body: string }[] = [
@@ -45,6 +46,7 @@ export function TrustSection() {
           </h2>
         </Reveal>
 
+        <MobileClamp maxHeight="21rem" moreLabel="Diğer güvenceleri gör">
         <ul className="mt-10 grid gap-x-10 gap-y-8 sm:grid-cols-2 lg:grid-cols-3">
           {FEATURES.map((feature, i) => (
             <Reveal key={feature.title} delay={Math.min(i, 3) * 70}>
@@ -58,6 +60,7 @@ export function TrustSection() {
             </Reveal>
           ))}
         </ul>
+        </MobileClamp>
 
         <LiveStats />
       </div>

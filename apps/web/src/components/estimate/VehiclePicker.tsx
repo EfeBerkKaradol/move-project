@@ -22,7 +22,7 @@ export function VehiclePicker({
   className?: string;
 }) {
   return (
-    <div role="radiogroup" aria-label="Araç tipi" className={`grid gap-2.5 ${className}`}>
+    <div role="radiogroup" aria-label="Araç tipi" className={`grid gap-2 ${className}`}>
       {vehicles.map((v) => {
         const soon = !v.active;
         const selected = value === v.code;
@@ -35,7 +35,9 @@ export function VehiclePicker({
             disabled={soon}
             onClick={() => onChange(v.code)}
             className={[
-              'rounded-field border p-3 text-left transition',
+              // Sıkı kart: yedi araç üç satır tutuyor ve hero'daki widget bu yüzden
+              // ekrana sığmayıp kendi içinde kayıyordu. Bilgi aynı, çevresi dar.
+              'rounded-field border p-2.5 text-left transition',
               soon
                 ? 'cursor-not-allowed border-dashed border-line text-muted'
                 : selected
@@ -43,9 +45,9 @@ export function VehiclePicker({
                   : 'border-line bg-surface hover:border-muted',
             ].join(' ')}
           >
-            <VehicleGlyph code={v.code} className="size-6" />
-            <span className="mt-2 block text-sm font-semibold">{v.displayName}</span>
-            <span className={`label-mono mt-0.5 block ${selected ? 'text-[var(--route-deep)]' : 'text-muted'}`}>
+            <VehicleGlyph code={v.code} className="size-5" />
+            <span className="mt-1.5 block text-sm leading-tight font-semibold">{v.displayName}</span>
+            <span className={`label-mono block ${selected ? 'text-[var(--route-deep)]' : 'text-muted'}`}>
               {soon ? 'Yakında' : capacityLabel(v)}
             </span>
           </button>

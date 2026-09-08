@@ -169,100 +169,481 @@ export const CITIES: MapNode[] = [
   }
 ];
 
-/** Rota dışı şehirler — küçük düğüm, ağın kapsamını gösteriyor. */
-export const NETWORK_CITIES: { label: string; x: number; y: number }[] =
+/**
+ * Rota dışı iller. {@code major} olanlar etiketli ve belirgin; kalanlar kapsamı
+ * gösteren soluk noktalar.
+ */
+export const NETWORK_CITIES: { label: string; x: number; y: number; major: boolean }[] =
   [
-  {
-    label: "Bursa",
-    x: 181.3,
-    y: 159.4
-  },
-  {
-    label: "Balıkesir",
-    x: 122.8,
-    y: 194.6
-  },
-  {
-    label: "Eskişehir",
-    x: 254.4,
-    y: 186.2
-  },
-  {
-    label: "Denizli",
-    x: 182.8,
-    y: 314.6
-  },
-  {
-    label: "Antalya",
-    x: 263.9,
-    y: 371.3
-  },
-  {
-    label: "Konya",
-    x: 352.5,
-    y: 308.9
-  },
-  {
-    label: "Mersin",
-    x: 460.6,
-    y: 375.6
-  },
-  {
-    label: "Adana",
-    x: 494.7,
-    y: 363.7
-  },
-  {
-    label: "Kayseri",
-    x: 503.2,
-    y: 254.1
-  },
-  {
-    label: "Samsun",
-    x: 545.2,
-    y: 86.7
-  },
-  {
-    label: "Sivas",
-    x: 579.7,
-    y: 188.1
-  },
-  {
-    label: "Gaziantep",
-    x: 597.8,
-    y: 359.4
-  },
-  {
-    label: "Şanlıurfa",
-    x: 668.3,
-    y: 353.7
-  },
-  {
-    label: "Malatya",
-    x: 644.3,
-    y: 278.4
-  },
-  {
-    label: "Trabzon",
-    x: 714.9,
-    y: 106
-  },
-  {
-    label: "Diyarbakır",
-    x: 740.4,
-    y: 306.4
-  },
-  {
-    label: "Erzurum",
-    x: 792.5,
-    y: 178.4
-  },
-  {
-    label: "Van",
-    x: 898.1,
-    y: 269.4
-  }
-];
+    {
+      label: "Bursa",
+      x: 181.3,
+      y: 159.4,
+      major: true
+    },
+    {
+      label: "Balıkesir",
+      x: 122.8,
+      y: 194.6,
+      major: true
+    },
+    {
+      label: "Eskişehir",
+      x: 254.4,
+      y: 186.2,
+      major: true
+    },
+    {
+      label: "Denizli",
+      x: 182.8,
+      y: 314.6,
+      major: true
+    },
+    {
+      label: "Antalya",
+      x: 263.9,
+      y: 371.3,
+      major: true
+    },
+    {
+      label: "Konya",
+      x: 352.5,
+      y: 308.9,
+      major: true
+    },
+    {
+      label: "Mersin",
+      x: 460.6,
+      y: 375.6,
+      major: true
+    },
+    {
+      label: "Adana",
+      x: 494.7,
+      y: 363.7,
+      major: true
+    },
+    {
+      label: "Kayseri",
+      x: 503.2,
+      y: 254.1,
+      major: true
+    },
+    {
+      label: "Samsun",
+      x: 545.2,
+      y: 86.7,
+      major: true
+    },
+    {
+      label: "Sivas",
+      x: 579.7,
+      y: 188.1,
+      major: true
+    },
+    {
+      label: "Gaziantep",
+      x: 597.8,
+      y: 359.4,
+      major: true
+    },
+    {
+      label: "Şanlıurfa",
+      x: 668.3,
+      y: 353.7,
+      major: true
+    },
+    {
+      label: "Malatya",
+      x: 644.3,
+      y: 278.4,
+      major: true
+    },
+    {
+      label: "Trabzon",
+      x: 714.9,
+      y: 106.0,
+      major: true
+    },
+    {
+      label: "Diyarbakır",
+      x: 740.4,
+      y: 306.4,
+      major: true
+    },
+    {
+      label: "Erzurum",
+      x: 792.5,
+      y: 178.4,
+      major: true
+    },
+    {
+      label: "Van",
+      x: 898.1,
+      y: 269.4,
+      major: true
+    },
+    {
+      label: "Adıyaman",
+      x: 642.8,
+      y: 315.9,
+      major: false
+    },
+    {
+      label: "Afyonkarahisar",
+      x: 255.4,
+      y: 252.1,
+      major: false
+    },
+    {
+      label: "Ağrı",
+      x: 881.6,
+      y: 190.1,
+      major: false
+    },
+    {
+      label: "Aksaray",
+      x: 430.1,
+      y: 277.1,
+      major: false
+    },
+    {
+      label: "Amasya",
+      x: 520.2,
+      y: 129.2,
+      major: false
+    },
+    {
+      label: "Ardahan",
+      x: 864.0,
+      y: 98.7,
+      major: false
+    },
+    {
+      label: "Artvin",
+      x: 820.0,
+      y: 94.1,
+      major: false
+    },
+    {
+      label: "Aydın",
+      x: 120.8,
+      y: 310.2,
+      major: false
+    },
+    {
+      label: "Bartın",
+      x: 345.5,
+      y: 63.4,
+      major: false
+    },
+    {
+      label: "Batman",
+      x: 785.5,
+      y: 307.6,
+      major: false
+    },
+    {
+      label: "Bayburt",
+      x: 740.4,
+      y: 154.8,
+      major: false
+    },
+    {
+      label: "Bilecik",
+      x: 227.4,
+      y: 162.7,
+      major: false
+    },
+    {
+      label: "Bingöl",
+      x: 753.9,
+      y: 244.4,
+      major: false
+    },
+    {
+      label: "Bitlis",
+      x: 834.5,
+      y: 275.2,
+      major: false
+    },
+    {
+      label: "Bolu",
+      x: 309.0,
+      y: 123.2,
+      major: false
+    },
+    {
+      label: "Burdur",
+      x: 242.9,
+      y: 318.4,
+      major: false
+    },
+    {
+      label: "Çanakkale",
+      x: 48.7,
+      y: 162.0,
+      major: false
+    },
+    {
+      label: "Çankırı",
+      x: 409.6,
+      y: 132.5,
+      major: false
+    },
+    {
+      label: "Çorum",
+      x: 476.1,
+      y: 135.7,
+      major: false
+    },
+    {
+      label: "Düzce",
+      x: 286.4,
+      y: 116.6,
+      major: false
+    },
+    {
+      label: "Edirne",
+      x: 56.2,
+      y: 60.7,
+      major: false
+    },
+    {
+      label: "Elazığ",
+      x: 689.9,
+      y: 257.3,
+      major: false
+    },
+    {
+      label: "Erzincan",
+      x: 703.4,
+      y: 188.1,
+      major: false
+    },
+    {
+      label: "Giresun",
+      x: 648.3,
+      y: 112.0,
+      major: false
+    },
+    {
+      label: "Gümüşhane",
+      x: 702.9,
+      y: 141.7,
+      major: false
+    },
+    {
+      label: "Hakkari",
+      x: 916.1,
+      y: 327.3,
+      major: false
+    },
+    {
+      label: "Hatay",
+      x: 536.7,
+      y: 413.6,
+      major: false
+    },
+    {
+      label: "Iğdır",
+      x: 931.1,
+      y: 177.1,
+      major: false
+    },
+    {
+      label: "Isparta",
+      x: 255.9,
+      y: 315.2,
+      major: false
+    },
+    {
+      label: "Kahramanmaraş",
+      x: 575.7,
+      y: 327.3,
+      major: false
+    },
+    {
+      label: "Karabük",
+      x: 359.5,
+      y: 92.7,
+      major: false
+    },
+    {
+      label: "Karaman",
+      x: 389.6,
+      y: 352.4,
+      major: false
+    },
+    {
+      label: "Kars",
+      x: 884.1,
+      y: 132.5,
+      major: false
+    },
+    {
+      label: "Kastamonu",
+      x: 417.6,
+      y: 80.7,
+      major: false
+    },
+    {
+      label: "Kilis",
+      x: 584.8,
+      y: 381.3,
+      major: false
+    },
+    {
+      label: "Kırıkkale",
+      x: 404.1,
+      y: 181.6,
+      major: false
+    },
+    {
+      label: "Kırklareli",
+      x: 89.2,
+      y: 56.6,
+      major: false
+    },
+    {
+      label: "Kırşehir",
+      x: 436.6,
+      y: 227.0,
+      major: false
+    },
+    {
+      label: "Kocaeli",
+      x: 224.4,
+      y: 121.2,
+      major: false
+    },
+    {
+      label: "Kütahya",
+      x: 227.4,
+      y: 209.6,
+      major: false
+    },
+    {
+      label: "Manisa",
+      x: 99.8,
+      y: 261.1,
+      major: false
+    },
+    {
+      label: "Mardin",
+      x: 765.9,
+      y: 344.3,
+      major: false
+    },
+    {
+      label: "Muğla",
+      x: 146.3,
+      y: 349.9,
+      major: false
+    },
+    {
+      label: "Muş",
+      x: 816.5,
+      y: 254.1,
+      major: false
+    },
+    {
+      label: "Nevşehir",
+      x: 464.1,
+      y: 261.1,
+      major: false
+    },
+    {
+      label: "Niğde",
+      x: 462.6,
+      y: 302.6,
+      major: false
+    },
+    {
+      label: "Ordu",
+      x: 622.8,
+      y: 107.3,
+      major: false
+    },
+    {
+      label: "Osmaniye",
+      x: 541.2,
+      y: 359.4,
+      major: false
+    },
+    {
+      label: "Rize",
+      x: 754.9,
+      y: 104.7,
+      major: false
+    },
+    {
+      label: "Sakarya",
+      x: 248.4,
+      y: 120.6,
+      major: false
+    },
+    {
+      label: "Siirt",
+      x: 826.0,
+      y: 305.1,
+      major: false
+    },
+    {
+      label: "Sinop",
+      x: 486.2,
+      y: 37.2,
+      major: false
+    },
+    {
+      label: "Şırnak",
+      x: 852.0,
+      y: 331.0,
+      major: false
+    },
+    {
+      label: "Tekirdağ",
+      x: 103.8,
+      y: 107.3,
+      major: false
+    },
+    {
+      label: "Tokat",
+      x: 556.2,
+      y: 151.5,
+      major: false
+    },
+    {
+      label: "Tunceli",
+      x: 705.9,
+      y: 229.6,
+      major: false
+    },
+    {
+      label: "Uşak",
+      x: 198.9,
+      y: 257.3,
+      major: false
+    },
+    {
+      label: "Yalova",
+      x: 192.3,
+      y: 129.2,
+      major: false
+    },
+    {
+      label: "Yozgat",
+      x: 469.1,
+      y: 183.6,
+      major: false
+    },
+    {
+      label: "Zonguldak",
+      x: 318.0,
+      y: 76.1,
+      major: false
+    }
+  ];
 
 export const ISTANBUL_NODES: MapNode[] = [
   {

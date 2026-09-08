@@ -44,7 +44,11 @@ describe('projectLonLat', () => {
 
 describe('ağ şehirleri', () => {
   it('hepsi harita kutusunun içinde ve rota şehirleriyle çakışmıyor', () => {
-    expect(NETWORK_CITIES.length).toBeGreaterThan(10);
+    // 81 il: üçü rota şehri, kalanı ağ. Liste eksilirse harita "81 il" iddiasını
+    // karşılamayı bırakır.
+    expect(NETWORK_CITIES.length + CITIES.length).toBe(81);
+    expect(NETWORK_CITIES.filter((c) => c.major).length).toBeGreaterThan(10);
+    expect(NETWORK_CITIES.filter((c) => !c.major).length).toBeGreaterThan(30);
     const routeIds = new Set(CITIES.map((c) => c.label));
     for (const city of NETWORK_CITIES) {
       expect(routeIds.has(city.label)).toBe(false);
@@ -53,5 +57,9 @@ describe('ağ şehirleri', () => {
       expect(city.y).toBeGreaterThan(0);
       expect(city.y).toBeLessThan(MAP_BOX.h);
     }
+
+    // Aynı il iki kez çizilmesin: üst üste binen noktalar tek bir parlak leke yapar
+    const labels = NETWORK_CITIES.map((c) => c.label);
+    expect(new Set(labels).size).toBe(labels.length);
   });
 });

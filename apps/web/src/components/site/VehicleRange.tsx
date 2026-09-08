@@ -1,4 +1,5 @@
 import type { VehicleType } from '@tasiyoruz/contracts';
+import { MobileClamp } from './MobileClamp';
 import { Reveal } from './Reveal';
 import { VehicleGlyph } from './VehicleGlyph';
 
@@ -46,6 +47,7 @@ export function VehicleRange({ vehicles }: { vehicles: VehicleType[] }) {
           </p>
         </Reveal>
 
+        <MobileClamp maxHeight="27rem" moreLabel="Yedi aracın hepsini gör">
         <div className="mt-8 grid grid-cols-2 gap-3 lg:grid-cols-3">
           {vehicles.map((vehicle, i) => {
             const soon = !vehicle.active;
@@ -84,6 +86,7 @@ export function VehicleRange({ vehicles }: { vehicles: VehicleType[] }) {
             );
           })}
         </div>
+        </MobileClamp>
       </div>
     </section>
   );

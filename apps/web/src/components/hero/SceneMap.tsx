@@ -153,12 +153,20 @@ export function SceneMap({
           style={{ strokeDasharray: 1, strokeDashoffset: 'calc(1 - var(--loaded, 0))' }}
         />
 
-        {/* Ağın geri kalanı: rotaya dahil olmayan iller. Küçük ve sabit —
-            kaydırmayla aktifleşmiyorlar, haritanın Türkiye olduğunu ve kapsamın
-            81 il olduğunu söylüyorlar. */}
-        {NETWORK_CITIES.map((city) => (
-          <g key={city.label} opacity={0.5}>
-            <circle cx={city.x} cy={city.y} r={2.6} fill="var(--route)" />
+        {/* Rota dışı iller, iki kademede. Kaydırmayla aktifleşmiyorlar; haritanın
+            Türkiye olduğunu ve kapsamın 81 il olduğunu söylüyorlar.
+
+            Kademe ayrımı gerekiyordu: hepsi aynı parlaklıkta çizilince harita
+            eşit ağırlıkta noktalardan oluşan bir takımyıldıza dönüyor, rota ve
+            büyükşehirler arasından sıyrılamıyordu. Küçük iller artık arka planda
+            doku; okunmak için değil kapsamı göstermek için oradalar. */}
+        {NETWORK_CITIES.filter((c) => !c.major).map((city) => (
+          <circle key={city.label} cx={city.x} cy={city.y} r={1.5} fill="#fff" opacity={0.16} />
+        ))}
+
+        {NETWORK_CITIES.filter((c) => c.major).map((city) => (
+          <g key={city.label} opacity={0.42}>
+            <circle cx={city.x} cy={city.y} r={2.4} fill="var(--route)" />
             {!compact && (
               <text
                 x={city.x}
@@ -166,7 +174,7 @@ export function SceneMap({
                 textAnchor="middle"
                 fill="#fff"
                 fontSize={10}
-                opacity={0.55}
+                opacity={0.5}
                 letterSpacing="0.02em"
               >
                 {city.label}
