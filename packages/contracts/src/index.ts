@@ -160,6 +160,31 @@ export type ListingPlace = {
 };
 
 /** İlana yazılmış yük kalemi — katalogdan kopyalanmış hâliyle. */
+/**
+ * Açık bir ilanın herkese açık hâli.
+ *
+ * Rota, araç, büyüklük ve tarife tahmini var; fotoğraf, açıklama, kalem dökümü,
+ * kat/asansör ve yük verenin kimliği yok — onlar onaylı araç sahibine açılıyor.
+ */
+export type PublicListingView = {
+  id: string;
+  fromCity: string;
+  fromDistrict: string;
+  fromDistrictId: string;
+  toCity: string;
+  toDistrict: string;
+  toDistrictId: string;
+  vehicleTypeCode: string;
+  distanceKm: number;
+  pieceCount: number;
+  volumeM3: number;
+  estimatedAmount: number;
+  offerCount: number;
+  serviceModel: 'INSTANT' | 'SCHEDULED';
+  publishedAt: string;
+  expiresAt: string;
+};
+
 export type DeclaredItem = {
   itemCode: string;
   displayName: string;

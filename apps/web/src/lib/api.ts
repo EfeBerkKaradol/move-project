@@ -1,6 +1,7 @@
 import type {
   CargoCategory,
   PublicCorridorView,
+  PublicListingView,
   CargoDeclarationRequest,
   CargoItem,
   CargoPreset,
@@ -97,6 +98,18 @@ export const getCargoPresets = () => get<CargoPreset[]>('/cargo-presets');
 export const getDistricts = () => get<District[]>('/districts');
 /** Ana sayfa sayaçları; API kapalıysa null döner ve arayüz tire gösterir. */
 export const getCorridors = () => get<PublicCorridorView[]>('/corridors', 60);
+
+/**
+ * Açık ilanlar. Sayaçlarla aynı tazelik: bir dakikalık gecikme ilan panosunda
+ * fark edilmiyor, her ziyaretin çekirdek tabloya sorgu atması fark ediyor.
+ */
+export const getPublicListings = (params: { vehicleType?: string; city?: string } = {}) => {
+  const query = new URLSearchParams();
+  if (params.vehicleType) query.set('vehicleType', params.vehicleType);
+  if (params.city) query.set('city', params.city);
+  const suffix = query.size > 0 ? `?${query}` : '';
+  return get<PublicListingView[]>(`/listings${suffix}`, 60);
+};
 export const getPublicStats = () => get<PublicStatsView>('/stats', 60);
 export const getExtraServices = () => get<ExtraService[]>('/extra-services');
 

@@ -14,6 +14,46 @@ import { useId, useMemo, useState } from 'react';
  * aramak istemiyor. Adet artırıcıları büyük: aynı kalemden sekiz koli seçmek
  * sekiz ayrı satır eklemek olmamalı.
  */
+/**
+ * Önce gösterilen kalemler.
+ *
+ * <p>Katalogda otuza yakın eşya var ve telefonda hepsini dökmek sayfayı beş ekran
+ * uzatıyordu. Bu liste editoryal — katalogda "ne sıklıkta seçildiği" diye bir alan
+ * yok ve uydurmak yerine ev taşımasının bilinen çekirdeğini yazdık. Veri birikince
+ * gerçek sıklıkla değiştirilecek.
+ *
+ * <p>Komple yük kalemleri de burada: kamyon seçen kullanıcı koli aramıyor, paleti
+ * ilk ekranda görmesi gerekiyor.
+ */
+const COMMON_ITEMS = [
+  'KOLI_STANDART', 'KOLI_BUYUK',
+  'KOLTUK_3LU', 'KOLTUK_2LI', 'KOLTUK_TEKLI',
+  'YATAK_CIFT', 'BAZA_CIFT', 'GARDIROP_2KAPI',
+  'BUZDOLABI_NOFROST', 'CAMASIR_MAKINESI', 'CALISMA_MASASI',
+  'PALET_EURO', 'PALET_SANAYI', 'KARISIK_KARGO', 'MAKINE_EKIPMAN',
+];
+
+export type ItemSection = { key: string; title: string; items: CargoItem[] };
+
+/**
+ * Kısa görünüm: seçilenler, sonra sık seçilenler.
+ *
+ * <p>Seçilenler üstte kalıyor — katlanmış listede kaybolsalardı kullanıcı ne
+ * seçtiğini doğrulamak için tüm listeyi açmak zorunda kalırdı. Zaten seçilmiş bir
+ * kalem "sık seçilenler"de tekrar edilmiyor; aynı eşyanın iki satırda iki farklı
+ * adetle görünmesi kimseye bir şey anlatmaz.
+ */
+export function shortSections(items: CargoItem[], selected: Record<string, number>): ItemSection[] {
+  const chosen = items.filter((i) => (selected[i.code] ?? 0) > 0);
+  const chosenCodes = new Set(chosen.map((i) => i.code));
+  const common = items.filter((i) => COMMON_ITEMS.includes(i.code) && !chosenCodes.has(i.code));
+
+  return [
+    chosen.length > 0 ? { key: 'secilen', title: 'Seçtiklerin', items: chosen } : null,
+    common.length > 0 ? { key: 'sik', title: 'Sık seçilenler', items: common } : null,
+  ].filter((s) => s !== null);
+}
+
 export function CargoDeclaration({
   items,
   categories,
@@ -28,6 +68,7 @@ export function CargoDeclaration({
   onChange: (next: Record<string, number>) => void;
 }) {
   const [query, setQuery] = useState('');
+  const [showAll, setShowAll] = useState(false);
   const searchId = useId();
 
   const categoryName = useMemo(
@@ -47,17 +88,27 @@ export function CargoDeclaration({
     return q ? items.filter((i) => normalize(i.displayName).includes(q)) : items;
   }, [items, query]);
 
-  const grouped = useMemo(() => {
-    const byCategory = new Map<string, CargoItem[]>();
-    for (const item of visible) {
-      const list = byCategory.get(item.categoryCode) ?? [];
-      list.push(item);
-      byCategory.set(item.categoryCode, list);
+  // Arama yapılırken kısaltmanın anlamı yok: kullanıcı zaten belirli bir şeyi arıyor
+  const searching = query.trim().length > 0;
+  const showFullList = searching || showAll;
+
+  const sections = useMemo(() => {
+    if (showFullList) {
+      const byCategory = new Map<string, CargoItem[]>();
+      for (const item of visible) {
+        const list = byCategory.get(item.categoryCode) ?? [];
+        list.push(item);
+        byCategory.set(item.categoryCode, list);
+      }
+      return [...byCategory.entries()]
+        .sort(([a], [b]) => (categoryOrder.get(a) ?? 0) - (categoryOrder.get(b) ?? 0))
+        .map(([code, group]) => ({ key: code, title: categoryName.get(code) ?? code, items: group }));
     }
-    return [...byCategory.entries()].sort(
-      ([a], [b]) => (categoryOrder.get(a) ?? 0) - (categoryOrder.get(b) ?? 0),
-    );
-  }, [visible, categoryOrder]);
+
+    return shortSections(items, selected);
+  }, [showFullList, visible, categoryOrder, categoryName, items, selected]);
+
+  const hiddenCount = items.length - sections.reduce((sum, s) => sum + s.items.length, 0);
 
   const totals = useMemo(() => summarize(items, selected), [items, selected]);
   const warning = fitWarning(totals, vehicle);
@@ -96,7 +147,7 @@ export function CargoDeclaration({
         className="mt-3 min-h-11 w-full rounded-field border border-line bg-surface-2 px-3.5 py-2.5 text-[15px] outline-none placeholder:text-muted transition hover:border-muted focus:border-route focus:ring-2 focus:ring-route/25"
       />
 
-      {grouped.length === 0 ? (
+      {sections.length === 0 ? (
         <p className="mt-4 text-sm text-muted">
           Aramana uyan eşya yok. Listede olmayan bir şey taşıyorsan{' '}
           <strong className="font-semibold text-ink">Diğer</strong> kalemini seçip aşağıdaki
@@ -113,16 +164,16 @@ export function CargoDeclaration({
             'pointer-fine:max-h-96 pointer-fine:overflow-y-auto',
           ].join(' ')}
         >
-          {grouped.map(([code, group]) => (
-            <section key={code}>
+          {sections.map((section) => (
+            <section key={section.key}>
               {/* Dokunmatikte liste akışta olduğu için başlık sayfaya yapışıyor ve
                   site başlığının altında durması gerekiyor; fareyle kaydırılan
                   kutunun içinde ise kutunun tepesine. */}
               <h3 className="label-mono sticky top-18 z-1 border-b border-line bg-surface-2 px-3 py-2 text-muted pointer-fine:top-0">
-                {categoryName.get(code) ?? code}
+                {section.title}
               </h3>
               <ul>
-                {group.map((item) => {
+                {section.items.map((item) => {
                   const quantity = selected[item.code] ?? 0;
                   return (
                     <li
@@ -152,6 +203,20 @@ export function CargoDeclaration({
             </section>
           ))}
         </div>
+      )}
+
+      {/* Kısa liste bir kestirme, bir sınır değil: katalogda ne kaldığı sayıyla
+          yazılıyor ki kullanıcı aradığı eşyanın yok sanmasın. Arama sırasında
+          düğme çıkmıyor — orada zaten tüm katalog taranıyor. */}
+      {!searching && (
+        <button
+          type="button"
+          onClick={() => setShowAll((open) => !open)}
+          aria-expanded={showAll}
+          className="mt-3 inline-flex min-h-11 items-center gap-1.5 rounded-field border border-line px-4 text-sm font-semibold transition hover:border-route hover:bg-surface-2"
+        >
+          {showAll ? 'Kısa listeye dön' : `Tüm eşya listesi${hiddenCount > 0 ? ` (${hiddenCount} kalem daha)` : ''}`}
+        </button>
       )}
 
       {warning && (

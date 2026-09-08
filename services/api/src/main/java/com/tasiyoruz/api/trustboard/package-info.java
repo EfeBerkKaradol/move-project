@@ -9,6 +9,9 @@
  */
 @org.springframework.modulith.ApplicationModule(
         displayName = "Güven Panosu",
-        allowedDependencies = { "fleet::api", "ordering::api" }
+        // pricing::api gizli bir bağımlılık değil, ordering::api'nin kendi
+        // sözleşmesinin parçası: ListingView tutarları Money olarak veriyor.
+        // İlan panosu tarife tahminini yayınladığı için bu tipe dokunuyor.
+        allowedDependencies = { "fleet::api", "ordering::api", "pricing::api" }
 )
 package com.tasiyoruz.api.trustboard;

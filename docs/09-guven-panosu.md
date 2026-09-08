@@ -162,10 +162,8 @@ tek hamlede harcar.
 
 **Uç:** `GET /api/v1/public/corridors` · **Modül:** `trustboard`
 
-Ana sayfada "şu an nerede iş var?" sorusunu cevaplayan bölüm. Tek tek ilan
-**yayınlanmıyor**: ADR-0008 devam eden siparişlerin herkese açık gösterilmesini
-reddediyor — açık bir ilanı yayınlamak "şu anda şu semtteki şu ev boşaltılacak"
-demek ve hiçbir gecikme bunu güvenli yapmıyor.
+Ana sayfada "şu an nerede iş var?" sorusunu cevaplayan bölüm. Burada tek tek ilan
+yok — kartlar `/ilanlar` sayfasına götürüyor (aşağıdaki ek).
 
 Yayınlanan şey toplu ve kimliksiz:
 
@@ -186,3 +184,54 @@ sinyal — "bu hatta yük var mı?" — bu düzeyde zaten karşılanıyor.
 Veri `ordering::api`'den canlı okunup 60 saniye önbelleklıyor; sayaçlarla aynı
 gerekçe (herkese açık trafik çekirdek tablolara yüklenmesin). Gerçek projeksiyona
 geçilirken bu uç da oraya taşınacak.
+
+## Ek — Açık ilanlar sayfası (`/ilanlar`)
+
+**Uç:** `GET /api/v1/public/listings` · **Modül:** `trustboard`
+
+Koridor sayaçları "bu hatta iş var" diyordu ama araç sahibi adayına işin neye
+benzediğini göstermiyordu. Kaydolmadan önce ürünün boş olmadığını görmek istiyor;
+başvuru sayfasına götürmek, hiç görmediği bir ürün için belge yüklemesini istemek
+oluyordu. Bu sayfa açık ilanları tek tek gösteriyor.
+
+### Kararın kendisi
+
+Bu, daha önce bu dokümanda yazılanın **değiştirilmesidir**. Koridor bölümü
+eklenirken tek tek ilan yayınlamak reddedilmişti; ürün kararı bunu ilçe düzeyinde
+serbest bıraktı. Gerekçe ayrımı şu:
+
+| | Devam eden sipariş | Açık ilan |
+|---|---|---|
+| Ortada araç var mı | Atanmış, yolda | Yok |
+| İş başladı mı | Başladı | Başlamadı |
+| Adres belli mi | Belli, taşıyıcıda | Henüz kimseye açılmadı |
+
+ADR-0008'in reddettiği şey **yürüyen bir taşımanın** herkese açık gösterilmesi:
+"şu anda şu evden eşya çıkıyor" sinyali. Açık ilan bunun öncesi — henüz üstlenen
+kimse yok, kimse kapıda beklemiyor. Sınır: **üstlenilmiş iş bu yüzeyde hiçbir
+zaman görünmüyor.** İlan `AWARDED` olduğu anda listeden düşüyor; test bunu
+koruyor (`isVerilenIlanYayindanDuser`).
+
+### Yayınlanan ve yayınlanmayan
+
+| Yayınlanan | Yayınlanmayan |
+|---|---|
+| Alış ve teslim ili + ilçesi | Adres, kat, asansör |
+| Araç tipi, mesafe | Yükün fotoğrafları |
+| Toplam parça sayısı ve hacim | Kalem dökümü (eşya envanteri) |
+| Tarife tahmini, teklif sayısı | Yük verenin kimliği, açıklama metni |
+| Yayın ve bitiş zamanı | İlan numarası |
+
+Gizleme arayüzde değil **uçta**: `PublicListingView` bu alanları hiç taşımıyor.
+Bir test kaydın alan listesini birebir doğruluyor
+(`herkeseAcikKayitYalnizcaIzinVerilenAlanlariTasir`) — sözleşmenin sessizce
+genişlemesi kırılma üretir, unutulmuş bir sızıntı değil.
+
+Parça sayısı ve hacim kalem dökümünün yerine geçiyor: araç sahibinin ihtiyacı
+"bu iş benim aracıma sığar mı", bunun için toplam yeterli. "1 piyano, 2 gardırop"
+yazmak bir evin envanterini yayınlamak olurdu.
+
+Teklif için gereken her şey — fotoğraf, kalem listesi, kat ve asansör — onaylı
+araç sahibine `/nakliyeci/ilan/{id}` üzerinden açılıyor (docs/08 §8).
+
+60 saniye önbellekli, sayaçlarla aynı gerekçe.

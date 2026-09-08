@@ -14,12 +14,14 @@ import { getVehicleTypes } from '@/lib/api';
 export default async function HomePage() {
   const [vehicles, session] = await Promise.all([getVehicleTypes(), auth()]);
 
-  // Araç sahibi tarafının hedefi kullanıcıya göre: onaylı sürücü panele,
-  // diğer herkes önce taşıyıcı olma akışına gider.
-  const carrierHref =
-    session && session.error !== 'RefreshFailed' && isDriver(session.roles ?? [])
-      ? '/nakliyeci'
-      : '/sofor-ol';
+  const driver = !!session && session.error !== 'RefreshFailed' && isDriver(session.roles ?? []);
+
+  // İki ayrı hedef. "Yük bul" işi göstermek demek: onaylı sürücü kendi paneline,
+  // diğer herkes herkese açık ilan panosuna gider — ürünü hiç görmemiş birinden
+  // önce belge yüklemesini istemek duvara toslatıyordu.
+  const carrierBoardHref = driver ? '/nakliyeci' : '/ilanlar';
+  // "Şoför olarak katıl" ise başvurunun kendisi; o hep başvuru akışına gider.
+  const carrierJoinHref = driver ? '/nakliyeci' : '/sofor-ol';
   const shipperHref = '/fiyat-hesapla';
 
   return (
@@ -28,15 +30,15 @@ export default async function HomePage() {
       <main>
         <Hero
           shipperHref={shipperHref}
-          carrierHref={carrierHref}
+          carrierHref={carrierBoardHref}
           widget={vehicles?.length ? <QuoteWidget vehicles={vehicles} tone="scene" /> : null}
         />
         <HowItWorks />
-        {/* Anlatının hemen ardından: ürünün çalıştığının kanıtı. Koridor düzeyinde
-            ve yalnızca sayı — tek tek ilan yayınlamak ADR-0008'de reddedildi. */}
-        <ActiveCorridors carrierHref={carrierHref} />
+        {/* Anlatının hemen ardından: ürünün çalıştığının kanıtı. Burada koridor ve
+            sayı yeterli; kartlar ilanların kendisine (/ilanlar) götürüyor. */}
+        <ActiveCorridors />
         <SearchSection vehicles={vehicles ?? []} />
-        <TwoSidedMarket shipperHref={shipperHref} carrierHref={carrierHref} />
+        <TwoSidedMarket shipperHref={shipperHref} carrierHref={carrierJoinHref} />
         <VehicleRange vehicles={vehicles ?? []} />
         <TrustSection />
       </main>

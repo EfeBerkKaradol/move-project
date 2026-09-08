@@ -1,6 +1,6 @@
 import type { CargoItem, VehicleType } from '@tasiyoruz/contracts';
 import { describe, expect, it } from 'vitest';
-import { fitWarning, summarize } from './CargoDeclaration';
+import { fitWarning, shortSections, summarize } from './CargoDeclaration';
 
 const item = (over: Partial<CargoItem>): CargoItem => ({
   code: 'X', categoryCode: 'TEKIL_ESYA', displayName: 'X',
@@ -65,5 +65,52 @@ describe('araç uyarısı', () => {
   it('uzunluk sorunu ağırlığın önüne geçer', () => {
     const warning = fitWarning(summarize(ITEMS, { KOLTUK_L: 1, KOLI_STANDART: 200 }), vehicle({ payloadKg: 100 }));
     expect(warning).toContain('cm');
+  });
+});
+
+describe('kısa liste', () => {
+  const KATALOG = [
+    item({ code: 'KOLI_STANDART', displayName: 'Standart koli' }),
+    item({ code: 'KOLTUK_3LU', displayName: 'Üçlü koltuk' }),
+    item({ code: 'PIYANO_DUVAR', displayName: 'Piyano' }),
+    item({ code: 'BISIKLET', displayName: 'Bisiklet' }),
+    item({ code: 'BUZDOLABI_NOFROST', displayName: 'Buzdolabı' }),
+  ];
+
+  it('yalnızca sık seçilenleri gösterir, nadir kalemleri saklar', () => {
+    const kodlar = shortSections(KATALOG, {}).flatMap((s) => s.items.map((i) => i.code));
+    expect(kodlar).toContain('KOLI_STANDART');
+    expect(kodlar).toContain('BUZDOLABI_NOFROST');
+    // Piyano ve bisiklet katalogda var ama ilk ekranda değil
+    expect(kodlar).not.toContain('PIYANO_DUVAR');
+    expect(kodlar).not.toContain('BISIKLET');
+  });
+
+  /** Seçtiği eşya katlanmış listede kaybolursa kullanıcı onaylamak için listeyi açmak zorunda kalır. */
+  it('seçilen nadir kalem üste taşınır', () => {
+    const bolumler = shortSections(KATALOG, { PIYANO_DUVAR: 1 });
+    expect(bolumler[0].title).toBe('Seçtiklerin');
+    expect(bolumler[0].items.map((i) => i.code)).toEqual(['PIYANO_DUVAR']);
+  });
+
+  it('seçilen kalem sık seçilenlerde tekrar etmez', () => {
+    const bolumler = shortSections(KATALOG, { KOLI_STANDART: 4 });
+    const sik = bolumler.find((s) => s.title === 'Sık seçilenler');
+    expect(sik?.items.map((i) => i.code)).not.toContain('KOLI_STANDART');
+    expect(bolumler.find((s) => s.title === 'Seçtiklerin')?.items).toHaveLength(1);
+  });
+
+  it('hiç seçim yokken "Seçtiklerin" bölümü çizilmez', () => {
+    expect(shortSections(KATALOG, {}).map((s) => s.title)).toEqual(['Sık seçilenler']);
+  });
+
+  /** Komple yük katalogunda ev eşyası yok; kısa liste yine boş kalmamalı. */
+  it('komple yük kaleminde de çalışır', () => {
+    const komple = [
+      item({ code: 'PALET_EURO', categoryCode: 'KOMPLE' }),
+      item({ code: 'TOMRUK', categoryCode: 'KOMPLE' }),
+    ];
+    const kodlar = shortSections(komple, {}).flatMap((s) => s.items.map((i) => i.code));
+    expect(kodlar).toContain('PALET_EURO');
   });
 });

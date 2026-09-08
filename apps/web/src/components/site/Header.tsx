@@ -10,9 +10,10 @@ export async function Header({ overlay = false }: { overlay?: boolean } = {}) {
   const signedIn = !!session && session.error !== 'RefreshFailed';
   const roles = session?.roles ?? [];
 
-  // "Yük bul" araç sahibinin işi: sürücüyse doğrudan panele, değilse taşıyıcı
-  // olma sayfasına. Girişe zorlamak, ürünü henüz görmemiş birini duvara toslatır.
-  const carrierHref = signedIn && isDriver(roles) ? '/nakliyeci' : '/sofor-ol';
+  // "Yük bul" araç sahibinin işi: sürücüyse doğrudan panele, değilse herkese açık
+  // ilan panosuna. Önce başvuru sayfasına götürmek, ürünü hiç görmemiş birinden
+  // belge yüklemesini istemek oluyordu; ilanları görüp sonra karar versin.
+  const carrierHref = signedIn && isDriver(roles) ? '/nakliyeci' : '/ilanlar';
 
   const nav = [
     { href: '/fiyat-hesapla', label: 'Yük ver' },
