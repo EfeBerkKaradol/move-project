@@ -59,7 +59,7 @@ export function Footer() {
                       {/* Dokunma hedefleri en az 44px (docs/01) */}
                       <Link
                         href={link.href}
-                        className="block py-2.5 text-sm text-muted transition hover:text-ink"
+                        className="flex items-center py-2.5 text-sm text-muted transition hover:text-ink pointer-coarse:min-h-11"
                       >
                         {link.label}
                       </Link>

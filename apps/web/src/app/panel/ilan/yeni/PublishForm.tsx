@@ -6,6 +6,40 @@ import { publishListing, type ActionState } from '../../actions';
 import { CargoDeclaration, summarize } from './CargoDeclaration';
 import { CargoPhotos } from './CargoPhotos';
 
+/**
+ * Yayınla düğmesi.
+ *
+ * <p>Devre dışıyken sebebi yazılıyor: gerekçesiz gri bir düğme, kullanıcıyı neyi
+ * eksik bıraktığını arayarak sayfada dolaştırıyor. Dar ekranda sebep alt çubukta
+ * durduğu için burada tekrarlanmıyor.
+ */
+function SubmitButton({
+  pending, missing, showReason = false, className = 'mt-5 w-full px-6 py-4',
+}: {
+  pending: boolean;
+  missing: { short: string; long: string }[];
+  /** Eksiklerin altta yazılıp yazılmayacağı; dar ekranda sebep zaten çubukta. */
+  showReason?: boolean;
+  className?: string;
+}) {
+  return (
+    <>
+      <button
+        type="submit"
+        disabled={pending || missing.length > 0}
+        className={`min-h-11 rounded-field bg-route font-bold text-[var(--route-ink)] transition hover:bg-[var(--route-hover)] hover:shadow-[0_6px_18px_rgb(244_159_44_/_0.30)] active:translate-y-px disabled:opacity-60 ${className}`}
+      >
+        {pending ? 'Yayınlanıyor…' : 'İlanı yayınla'}
+      </button>
+      {showReason && missing.length > 0 && (
+        <p className="mt-2 text-center text-xs text-muted">
+          Yayınlamak için {missing.map((m) => m.long).join(' ve ')}.
+        </p>
+      )}
+    </>
+  );
+}
+
 export function PublishForm({
   pickup, dropoff, vehicle, extras, cargoItems, cargoCategories, initial,
 }: {
@@ -28,13 +62,19 @@ export function PublishForm({
   const chosenExtras = extras.filter((e) => initial.extraServices.includes(e.code));
 
   const totals = summarize(cargoItems, selected);
+  // İki biçim: yan panelde eylem cümlesi, dar ekrandaki çubukta tek satıra sığan
+  // kısa hâli. Uzun metin çubukta iki satıra taşıp düğmeyi sıkıştırıyordu.
   const missing = [
-    totals.pieces === 0 ? 'yükünü seç' : null,
-    photoIds.length === 0 ? 'en az bir fotoğraf ekle' : null,
-  ].filter(Boolean);
+    totals.pieces === 0 ? { short: 'yük', long: 'yükünü seç' } : null,
+    photoIds.length === 0 ? { short: 'fotoğraf', long: 'en az bir fotoğraf ekle' } : null,
+  ].filter((m) => m !== null);
 
   return (
-    <form action={action} className="grid gap-6 lg:grid-cols-[minmax(0,1.2fr)_minmax(0,1fr)]">
+    <form
+      action={action}
+      // Alt çubuk sabit; olmasaydı formun son satırı onun altında kalırdı
+      className="grid gap-6 pb-28 lg:grid-cols-[minmax(0,1.2fr)_minmax(0,1fr)] lg:pb-0"
+    >
       <input type="hidden" name="serviceModel" value={initial.serviceModel} />
       <input type="hidden" name="vehicleTypeCode" value={vehicle.code} />
       <input type="hidden" name="pickupDistrictId" value={pickup.id} />
@@ -108,19 +148,32 @@ export function PublishForm({
         )}
 
         {state.error && <p className="mt-4 rounded-field bg-[#fbe9e7] px-3 py-2 text-sm text-[#8a2a1f]">{state.error}</p>}
-        <button type="submit" disabled={pending || missing.length > 0}
-          className="mt-5 w-full rounded-field bg-route px-6 py-4 font-bold text-[var(--route-ink)] transition hover:bg-[var(--route-hover)] hover:shadow-[0_6px_18px_rgb(244_159_44_/_0.30)] active:translate-y-px disabled:opacity-60">
-          {pending ? 'Yayınlanıyor…' : 'İlanı yayınla'}
-        </button>
-        {/* Devre dışı düğmeyi açıklamak şart: sebebi yazmayan gri bir düğme, kullanıcıyı
-            neyi eksik bıraktığını arayarak sayfada dolaştırıyor */}
-        {missing.length > 0 && (
-          <p className="mt-2 text-center text-xs text-muted">
-            Yayınlamak için {missing.join(' ve ')}.
-          </p>
-        )}
+
+        {/* Geniş ekranda düğme burada; dar ekranda alttaki sabit çubukta. İkisi aynı
+            anda görünmüyor, biri display:none olduğu için erişilebilirlik ağacında da
+            tek düğme kalıyor. */}
+        <div className="hidden lg:block">
+          <SubmitButton pending={pending} missing={missing} showReason />
+        </div>
         <p className="label-mono mt-3 text-center text-muted">Komisyon dahil · Teslimatta ödeme</p>
       </aside>
+
+      {/* Telefon ve tablette yayınla düğmesi ekranın altında sabit duruyor: eşya listesi
+          uzun, düğme formun sonundayken kullanıcı her seçimden sonra sayfanın dibine
+          inip geri çıkmak zorunda kalıyordu. */}
+      <div
+        className="fixed inset-x-0 bottom-0 z-40 border-t border-line bg-surface px-4 pt-3 lg:hidden"
+        style={{ paddingBottom: 'calc(0.75rem + env(safe-area-inset-bottom))' }}
+      >
+        <div className="mx-auto flex max-w-5xl items-center gap-3">
+          <p className="label-mono min-w-0 flex-1 text-muted">
+            {missing.length > 0
+              ? `Eksik: ${missing.map((m) => m.short).join(' ve ')}`
+              : `${totals.pieces} parça · ${totals.volumeM3.toLocaleString('tr-TR', { maximumFractionDigits: 1 })} m³`}
+          </p>
+          <SubmitButton pending={pending} missing={missing} className="w-auto shrink-0 px-6 py-3.5" />
+        </div>
+      </div>
     </form>
   );
 }

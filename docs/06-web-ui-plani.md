@@ -244,8 +244,19 @@ Domain       CargoCategoryGrid ölçek referanslı 8 kategori kartı, küçükte
 - Harita bilgisi **yalnızca görsel olamaz** — ETA ve durum metin olarak da verilir,
   `aria-live="polite"` ile güncellenir
 - Dokunma hedefi ≥ 44×44 px (sürücü arayüzünde ≥ 56 px)
+  - Uygulaması `pointer-coarse:` ile: masaüstünde tasarım yoğunluğu korunuyor,
+    dokunmatikte hedef büyüyor. Genişliğe bağlamak yanlış — tablet de dokunmatik.
 - Form hataları alanla `aria-describedby` üzerinden ilişkilendirilir
 - `prefers-reduced-motion` desteklenir — animasyonlar kapanır, marker atlar
+- **Form alanları dokunmatikte 16px.** iOS Safari, yazı tipi 16px'ten küçük bir alana
+  odaklanınca sayfayı yakınlaştırıyor ve kullanıcı elle geri çıkmak zorunda kalıyor —
+  her alana dokunuşta. Tasarım ölçeği 15px; `globals.css` yalnızca `pointer: coarse`
+  altında 16px'e çıkarıyor. Kural katmansız yazıldı: Tailwind yardımcıları
+  `@layer utilities` içinde ve katmansız CSS onları özgüllükten bağımsız geçiyor.
+- **Uzun listelerde iç kaydırma yalnızca fareyle.** Dokunmatikte sayfa üzerinde
+  kaydıran parmak liste kutusuna düşünce sayfa kilitleniyor; o yüzden liste akışta
+  uzuyor (uzun sayfa, kaydırma tuzağından iyi) ve grup başlıkları site başlığının
+  altına yapışıyor.
 - CI'da axe-core ile otomatik denetim
 
 ## 7. SEO stratejisi

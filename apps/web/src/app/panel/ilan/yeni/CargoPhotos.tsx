@@ -93,7 +93,7 @@ export function CargoPhotos({
       </p>
 
       {frames.length > 0 && (
-        <ul className="mt-3 grid grid-cols-3 gap-2 sm:grid-cols-4">
+        <ul className="mt-3 grid grid-cols-2 gap-2 sm:grid-cols-3 lg:grid-cols-4">
           {frames.map((frame) => (
             <li key={frame.id} className="relative overflow-hidden rounded-field border border-line bg-surface-2">
               {/* next/image yok: dosya yerel bir blob, optimizasyon katmanı okuyamaz */}
@@ -103,7 +103,7 @@ export function CargoPhotos({
                 type="button"
                 onClick={() => remove(frame.id)}
                 aria-label={`${frame.name} fotoğrafını kaldır`}
-                className="absolute top-1 right-1 size-7 rounded-full bg-ink/75 text-sm leading-none font-bold text-white transition hover:bg-ink"
+                className="absolute top-1 right-1 grid size-11 place-items-center rounded-full bg-ink/70 text-lg leading-none font-bold text-white transition hover:bg-ink sm:size-9 sm:text-base"
               >
                 ×
               </button>
@@ -112,12 +112,14 @@ export function CargoPhotos({
         </ul>
       )}
 
+      {/* capture yok: kamerayı zorlamak, eşyasını zaten fotoğraflamış kullanıcıyı
+          galerisine erişemez hâlde bırakıyordu. accept="image/*" telefonda yine
+          "Fotoğraf Çek" seçeneğini sunuyor, seçme hakkını da bırakıyor. */}
       <input
         ref={inputRef}
         type="file"
         accept="image/*"
         multiple
-        capture="environment"
         className="sr-only"
         aria-label="Yük fotoğrafı çek ya da seç"
         onChange={(e) => add(e.target.files)}

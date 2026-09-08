@@ -43,7 +43,7 @@ export function CargoPanel({ listing }: { listing: ListingView }) {
       )}
 
       {photos.length > 0 && (
-        <ul className="mt-4 grid grid-cols-3 gap-2 sm:grid-cols-4">
+        <ul className="mt-4 grid grid-cols-2 gap-2 sm:grid-cols-3 lg:grid-cols-4">
           {photos.map((photo, i) => (
             <li key={photo.id} className="overflow-hidden rounded-field border border-line bg-surface-2">
               <a href={`/api/ilan/${listing.id}/foto/${photo.id}`} target="_blank" rel="noreferrer"

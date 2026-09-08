@@ -240,7 +240,7 @@ export function EstimateFlow({
                 type="button"
                 onClick={() => setAdvisorOpen((o) => !o)}
                 aria-expanded={advisorOpen}
-                className="-my-2.5 rounded-md py-2.5 text-sm font-semibold text-[var(--route-deep)] underline-offset-4 transition hover:text-[#6d4708] hover:underline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-route"
+                className="-my-2.5 rounded-md py-2.5 text-sm font-semibold text-[var(--route-deep)] underline-offset-4 transition hover:text-[#6d4708] hover:underline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-route pointer-coarse:min-h-11"
               >
                 {advisorOpen ? 'Danışmanı kapat' : 'Hangi araç lazım bilmiyorum →'}
               </button>
@@ -300,7 +300,7 @@ export function EstimateFlow({
                     aria-pressed={on}
                     onClick={() => toggleExtra(e.code)}
                     title={e.description ?? undefined}
-                    className={`rounded-field border px-3.5 py-2.5 text-sm transition ${
+                    className={`rounded-field border px-3.5 py-2.5 text-sm transition pointer-coarse:min-h-11 ${
                       on ? 'border-route bg-[var(--route-soft)]' : 'border-line bg-surface hover:border-muted'
                     }`}
                   >

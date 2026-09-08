@@ -47,7 +47,8 @@ export default async function CarrierListingPage({ params }: { params: Promise<{
 
   return (
     <Shell eyebrow="Araç sahibi" title={listing.listingNumber}>
-      <Link href="/nakliyeci" className="label-mono text-muted underline-offset-4 transition hover:text-ink hover:underline">
+      <Link href="/nakliyeci"
+        className="label-mono inline-flex min-h-11 items-center text-muted underline-offset-4 transition hover:text-ink hover:underline">
         ← Açık ilanlar
       </Link>
 
@@ -61,13 +62,13 @@ export default async function CarrierListingPage({ params }: { params: Promise<{
               </span>
               <StatusPill status={listing.status} />
             </div>
-            <dl className="mt-4 grid grid-cols-2 gap-3 text-sm">
+            <dl className="mt-4 grid grid-cols-2 gap-x-4 gap-y-3 text-sm">
               <div><dt className="label-mono text-muted">Alış</dt><dd>{stop(listing.pickup)}</dd></div>
               <div><dt className="label-mono text-muted">Teslim</dt><dd>{stop(listing.dropoff)}</dd></div>
               <div><dt className="label-mono text-muted">Ne zaman</dt><dd>{listing.serviceModel === 'INSTANT' ? 'Anlık' : 'Planlı'}</dd></div>
               <div>
                 <dt className="label-mono text-muted">Açık kalma</dt>
-                <dd>{new Date(listing.expiresAt).toLocaleString('tr-TR')}</dd>
+                <dd>{new Date(listing.expiresAt).toLocaleString('tr-TR', { dateStyle: 'short', timeStyle: 'short' })}</dd>
               </div>
             </dl>
             {listing.extraServices.length > 0 && (

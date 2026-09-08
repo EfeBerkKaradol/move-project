@@ -93,7 +93,7 @@ export function CargoDeclaration({
         value={query}
         onChange={(e) => setQuery(e.target.value)}
         placeholder="Eşya ara — koltuk, koli, buzdolabı…"
-        className="mt-3 w-full rounded-field border border-line bg-surface-2 px-3.5 py-2.5 text-[15px] outline-none placeholder:text-muted transition hover:border-muted focus:border-route focus:ring-2 focus:ring-route/25"
+        className="mt-3 min-h-11 w-full rounded-field border border-line bg-surface-2 px-3.5 py-2.5 text-[15px] outline-none placeholder:text-muted transition hover:border-muted focus:border-route focus:ring-2 focus:ring-route/25"
       />
 
       {grouped.length === 0 ? (
@@ -103,10 +103,22 @@ export function CargoDeclaration({
           alana tarif edebilirsin.
         </p>
       ) : (
-        <div className="mt-3 max-h-96 overflow-y-auto rounded-field border border-line">
+        <div
+          className={[
+            'mt-3 rounded-field border border-line',
+            // İç kaydırma ekran genişliğine değil işaretçiye bağlı: tablet de
+            // dokunmatik. Parmakla kaydırırken liste kutusuna düşen hareket sayfayı
+            // kilitliyordu; dokunmatikte liste akışta uzuyor, uzun sayfa kaydırma
+            // tuzağından iyi.
+            'pointer-fine:max-h-96 pointer-fine:overflow-y-auto',
+          ].join(' ')}
+        >
           {grouped.map(([code, group]) => (
             <section key={code}>
-              <h3 className="label-mono sticky top-0 z-1 border-b border-line bg-surface-2 px-3 py-1.5 text-muted">
+              {/* Dokunmatikte liste akışta olduğu için başlık sayfaya yapışıyor ve
+                  site başlığının altında durması gerekiyor; fareyle kaydırılan
+                  kutunun içinde ise kutunun tepesine. */}
+              <h3 className="label-mono sticky top-18 z-1 border-b border-line bg-surface-2 px-3 py-2 text-muted pointer-fine:top-0">
                 {categoryName.get(code) ?? code}
               </h3>
               <ul>
@@ -116,12 +128,14 @@ export function CargoDeclaration({
                     <li
                       key={item.code}
                       className={[
-                        'flex items-center gap-3 border-b border-line px-3 py-2 last:border-b-0',
+                        'flex items-center gap-2 border-b border-line px-3 py-1.5 last:border-b-0 sm:gap-3',
                         quantity > 0 ? 'bg-route/8' : '',
                       ].join(' ')}
                     >
                       <span className="min-w-0 flex-1">
-                        <span className="block truncate text-sm font-semibold">{item.displayName}</span>
+                        {/* Kırpma yok: dar ekranda "Koltuk takımı (3+1+1)" ile "Koltuk
+                            takımı" ayırt edilemez hâle geliyordu. İki satıra sarsın. */}
+                        <span className="block text-sm leading-snug font-semibold">{item.displayName}</span>
                         <span className="label-mono text-muted">
                           {item.volumeM3.toLocaleString('tr-TR')} m³ · {item.weightKg} kg
                         </span>
@@ -168,7 +182,7 @@ function Stepper({
         onClick={() => onChange(quantity - 1)}
         disabled={quantity === 0}
         aria-label={`${label} adedini azalt`}
-        className="size-9 rounded-field border border-line text-lg leading-none transition hover:border-route hover:bg-surface-2 disabled:opacity-35"
+        className="size-11 rounded-field border border-line text-lg leading-none transition hover:border-route hover:bg-surface-2 disabled:opacity-35"
       >
         −
       </button>
@@ -180,7 +194,7 @@ function Stepper({
         type="button"
         onClick={() => onChange(quantity + 1)}
         aria-label={`${label} adedini artır`}
-        className="size-9 rounded-field border border-line text-lg leading-none transition hover:border-route hover:bg-surface-2"
+        className="size-11 rounded-field border border-line text-lg leading-none transition hover:border-route hover:bg-surface-2"
       >
         +
       </button>

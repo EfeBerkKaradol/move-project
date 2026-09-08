@@ -30,6 +30,11 @@ function cargoSummary(l: ListingView): string {
   return rest > 0 ? `${shown} ve ${rest} kalem daha` : shown;
 }
 
+/** Saniyesiz, dar ekranda tek satıra sığan tarih. */
+function shortDateTime(iso: string): string {
+  return new Date(iso).toLocaleString('tr-TR', { dateStyle: 'short', timeStyle: 'short' });
+}
+
 export default async function DriverPage() {
   const session = await auth();
   if (!canCallApi(session)) redirect('/giris');
@@ -67,8 +72,8 @@ export default async function DriverPage() {
 
   return (
     <Shell eyebrow="Araç sahibi" title="Açık ilanlar">
-      <div className="flex items-center justify-between gap-4">
-        <p className="text-sm text-muted">{session.user?.name ?? session.user?.email}</p>
+      <div className="flex flex-wrap items-center justify-between gap-x-4 gap-y-2">
+        <p className="min-w-0 truncate text-sm text-muted">{session.user?.name ?? session.user?.email}</p>
         <SubNav
           items={[
             { href: '/nakliyeci/koridor', label: 'Boş dönüş' },
@@ -107,12 +112,12 @@ export default async function DriverPage() {
               </div>
               <p className="mt-2 text-sm">{cargoSummary(l)}</p>
               <p className="label-mono mt-1 text-muted">
-                {l.offerCount} teklif · {new Date(l.expiresAt).toLocaleString('tr-TR')} tarihine kadar açık
+                {l.offerCount} teklif · {shortDateTime(l.expiresAt)} tarihine kadar açık
               </p>
               {/* Detay teklif düğmesinin üstünde: fotoğrafa bakmadan fiyat vermek tam
                   olarak düzeltmeye çalıştığımız alışkanlık */}
               <Link href={`/nakliyeci/ilan/${l.id}`}
-                className="mt-3 inline-flex items-center gap-1.5 text-sm font-semibold underline underline-offset-4 transition hover:text-route-deep">
+                className="mt-2 inline-flex min-h-11 items-center gap-1.5 text-sm font-semibold underline underline-offset-4 transition hover:text-route-deep">
                 Yükü gör
                 {l.photos.length > 0 && (
                   <span className="label-mono font-normal text-muted">{l.photos.length} fotoğraf</span>

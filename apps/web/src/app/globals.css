@@ -106,6 +106,19 @@ h1, h2, h3 {
   text-transform: uppercase;
 }
 
+/* iOS Safari, yazı tipi 16px'ten küçük bir alana odaklanınca sayfayı yakınlaştırıyor
+   ve kullanıcıyı elle geri çıkmaya bırakıyor — her form alanına dokunuşta. Tasarım
+   ölçeği 15px; yalnızca dokunmatik cihazlarda 16px'e çıkarmak yakınlaştırmayı
+   kesiyor, fare kullanan masaüstünde alanları iri göstermiyor.
+
+   Katmansız kural: Tailwind yardımcıları @layer utilities içinde, katmansız CSS
+   onları özgüllükten bağımsız olarak geçiyor — text-[15px] yazan alanlar dahil. */
+@media (pointer: coarse) {
+  input, select, textarea {
+    font-size: 16px;
+  }
+}
+
 /* Klavyeyle gezinen herkes nerede olduğunu görmeli */
 :where(a, button, input, select, textarea, [tabindex]):focus-visible {
   outline: 2px solid var(--route);

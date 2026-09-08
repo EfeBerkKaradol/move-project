@@ -33,7 +33,7 @@ export async function Header({ overlay = false }: { overlay?: boolean } = {}) {
           <Link
             key={item.label}
             href={item.href}
-            className="rounded-lg px-3 py-2.5 text-sm text-muted transition hover:text-ink"
+            className="inline-flex items-center rounded-lg px-3 py-2.5 text-sm text-muted transition hover:text-ink pointer-coarse:min-h-11"
           >
             {item.label}
           </Link>
@@ -43,10 +43,10 @@ export async function Header({ overlay = false }: { overlay?: boolean } = {}) {
       <div className="ml-auto flex items-center gap-2">
         {signedIn ? (
           <>
-            <Link href={homeFor(roles)} className="px-3 py-2.5 text-sm font-semibold">
+            <Link href={homeFor(roles)} className="inline-flex items-center px-3 py-2.5 text-sm font-semibold pointer-coarse:min-h-11">
               {isOps(roles) ? 'Operasyon' : isDriver(roles) ? 'Nakliyeci paneli' : 'Panelim'}
             </Link>
-            <Link href="/hesap" className="hidden px-3 py-2.5 text-sm font-semibold text-muted transition hover:text-ink sm:inline">
+            <Link href="/hesap" className="hidden px-3 py-2.5 text-sm font-semibold text-muted transition hover:text-ink sm:inline-flex sm:items-center pointer-coarse:min-h-11">
               Hesabım
             </Link>
             <form
@@ -57,7 +57,7 @@ export async function Header({ overlay = false }: { overlay?: boolean } = {}) {
             >
               <button
                 type="submit"
-                className="rounded-field border border-line px-3.5 py-2.5 text-sm font-semibold transition hover:bg-surface-2"
+                className="rounded-field border border-line px-3.5 py-2.5 text-sm font-semibold transition hover:bg-surface-2 pointer-coarse:min-h-11"
               >
                 Çıkış
               </button>
@@ -65,12 +65,12 @@ export async function Header({ overlay = false }: { overlay?: boolean } = {}) {
           </>
         ) : (
           <>
-            <Link href="/giris" className="hidden px-3 py-2.5 text-sm font-semibold sm:inline">
+            <Link href="/giris" className="hidden px-3 py-2.5 text-sm font-semibold sm:inline-flex sm:items-center pointer-coarse:min-h-11">
               Giriş yap
             </Link>
             <Link
               href="/fiyat-hesapla"
-              className="rounded-field bg-route px-4 py-2.5 text-sm font-bold text-[var(--route-ink)] transition duration-150 hover:bg-[var(--route-hover)] active:translate-y-px"
+              className="inline-flex items-center rounded-field bg-route px-4 py-2.5 text-sm font-bold text-[var(--route-ink)] transition duration-150 hover:bg-[var(--route-hover)] active:translate-y-px pointer-coarse:min-h-11"
             >
               Yük ver
             </Link>
