@@ -278,6 +278,13 @@ Domain       CargoCategoryGrid ölçek referanslı 8 kategori kartı, küçükte
   her alana dokunuşta. Tasarım ölçeği 15px; `globals.css` yalnızca `pointer: coarse`
   altında 16px'e çıkarıyor. Kural katmansız yazıldı: Tailwind yardımcıları
   `@layer utilities` içinde ve katmansız CSS onları özgüllükten bağımsız geçiyor.
+- **Dar ekranda menü.** 1024 pikselin altında başlıkta hiç gezinme yoktu: yalnızca
+  logo ve tek bir eylem duruyordu, "Yük bul", "Nasıl çalışır", "Araçlar" ve hesap
+  bağlantıları telefonda da tablette de erişilemiyordu. `MobileMenu` bunları geri
+  getiriyor. Panel `absolute top-full` ile başlığın altına yapışıyor — sabit bir
+  piksel değeri, başlık yüksekliği değiştiğinde paneli kaydırırdı. Escape, dışarı
+  dokunma ve sayfa değişimi kapatıyor; açıkken gövde kaydırması kilitli, çünkü hangi
+  yüzeyin kaydığı belirsizse kullanıcı menüyü kapatmadan sayfayı kaybediyor.
 - **Uzun listelerde iç kaydırma yalnızca fareyle.** Dokunmatikte sayfa üzerinde
   kaydıran parmak liste kutusuna düşünce sayfa kilitleniyor; o yüzden liste akışta
   uzuyor (uzun sayfa, kaydırma tuzağından iyi) ve grup başlıkları site başlığının

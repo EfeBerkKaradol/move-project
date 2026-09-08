@@ -73,7 +73,26 @@ FROM (VALUES
     -- Bursa → İstanbul: tek ilan. Ana sayfada GÖRÜNMEMELİ — koridor eşiği iki ilan
     (7, '16', '34', 'MOTOR', 0, true, 155, 1450,
      '[{"itemCode":"PAKET_KUCUK","displayName":"Küçük paket / zarf","quantity":1,"volumeM3":0.02,"weightKg":2}]'::jsonb,
-     'Evrak.')
+     'Evrak.'),
+    -- Filonun tamamı temsil edilsin: ilanlar sayfasındaki araç süzgeci, karşılığı
+    -- olmayan bir çipe basan kullanıcıyı boş sayfaya düşürüyordu.
+    (8, '35', '34', 'OTOMOBIL', 0, true, 480, 3900,
+     '[{"itemCode":"KOLI_STANDART","displayName":"Standart koli","quantity":4,"volumeM3":0.12,"weightKg":12}]'::jsonb,
+     'Öğrenci dönüşü, dört koli.'),
+    (9, '34', '16', 'OTOMOBIL', 2, true, 155, 2450,
+     '[{"itemCode":"TELEVIZYON_55","displayName":"Televizyon (55\")","quantity":1,"volumeM3":0.15,"weightKg":20},
+       {"itemCode":"KOLI_STANDART","displayName":"Standart koli","quantity":2,"volumeM3":0.12,"weightKg":12}]'::jsonb,
+     null),
+    (10, '06', '42', 'MINI_PANELVAN', 1, false, 260, 7300,
+     '[{"itemCode":"CAMASIR_MAKINESI","displayName":"Çamaşır makinesi","quantity":1,"volumeM3":0.35,"weightKg":70},
+       {"itemCode":"KOLTUK_TEKLI","displayName":"Tekli koltuk / berjer","quantity":2,"volumeM3":0.55,"weightKg":25},
+       {"itemCode":"KOLI_STANDART","displayName":"Standart koli","quantity":5,"volumeM3":0.12,"weightKg":12}]'::jsonb,
+     'Asansör yok, birinci kat.'),
+    (11, '34', '06', 'MINI_PANELVAN', 0, true, 450, 9800,
+     '[{"itemCode":"CALISMA_MASASI","displayName":"Çalışma masası","quantity":1,"volumeM3":0.50,"weightKg":30},
+       {"itemCode":"KITAPLIK","displayName":"Kitaplık","quantity":1,"volumeM3":0.70,"weightKg":45},
+       {"itemCode":"KOLI_BUYUK","displayName":"Büyük koli","quantity":3,"volumeM3":0.25,"weightKg":20}]'::jsonb,
+     null)
 ) AS d(n, from_city, to_city, vehicle, floor, elevator, km, amount, items, note);
 
 COMMIT;

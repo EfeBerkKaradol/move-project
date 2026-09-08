@@ -3,6 +3,7 @@ import { redirect } from 'next/navigation';
 import { auth, homeFor, isDriver, isOps, signOutEverywhere } from '@/auth';
 import { BRAND } from '@/lib/brand';
 import { HeaderShell } from './HeaderShell';
+import { MobileMenu } from './MobileMenu';
 import { Logo } from './Logo';
 
 export async function Header({ overlay = false }: { overlay?: boolean } = {}) {
@@ -21,6 +22,32 @@ export async function Header({ overlay = false }: { overlay?: boolean } = {}) {
     { href: '/#nasil-calisir', label: 'Nasıl çalışır' },
     { href: '/#araclar', label: 'Araçlar' },
   ];
+
+  // Dar ekranda çubuk yalnızca logo + tek eylem + menü taşıyor; geri kalanı menünün
+  // içinde. 375 pikselde "Panelim", "Hesabım" ve "Çıkış"ı yan yana sığdırmaya
+  // çalışmak hepsini okunmaz hâle getiriyordu.
+  const account = signedIn
+    ? [
+        { href: homeFor(roles), label: isOps(roles) ? 'Operasyon' : isDriver(roles) ? 'Nakliyeci paneli' : 'Panelim' },
+        { href: '/hesap', label: 'Hesabım' },
+      ]
+    : [{ href: '/giris', label: 'Giriş yap' }];
+
+  const signOutForm = (
+    <form
+      action={async () => {
+        'use server';
+        redirect(await signOutEverywhere('/'));
+      }}
+    >
+      <button
+        type="submit"
+        className="min-h-11 w-full rounded-field border border-line px-3.5 text-sm font-semibold transition hover:bg-surface-2"
+      >
+        Çıkış
+      </button>
+    </form>
+  );
 
   return (
     <HeaderShell overlay={overlay}>
@@ -47,26 +74,28 @@ export async function Header({ overlay = false }: { overlay?: boolean } = {}) {
             <Link href={homeFor(roles)} className="inline-flex items-center px-3 py-2.5 text-sm font-semibold pointer-coarse:min-h-11">
               {isOps(roles) ? 'Operasyon' : isDriver(roles) ? 'Nakliyeci paneli' : 'Panelim'}
             </Link>
-            <Link href="/hesap" className="hidden px-3 py-2.5 text-sm font-semibold text-muted transition hover:text-ink sm:inline-flex sm:items-center pointer-coarse:min-h-11">
+            <Link href="/hesap" className="hidden px-3 py-2.5 text-sm font-semibold text-muted transition hover:text-ink lg:inline-flex lg:items-center pointer-coarse:min-h-11">
               Hesabım
             </Link>
-            <form
-              action={async () => {
-                'use server';
-                redirect(await signOutEverywhere('/'));
-              }}
-            >
-              <button
-                type="submit"
-                className="rounded-field border border-line px-3.5 py-2.5 text-sm font-semibold transition hover:bg-surface-2 pointer-coarse:min-h-11"
+            <div className="hidden lg:block">
+              <form
+                action={async () => {
+                  'use server';
+                  redirect(await signOutEverywhere('/'));
+                }}
               >
-                Çıkış
-              </button>
-            </form>
+                <button
+                  type="submit"
+                  className="rounded-field border border-line px-3.5 py-2.5 text-sm font-semibold transition hover:bg-surface-2 pointer-coarse:min-h-11"
+                >
+                  Çıkış
+                </button>
+              </form>
+            </div>
           </>
         ) : (
           <>
-            <Link href="/giris" className="hidden px-3 py-2.5 text-sm font-semibold sm:inline-flex sm:items-center pointer-coarse:min-h-11">
+            <Link href="/giris" className="hidden px-3 py-2.5 text-sm font-semibold lg:inline-flex lg:items-center pointer-coarse:min-h-11">
               Giriş yap
             </Link>
             <Link
@@ -77,6 +106,10 @@ export async function Header({ overlay = false }: { overlay?: boolean } = {}) {
             </Link>
           </>
         )}
+
+        <MobileMenu items={nav} account={account}>
+          {signedIn ? signOutForm : null}
+        </MobileMenu>
       </div>
     </HeaderShell>
   );

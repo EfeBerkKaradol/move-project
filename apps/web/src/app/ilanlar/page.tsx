@@ -37,10 +37,11 @@ export default async function PublicListingsPage({ searchParams }: { searchParam
   // Ana sayfadaki koridor kartı buraya il koduyla geliyor; ziyaretçi kendi hattını
   // aramak zorunda kalmasın
   const cityFilter = first(p.il);
-  const listings = await getPublicListings({
-    vehicleType: vehicleFilter || undefined,
-    city: cityFilter || undefined,
-  });
+  // Araç süzgeci sunucuda değil burada uygulanıyor: çiplerin yanındaki sayılar için
+  // zaten o ildeki bütün ilanlar gerekiyor ve iki istek atmanın anlamı yok. (Uç en
+  // fazla 60 ilan dönüyor; sayılar o üst sınırın içinden.)
+  const all = await getPublicListings({ city: cityFilter || undefined });
+  const listings = vehicleFilter ? (all ?? []).filter((l) => l.vehicleTypeCode === vehicleFilter) : all;
   const cityName = cityFilter
     ? (districts ?? []).find((d: District) => d.cityCode === cityFilter)?.cityName ?? null
     : null;
@@ -63,6 +64,9 @@ export default async function PublicListingsPage({ searchParams }: { searchParam
   });
 
   const active = (vehicles ?? []).filter((v: VehicleType) => v.active);
+  // Sayı, çipe basmadan önce sonucu söylüyor. Sıfırsa çip bağlantı değil: boş sayfaya
+  // götüren bir düğme, kullanıcıya ürünün çalışmadığını düşündürüyor.
+  const countOf = (code: string) => (all ?? []).filter((l) => l.vehicleTypeCode === code).length;
 
   return (
     <>
@@ -93,12 +97,18 @@ export default async function PublicListingsPage({ searchParams }: { searchParam
 
           {active.length > 0 && (
             <nav aria-label="Araç tipine göre süz" className="mt-8 flex flex-wrap gap-2">
-              <FilterChip href={withCity('/ilanlar', cityFilter)} label="Tümü" selected={!vehicleFilter} />
+              <FilterChip
+                href={withCity('/ilanlar', cityFilter)}
+                label="Tümü"
+                count={(all ?? []).length}
+                selected={!vehicleFilter}
+              />
               {active.map((v: VehicleType) => (
                 <FilterChip
                   key={v.code}
                   href={withCity(`/ilanlar?arac=${v.code}`, cityFilter)}
                   label={v.displayName}
+                  count={countOf(v.code)}
                   selected={vehicleFilter === v.code}
                 />
               ))}
@@ -199,19 +209,44 @@ export default async function PublicListingsPage({ searchParams }: { searchParam
   );
 }
 
-function FilterChip({ href, label, selected }: { href: string; label: string; selected: boolean }) {
+function FilterChip({
+  href, label, count, selected,
+}: {
+  href: string;
+  label: string;
+  count: number;
+  selected: boolean;
+}) {
+  const inner = (
+    <>
+      {label}
+      <span className={`ml-2 tabular-nums ${selected ? 'text-ink/60' : 'text-muted'}`}>{count}</span>
+    </>
+  );
+  const base = 'inline-flex min-h-11 items-center rounded-field border px-4 text-sm font-semibold transition';
+
+  // Boş süzgeç tıklanabilir değil: basılınca "bu araç tipinde ilan yok" diyen bir
+  // sayfaya götürmek, cevabı zaten çipin üzerinde yazarken gereksiz bir tur attırmak
+  if (count === 0) {
+    return (
+      <span aria-disabled="true" className={`${base} border-dashed border-line text-muted opacity-55`}>
+        {inner}
+      </span>
+    );
+  }
+
   return (
     <Link
       href={href}
       aria-current={selected ? 'true' : undefined}
       className={[
-        'inline-flex min-h-11 items-center rounded-field border px-4 text-sm font-semibold transition',
+        base,
         selected
           ? 'border-[var(--route-deep)] bg-[var(--route-soft)] text-ink'
           : 'border-line text-muted hover:border-muted hover:text-ink',
       ].join(' ')}
     >
-      {label}
+      {inner}
     </Link>
   );
 }
