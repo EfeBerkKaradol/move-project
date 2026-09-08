@@ -7,6 +7,6 @@
  */
 @org.springframework.modulith.ApplicationModule(
         displayName = "Bildirim",
-        allowedDependencies = { "identity::api", "ordering::api", "tracking::api", "fleet::api" }
+        allowedDependencies = { "identity::api", "ordering::api", "tracking::api", "fleet::api", "shared::mail" }
 )
 package com.tasiyoruz.api.notification;

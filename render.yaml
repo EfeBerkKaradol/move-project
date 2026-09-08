@@ -126,6 +126,12 @@ services:
       # FAILED olur. Sağlayıcıda doğruladığın adresin AYNISI yazılmalı.
       - key: NOTIFICATION_FROM
         sync: false            # ÖRNEK: bildirim@karinca.tech
+      # Posta sağlayıcısının HTTP API anahtarı. Render ücretsiz planda giden SMTP
+      # portlarını (25/465/587) kapatıyor; bu anahtar verildiğinde gönderim 443
+      # üzerinden yapılıyor ve aşağıdaki SMTP_* değerleri kullanılmıyor.
+      # DİKKAT: SMTP anahtarı değil, hesabın API anahtarı — Brevo'da ayrı sekme.
+      - key: TASIYORUZ_MAIL_API_KEY
+        sync: false            # Brevo → SMTP & API → API keys
       - key: SMTP_HOST
         sync: false
       - key: SMTP_PORT

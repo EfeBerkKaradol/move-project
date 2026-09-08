@@ -87,7 +87,7 @@ class PhoneVerificationService implements PhoneDirectory {
 
         var code = String.format("%06d", RANDOM.nextInt(1_000_000));
         verifications.save(new PhoneVerification(userId, phone, HASHER.encode(code), now, now.plus(CODE_TTL)));
-        sms.send(phone, "Taşıyoruz doğrulama kodun: " + code + " (5 dakika geçerli)");
+        sms.send(phone, "KARINCA doğrulama kodun: " + code + " (5 dakika geçerli)");
         log.info("Telefon doğrulama kodu gönderildi: kullanıcı={} numara={}", userId, maskOf(phone));
         return new StartResult(StartOutcome.SENT, PhoneNumbers.display(phone));
     }

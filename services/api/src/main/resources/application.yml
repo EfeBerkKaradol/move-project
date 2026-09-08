@@ -100,6 +100,13 @@ tasiyoruz:
   maps:
     # Google Maps Platform (ANAHTARLAR #1). Boşsa takribî rota sağlayıcısı devrede.
     api-key: ${GOOGLE_MAPS_API_KEY:}
+  mail:
+    # Posta sağlayıcısının HTTP API anahtarı. Doluysa gönderim SMTP yerine HTTPS
+    # üzerinden yapılır — barındırma sağlayıcıları ücretsiz planlarda giden 25/465/587
+    # portlarını kapatıyor, 443 açık kalıyor (ANAHTARLAR #20).
+    # DİKKAT: bu SMTP anahtarı değil, hesabın API anahtarı; ikisi ayrı.
+    api-key: ${TASIYORUZ_MAIL_API_KEY:}
+    base-url: ${TASIYORUZ_MAIL_BASE_URL:https://api.brevo.com}
   notification:
     # E-postadaki bağlantıların kökü ve gönderen adresi. Yerelde Mailhog (localhost:1025,
     # arayüz http://localhost:8025); üretimde gerçek SMTP spring.mail.* ile (ANAHTARLAR #20).
