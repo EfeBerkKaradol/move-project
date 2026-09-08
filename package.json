@@ -18,7 +18,7 @@
     "start": "bash scripts/start.sh",
     "doctor": "bash scripts/doctor.sh",
     "stop": "pnpm infra:down",
-    "demo:listings": "docker exec -i tasiyoruz-postgres psql -U tasiyoruz -d tasiyoruz -v ON_ERROR_STOP=1 < scripts/demo-listings.sql"
+    "demo:listings": "bash scripts/demo-listings.sh"
   },
   "devDependencies": {
     "prettier": "3.4.2",

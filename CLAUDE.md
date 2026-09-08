@@ -37,7 +37,7 @@ DRIVER rolünü otomatik verir; askı geri alır.
 
 E-postalar yerelde Mailhog'a düşer: http://localhost:8025
 
-**Örnek ilan verisi:** `pnpm demo:listings` — ana sayfadaki açık koridorlar, araç
+**Örnek ilan verisi:** `pnpm demo:listings` (uzak veritabanı için `DATABASE_URL=... pnpm demo:listings`) — ana sayfadaki açık koridorlar, araç
 sahibinin ilan listesi ve haritası gerçek ilana bakıyor; sıfırdan kurulan bir ortamda
 hiç ilan olmadığı için bu ekranlar boş görünür. Tekrar çalıştırılabilir. Fotoğraf
 eklemiyor (dosyalar nesne deposunda, SQL oraya yazamaz); fotoğraflı bir ilan için
