@@ -35,7 +35,7 @@ class MailConfigTest {
 
     @Test
     void apiAnahtariVarsa_httpSecilir_smtpVarsaBile() {
-        var sender = config.mailSender(new MailProperties("anahtar", null), smtpVar(), "smtp.saglayici.com");
+        var sender = config.applicationMailSender(new MailProperties("anahtar", null), smtpVar(), "smtp.saglayici.com");
 
         assertThat(sender).isInstanceOf(BrevoMailSender.class);
         assertThat(sender.available()).isTrue();
@@ -43,7 +43,7 @@ class MailConfigTest {
 
     @Test
     void apiAnahtariYokAmaSmtpVarsa_smtpSecilir() {
-        var sender = config.mailSender(new MailProperties(null, null), smtpVar(), "smtp.saglayici.com");
+        var sender = config.applicationMailSender(new MailProperties(null, null), smtpVar(), "smtp.saglayici.com");
 
         assertThat(sender).isInstanceOf(SmtpMailSender.class);
     }
@@ -55,7 +55,7 @@ class MailConfigTest {
      */
     @Test
     void adresBossa_smtpBeaniVarsaBileYapilandirilmamisSayilir() {
-        var sender = config.mailSender(new MailProperties(null, null), smtpVar(), "");
+        var sender = config.applicationMailSender(new MailProperties(null, null), smtpVar(), "");
 
         assertThat(sender).isInstanceOf(UnconfiguredMailSender.class);
         assertThat(sender.available()).isFalse();
@@ -63,7 +63,7 @@ class MailConfigTest {
 
     @Test
     void hicbiriYoksa_uygulamaAcilir_gonderimKapaliCalisir() {
-        var sender = config.mailSender(new MailProperties(null, null), smtpYok(), null);
+        var sender = config.applicationMailSender(new MailProperties(null, null), smtpYok(), null);
 
         assertThat(sender.available()).isFalse();
     }

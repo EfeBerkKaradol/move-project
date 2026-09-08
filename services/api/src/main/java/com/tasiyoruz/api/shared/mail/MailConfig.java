@@ -24,8 +24,14 @@ class MailConfig {
 
     private static final Logger log = LoggerFactory.getLogger(MailConfig.class);
 
+    /**
+     * Bean adı bilerek {@code mailSender} DEĞİL: Spring Boot'un posta yapılandırması
+     * {@code spring.mail.host} tanımlıyken aynı adla bir {@code JavaMailSender}
+     * üretiyor ve uygulama çakışmadan dolayı hiç açılmıyor. Çakışma yalnızca SMTP
+     * adresi verilmiş ortamlarda ortaya çıktığı için yerelde görünmüyordu.
+     */
     @Bean
-    MailSender mailSender(MailProperties props,
+    MailSender applicationMailSender(MailProperties props,
                           ObjectProvider<JavaMailSender> smtp,
                           @Value("${spring.mail.host:}") String smtpHost) {
         if (props.httpConfigured()) {
