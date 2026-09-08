@@ -125,6 +125,7 @@ tasks.named<org.springframework.boot.gradle.tasks.run.BootRun>("bootRun") {
         "STORAGE_CREATE_BUCKET" to "true",
         "SMTP_HOST" to "localhost",                      // Mailhog
         "SMTP_PORT" to "1025",
+        "SMS_LOG_ONLY" to "true",           // kodlar günlüğe düşer
         "KEYCLOAK_ADMIN_CLIENT_SECRET" to "tasiyoruz-api-dev-secret",
     )
     yerel.forEach { (anahtar, deger) -> environment(anahtar, System.getenv(anahtar) ?: deger) }

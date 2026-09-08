@@ -46,6 +46,9 @@ export async function Header({ overlay = false }: { overlay?: boolean } = {}) {
             <Link href={homeFor(roles)} className="px-3 py-2.5 text-sm font-semibold">
               {isOps(roles) ? 'Operasyon' : isDriver(roles) ? 'Nakliyeci paneli' : 'Panelim'}
             </Link>
+            <Link href="/hesap" className="hidden px-3 py-2.5 text-sm font-semibold text-muted transition hover:text-ink sm:inline">
+              Hesabım
+            </Link>
             <form
               action={async () => {
                 'use server';

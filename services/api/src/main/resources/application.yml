@@ -116,6 +116,16 @@ tasiyoruz:
       realm: ${KEYCLOAK_REALM:tasiyoruz}
       client-id: ${KEYCLOAK_ADMIN_CLIENT_ID:tasiyoruz-api}
       client-secret: ${KEYCLOAK_ADMIN_CLIENT_SECRET:}
+  sms:
+    # Telefon doğrulama için SMS sağlayıcısı (ANAHTARLAR #2). Gönderici başlığı BTK
+    # onayı gerektiriyor. Anahtar verilmezse doğrulama açıkça reddeder.
+    provider: ${SMS_PROVIDER:}
+    username: ${SMS_USERNAME:}
+    password: ${SMS_PASSWORD:}
+    sender-header: ${SMS_SENDER_HEADER:}
+    # Yerelde bootRun true veriyor: kod gönderilmez, günlüğe yazılır (Mailhog gibi).
+    # ÜRETİMDE ASLA AÇILMAZ — kodu günlüğe yazmak onu kaydı görebilen herkese vermektir.
+    log-only: ${SMS_LOG_ONLY:false}
   storage:
     # Taşıyıcı belgeleri için S3 uyumlu nesne deposu. Yerelde docker-compose'daki
     # MinIO; üretimde Türkiye'de barındırılan bir sağlayıcı (ANAHTARLAR #18).

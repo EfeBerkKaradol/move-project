@@ -242,8 +242,16 @@ SMS_SENDER_HEADER=TASIYORUZ
 ```
 
 ⚠️ Gönderici başlığı ("TASIYORUZ") BTK onayı gerektiriyor ve **birkaç iş günü sürüyor**.
-Bu adıma sıra gelmeden başvurusunu yapmak mantıklı. Maps gibi burada da entegrasyon
-kodu henüz yazılmadı.
+Bu adıma sıra gelmeden başvurusunu yapmak mantıklı.
+
+**Doğrulama akışı yazıldı** (`/api/v1/me/phone`, `/hesap` sayfası): kod üretimi, süre
+sınırı, deneme sınırı, saatlik gönderim sınırı ve numara tekilliği çalışıyor ve test
+altında. Eksik olan tek parça sağlayıcı adaptörü — hesap açılmadan yazılan entegrasyon
+denenemeyeceği için bilerek bekletildi. Anahtarlar girilene kadar doğrulama
+"servis yapılandırılmamış" diyerek açıkça kapalı çalışıyor.
+
+**Yerelde denemek için** anahtar gerekmiyor: `SMS_LOG_ONLY=true` (bootRun zaten veriyor)
+kodu göndermek yerine API günlüğüne yazıyor. Üretimde asla açılmaz.
 
 ---
 
