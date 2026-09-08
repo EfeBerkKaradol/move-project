@@ -292,6 +292,32 @@ export const ROUTE_CITY = 'M425.9 283C432.3 286.8 450.7 300.8 464.2 305.5C477.7 
 export const ROUTE_OUT = 'M177.3 105.3Q281.3 121.5 371 176.4';
 export const ROUTE_BACK = 'M371 176.4Q239.8 259.4 85.2 273.9';
 
+/**
+ * Türkiye haritasının projeksiyon parametreleri.
+ *
+ * <p>Sabit şehirler derleme anında projekte ediliyor; ilan haritası ise çalışma
+ * anında gelen ilçe koordinatlarını çiziyor. İkisinin aynı uzayda olması için
+ * dönüşüm burada da açık duruyor.
+ */
+export const TURKEY_PROJECTION = {
+  minX: 0.4544198058088228,
+  maxY: 0.811630582101449,
+  scale: 2867.725404437391,
+  offsetX: 30,
+  offsetY: 32.10977581819108,
+} as const;
+
+/** Coğrafi koordinatı harita kutusuna taşır (Web Mercator + yukarıdaki oturtma). */
+export function projectLonLat(lon: number, lat: number): { x: number; y: number } {
+  const mx = (lon * Math.PI) / 180;
+  const my = Math.log(Math.tan(Math.PI / 4 + (lat * Math.PI) / 360));
+  const p = TURKEY_PROJECTION;
+  return {
+    x: +((mx - p.minX) * p.scale + p.offsetX).toFixed(1),
+    y: +((p.maxY - my) * p.scale + p.offsetY).toFixed(1),
+  };
+}
+
 /** Sahne değişiminde araç bu iki nokta arasında geçiş yapar (kamera geri çekilir). */
 export const HANDOVER = {
   from: { x: 685.1, y: 406.9 },

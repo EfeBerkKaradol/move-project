@@ -27,6 +27,13 @@ const GROUND: StopDetail = { floor: 0, hasElevator: true };
 const AUTO_EXTRAS = ['NO_ELEVATOR', 'WAITING', 'EXTRA_STOP'];
 
 /**
+ * Tam araç işleri. Bu araçlarda yük tarifi koli sayısıyla değil yükün cinsiyle
+ * yapılıyor: palet, tomruk, big-bag, konteyner.
+ */
+const FULL_LOAD_VEHICLES = ['KAMYON', 'TIR'];
+const FULL_LOAD_CATEGORY = 'KOMPLE';
+
+/**
  * Taşıyoruz fiyat akışı (docs/11 §2): rota + araç tipi → tahmini aralık → ilan.
  *
  * <p>Sayfa geçişi yok; her seçim değişikliğinde tahmin sağda canlı güncellenir.
@@ -55,6 +62,8 @@ export function EstimateFlow({
   const [dropoff, setDropoff] = useState<StopDetail>(GROUND);
   const [extras, setExtras] = useState<string[]>([]);
   const [advisorOpen, setAdvisorOpen] = useState(false);
+  /** Araç seçiminin dayattığı kategori; kullanıcı kendi seçtiyse null. */
+  const [forcedCategory, setForcedCategory] = useState<string | null>(null);
 
   const [quote, setQuote] = useState<Quote | null>(null);
   const [loading, setLoading] = useState(false);
@@ -247,16 +256,28 @@ export function EstimateFlow({
             <VehiclePicker
               vehicles={vehicleTypes}
               value={vehicleCode}
-              onChange={setVehicleCode}
+              onChange={(code) => {
+                setVehicleCode(code);
+                // Kamyon/tır seçildiğinde tarif formu komple yüke geçiyor ve
+                // danışman kendiliğinden açılıyor: bu araçlarda "kaç koli?"
+                // sorusunun karşılığı yok.
+                const fullLoad = FULL_LOAD_VEHICLES.includes(code);
+                setForcedCategory(fullLoad ? FULL_LOAD_CATEGORY : null);
+                if (fullLoad) setAdvisorOpen(true);
+              }}
               className="grid-cols-2 sm:grid-cols-3"
             />
           </div>
 
           {catalog && advisorOpen && (
             <div className="mt-5 rounded-card border border-line bg-surface p-5 sm:p-6">
-              <h3 className="text-lg font-bold">Yükünü tarif et, aracı biz seçelim</h3>
+              <h3 className="text-lg font-bold">
+                {forcedCategory ? 'Ne yükleniyor?' : 'Yükünü tarif et, aracı biz seçelim'}
+              </h3>
               <p className="mb-5 mt-1 text-sm text-muted">
-                Kategori seç, adetleri gir; öneri gerekçesiyle gelir ve yukarıdaki seçime yazılır.
+                {forcedCategory
+                  ? 'Palet, tomruk, big-bag, konteyner — cinsini ve adedini gir; araç ve fiyat buna göre netleşir.'
+                  : 'Kategori seç, adetleri gir; öneri gerekçesiyle gelir ve yukarıdaki seçime yazılır.'}
               </p>
               <CargoAdvisor
                 categories={catalog.categories}
@@ -265,6 +286,7 @@ export function EstimateFlow({
                 vehicleTypes={vehicleTypes}
                 floors={floors}
                 onVehicle={onAdvisorVehicle}
+                forcedCategory={forcedCategory}
               />
             </div>
           )}

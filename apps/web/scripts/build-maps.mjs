@@ -130,10 +130,14 @@ function fitter(rings) {
   const offsetX = (BOX.w - (maxX - minX) * scale) / 2;
   const offsetY = (BOX.h - (maxY - minY) * scale) / 2;
   // Mercator y yukarı artar, SVG y aşağı artar
-  return ([x, y]) => [
+  const project = ([x, y]) => [
     +((x - minX) * scale + offsetX).toFixed(1),
     +((maxY - y) * scale + offsetY).toFixed(1),
   ];
+  // Parametreler de dışarı veriliyor: sabit şehirler derleme anında projekte
+  // ediliyor ama ilan haritası çalışma anında gelen koordinatları çiziyor.
+  project.params = { minX, maxY, scale, offsetX, offsetY };
+  return project;
 }
 
 const toPath = (rings, project) =>
@@ -316,6 +320,32 @@ export const ROUTE_CITY = '${smoothPath(cityRoute)}';
 /** Şehirlerarası bacaklar. */
 export const ROUTE_OUT = '${arc(findCity('istanbul'), findCity('ankara'), 0.1)}';
 export const ROUTE_BACK = '${arc(findCity('ankara'), findCity('izmir'), 0.12)}';
+
+/**
+ * Türkiye haritasının projeksiyon parametreleri.
+ *
+ * <p>Sabit şehirler derleme anında projekte ediliyor; ilan haritası ise çalışma
+ * anında gelen ilçe koordinatlarını çiziyor. İkisinin aynı uzayda olması için
+ * dönüşüm burada da açık duruyor.
+ */
+export const TURKEY_PROJECTION = {
+  minX: ${fitTurkey.params.minX},
+  maxY: ${fitTurkey.params.maxY},
+  scale: ${fitTurkey.params.scale},
+  offsetX: ${fitTurkey.params.offsetX},
+  offsetY: ${fitTurkey.params.offsetY},
+} as const;
+
+/** Coğrafi koordinatı harita kutusuna taşır (Web Mercator + yukarıdaki oturtma). */
+export function projectLonLat(lon: number, lat: number): { x: number; y: number } {
+  const mx = (lon * Math.PI) / 180;
+  const my = Math.log(Math.tan(Math.PI / 4 + (lat * Math.PI) / 360));
+  const p = TURKEY_PROJECTION;
+  return {
+    x: +((mx - p.minX) * p.scale + p.offsetX).toFixed(1),
+    y: +((p.maxY - my) * p.scale + p.offsetY).toFixed(1),
+  };
+}
 
 /** Sahne değişiminde araç bu iki nokta arasında geçiş yapar (kamera geri çekilir). */
 export const HANDOVER = {

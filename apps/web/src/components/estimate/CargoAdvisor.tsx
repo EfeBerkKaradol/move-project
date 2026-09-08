@@ -28,6 +28,7 @@ export function CargoAdvisor({
   vehicleTypes,
   floors,
   onVehicle,
+  forcedCategory,
 }: {
   categories: CargoCategory[];
   items: CargoItem[];
@@ -35,13 +36,25 @@ export function CargoAdvisor({
   vehicleTypes: VehicleType[];
   floors: { floor: number; hasElevator: boolean }[];
   onVehicle: (code: string) => void;
+  /** Araç seçimi bir kategoriyi zorunlu kılıyorsa (tam araç işleri) o kategori. */
+  forcedCategory?: string | null;
 }) {
-  const [categoryCode, setCategoryCode] = useState<string | null>(null);
+  const [categoryCode, setCategoryCode] = useState<string | null>(forcedCategory ?? null);
   const [selection, setSelection] = useState<CargoSelection>(EMPTY_SELECTION);
   const [overrideCode, setOverrideCode] = useState<string | null>(null);
   const [recommendation, setRecommendation] = useState<VehicleRecommendation | null>(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+
+  // Kullanıcı kamyon ya da tır seçtiğinde soru "kaç koli?" değil "ne yükleniyor?"
+  // olur; kategori dışarıdan geldiğinde ızgarayı gösterip seçim beklemek yerine
+  // doğrudan o kategorinin formuna geçiliyor.
+  useEffect(() => {
+    if (!forcedCategory) return;
+    setCategoryCode(forcedCategory);
+    setSelection(EMPTY_SELECTION);
+    setOverrideCode(null);
+  }, [forcedCategory]);
 
   const category = categories.find((c) => c.code === categoryCode) ?? null;
   const categoryItems = useMemo(
@@ -89,7 +102,7 @@ export function CargoAdvisor({
         })
         .catch((err: unknown) => {
           if (err instanceof DOMException && err.name === 'AbortError') return;
-          setError('Öneri alınamadı. API çalışmıyor olabilir.');
+          setError(err instanceof Error ? err.message : 'Öneri alınamadı.');
         })
         .finally(() => {
           if (!controller.signal.aborted) setLoading(false);
@@ -106,15 +119,17 @@ export function CargoAdvisor({
 
   return (
     <div className="space-y-6">
-      <CategoryGrid
-        categories={categories}
-        selected={categoryCode}
-        onSelect={(code) => {
-          setCategoryCode(code);
-          setSelection(EMPTY_SELECTION);
-          setOverrideCode(null);
-        }}
-      />
+      {!forcedCategory && (
+        <CategoryGrid
+          categories={categories}
+          selected={categoryCode}
+          onSelect={(code) => {
+            setCategoryCode(code);
+            setSelection(EMPTY_SELECTION);
+            setOverrideCode(null);
+          }}
+        />
+      )}
 
       {category && (
         <div className="grid gap-6 lg:grid-cols-[minmax(0,1.3fr)_minmax(0,1fr)]">

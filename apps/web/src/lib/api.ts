@@ -105,7 +105,10 @@ export async function fetchRecommendation(
     signal,
   });
   if (!res.ok) {
-    throw new Error(`Öneri alınamadı (${res.status})`);
+    // Sunucu neden olmadığını söylüyorsa onu göster: "uygun araç yok" ile
+    // "API kapalı" kullanıcı için aynı şey değil.
+    const problem = (await res.json().catch(() => null)) as { detail?: string } | null;
+    throw new Error(problem?.detail ?? `Öneri alınamadı (${res.status})`);
   }
   return (await res.json()) as VehicleRecommendation;
 }

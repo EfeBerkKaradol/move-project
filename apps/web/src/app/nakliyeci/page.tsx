@@ -1,12 +1,14 @@
-import type { ListingView, OfferView } from '@tasiyoruz/contracts';
+import type { District, ListingView, OfferView } from '@tasiyoruz/contracts';
 import { formatPrice } from '@tasiyoruz/shared';
 import type { Metadata } from 'next';
 import { redirect } from 'next/navigation';
 import { auth, canCallApi, homeFor, isDriver } from '@/auth';
+import { ListingsMap, type MapListing } from '@/components/app/ListingsMap';
 import { RouteLine } from '@/components/app/RouteLine';
 import { Shell } from '@/components/app/Shell';
 import { SubNav } from '@/components/app/SubNav';
 import { apiFetch } from '@/lib/api-server';
+import { getDistricts } from '@/lib/api';
 import { StatusPill } from '@/components/app/StatusPill';
 import { withdrawOffer } from './actions';
 import { OfferForm } from './OfferForm';
@@ -20,11 +22,34 @@ export default async function DriverPage() {
   if (!isDriver(session.roles)) redirect(homeFor(session.roles));
   // Taşıyıcının kendi teklifleri kartta gösterilir; aksi hâlde form yeniden çıkar ve
   // ikinci gönderim "zaten teklif verdiniz" ile döner.
-  const [listings, myOffers] = await Promise.all([
+  const [listings, myOffers, districts] = await Promise.all([
     apiFetch<ListingView[]>('/driver/listings/open'),
     apiFetch<OfferView[]>('/driver/offers'),
+    // Harita için ilçe koordinatları. İlan görünümü yalnızca ilçe kimliği
+    // taşıyor; enlem/boylam katalogdan geliyor.
+    getDistricts(),
   ]);
   const mine = new Map(myOffers.filter((o) => o.status === 'SUBMITTED').map((o) => [o.listingId, o]));
+
+  const byId = new Map((districts ?? []).map((d: District) => [d.id, d]));
+  const place = (id: string) => byId.get(id);
+  // Koordinatı bulunamayan ilan haritada çizilmiyor ama listede duruyor:
+  // eksik bir katalog kaydı yüzünden iş gizlenmemeli.
+  const mapListings: MapListing[] = listings.flatMap((l) => {
+    const from = place(l.pickup.districtId);
+    const to = place(l.dropoff.districtId);
+    if (!from || !to) return [];
+    return [{
+      id: l.id,
+      listingNumber: l.listingNumber,
+      vehicleTypeCode: l.vehicleTypeCode,
+      fromLabel: `${from.cityName}, ${from.name}`,
+      toLabel: `${to.cityName}, ${to.name}`,
+      from: { lat: from.lat, lng: from.lng },
+      to: { lat: to.lat, lng: to.lng },
+      km: Math.round(l.estimate.distanceMeters / 1000),
+    }];
+  });
 
   return (
     <Shell eyebrow="Araç sahibi" title="Açık ilanlar">
@@ -46,9 +71,20 @@ export default async function DriverPage() {
           <p className="mt-1 text-sm text-muted">Dönüş rotanı <a href="/nakliyeci/koridor" className="font-semibold underline underline-offset-4 transition hover:text-ink">boş dönüş</a> sayfasında kaydet; o rotaya düşen yükler sana getirilsin.</p>
         </div>
       ) : (
+        <>
+          {mapListings.length > 0 && (
+            <div className="mt-6">
+              <ListingsMap listings={mapListings} />
+            </div>
+          )}
         <ul className="mt-6 space-y-4">
           {listings.map((l) => (
-            <li key={l.id} className="rounded-card border border-line bg-surface p-5">
+            <li
+              key={l.id}
+              id={`ilan-${l.id}`}
+              // Haritadan gelen bağlantı kartı sabit menünün altına sokmasın
+              className="scroll-mt-24 rounded-card border border-line bg-surface p-5"
+            >
               <div className="flex flex-wrap items-center gap-x-4 gap-y-2">
                 <span className="label-mono text-muted">{l.listingNumber}</span>
                 <RouteLine l={l} />
@@ -73,6 +109,7 @@ export default async function DriverPage() {
             </li>
           ))}
         </ul>
+        </>
       )}
     </Shell>
   );

@@ -11,6 +11,8 @@ import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import java.util.List;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ProblemDetail;
 import org.springframework.web.bind.annotation.*;
 
 /**
@@ -87,5 +89,25 @@ class PublicCatalogController {
     @Operation(summary = "Yük beyanından araç önerisi üretir")
     VehicleRecommendation recommend(@Valid @RequestBody CargoDeclarationRequest request) {
         return recommendationService.recommend(request);
+    }
+
+    /**
+     * Yük hiçbir araca sığmıyorsa bu bir sunucu hatası değil, kullanıcıya
+     * söylenecek bir sonuç.
+     *
+     * <p>İşlenmeden bırakıldığında Spring Security'nin hata yönlendirmesi
+     * devreye giriyor ve istemci <strong>401</strong> alıyordu: web arayüzü
+     * "giriş gerekiyor" sanıp kullanıcıyı yanlış yere gönderiyordu.
+     *
+     * <p>Modül sınırı gereği burada duruyor — istisna bu modülün `internal`
+     * paketinde ve dışarıdan görünmüyor.
+     */
+    @ExceptionHandler(NoSuitableVehicleException.class)
+    ProblemDetail uygunAracYok(NoSuitableVehicleException ex) {
+        var problem = ProblemDetail.forStatusAndDetail(
+                HttpStatus.UNPROCESSABLE_ENTITY,
+                ex.getMessage() + ". Yükü bölerek ya da parça parça göndererek deneyebilirsin.");
+        problem.setTitle("Uygun araç yok");
+        return problem;
     }
 }
