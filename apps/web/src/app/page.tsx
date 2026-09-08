@@ -5,6 +5,7 @@ import { Footer } from '@/components/site/Footer';
 import { Header } from '@/components/site/Header';
 import { HowItWorks } from '@/components/site/HowItWorks';
 import { QuoteWidget } from '@/components/site/QuoteWidget';
+import { SceneTransition } from '@/components/site/SceneTransition';
 import { SearchSection } from '@/components/site/SearchSection';
 import { TrustSection } from '@/components/site/TrustSection';
 import { TwoSidedMarket } from '@/components/site/TwoSidedMarket';
@@ -33,11 +34,19 @@ export default async function HomePage() {
           carrierHref={carrierBoardHref}
           widget={vehicles?.length ? <QuoteWidget vehicles={vehicles} tone="scene" /> : null}
         />
-        <HowItWorks />
-        {/* Anlatının hemen ardından: ürünün çalıştığının kanıtı. Burada koridor ve
-            sayı yeterli; kartlar ilanların kendisine (/ilanlar) götürüyor. */}
-        <ActiveCorridors />
+        <SceneTransition />
+        {/* Sıra kasıtlı: eylem → kanıt → mekanizma.
+            (1) Hero'daki fiyat widget'ı yalnızca geniş ekranda görünüyor; telefonda
+            tek kullanılabilir widget bu bölüm ve ölçtüğümüzde sayfanın 3.900 piksel
+            aşağısındaydı — fiyat almak isteyen kullanıcı dört ekran kaydırıyordu.
+            (2) Ardından "burada gerçekten iş var mı?" sorusu: iki taraflı bir
+            pazarda ziyaretçinin ilk şüphesi bu ve kartlar ilanların kendisine
+            götürüyor.
+            (3) Üç adım en sona kalıyor: hero anlatısı işleyişi zaten gösterdi,
+            tekrar okumak isteyen aşağıda buluyor. */}
         <SearchSection vehicles={vehicles ?? []} />
+        <ActiveCorridors />
+        <HowItWorks />
         <TwoSidedMarket shipperHref={shipperHref} carrierHref={carrierJoinHref} />
         <VehicleRange vehicles={vehicles ?? []} />
         <TrustSection />

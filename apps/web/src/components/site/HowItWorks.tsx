@@ -21,21 +21,14 @@ const STEPS = [
 /**
  * Üç adım, klasik üç kart yerine yatay bir rota üzerinde.
  *
- * <p>Hero'daki rota çizgisi burada devam ediyor: koyu sahneden açık zemine geçiş
- * sert bir kesme değil, aynı hattın sürmesi. Adımlar o hattın üzerindeki duraklar.
+ * <p>Adımlar hero'dan gelen rota hattının üzerindeki duraklar. Koyu sahneden açık
+ * zemine geçiş bandı hero'nun kendi parçası ({@code SceneTransition}); bu bölüm
+ * sıralamada yer değiştirdiğinde geçişin onunla birlikte kayması gerekmiyor.
  */
 export function HowItWorks() {
   return (
     <>
-      {/* Koyu hero'dan sıcak zemine geçiş bandı — rota hattı içinden geçiyor */}
-      <div aria-hidden className="relative h-24 bg-gradient-to-b from-[#171a19] to-bg md:h-32">
-        <svg viewBox="0 0 1200 130" preserveAspectRatio="none" className="absolute inset-0 size-full">
-          <path d="M0 6C240 6 300 118 540 118S900 20 1200 20" fill="none"
-            stroke="var(--route)" strokeWidth={2.5} strokeLinecap="round" opacity="0.55" />
-        </svg>
-      </div>
-
-      <section id="nasil-calisir" className="theme-cream bg-bg pb-20 pt-4 md:pb-28">
+      <section id="nasil-calisir" className="theme-cream bg-bg pb-14 pt-4 md:pb-20">
         <div className="mx-auto max-w-[76rem] px-6">
           <Reveal>
             <p className="label-mono text-muted">Nasıl çalışır</p>
@@ -44,7 +37,7 @@ export function HowItWorks() {
             </h2>
           </Reveal>
 
-          <ol className="relative mt-14 grid gap-10 md:grid-cols-3 md:gap-8">
+          <ol className="relative mt-10 grid gap-8 md:grid-cols-3 md:gap-8">
             {/* Adımları birbirine bağlayan hat — masaüstünde yatay, mobilde dikey */}
             <span aria-hidden
               className="absolute left-[11px] top-2 h-[calc(100%-1rem)] w-px bg-line md:left-0 md:top-[11px] md:h-px md:w-full" />

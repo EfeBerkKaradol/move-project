@@ -115,6 +115,31 @@ tam ekran bottom sheet, harita üstte sabit, alt panel kaydırılabilir.
 Ana sayfanın işi tek bir şey: **"buraya eşyamı emanet edebilir miyim?"** sorusuna cevap vermek.
 Bu yüzden pano, katlamanın hemen altında — pazarlama metninden önce.
 
+### Bölüm sırası: eylem → kanıt → mekanizma
+
+Uygulanan sıra, aşağıdaki taslaktan farklı; gerekçesi ölçüme dayanıyor.
+
+| # | Bölüm | Neden burada |
+|---|---|---|
+| 1 | Hero (kaydırmalı anlatı) | Ürünü anlatan sahne; geniş ekranda fiyat widget'ı içinde |
+| 2 | Fiyat widget'ı (`lg:hidden`) | Hero'nun widget'ı yalnızca geniş ekranda görünüyor; telefonda tek kullanılabilir widget bu ve **sayfanın 3.130 piksel aşağısındaydı** — fiyat almak isteyen kullanıcı dört ekran kaydırıyordu. Şimdi 1.849'da. |
+| 3 | Açık koridorlar | İki taraflı pazarda ziyaretçinin ilk şüphesi "burada gerçekten iş var mı?". Kartlar ilanların kendisine (`/ilanlar`) götürüyor — sayfadaki ilk gerçek çıkış. |
+| 4 | Üç adım | Hero anlatısı işleyişi zaten gösterdi; tekrar okumak isteyen aşağıda buluyor. Statik bir açıklama, eylem değil. |
+| 5–7 | İki taraf, araç yelpazesi, güven | Derinleşen içerik; katlamanın çok altında. |
+
+Boş pazar kaygısı iki taraflı bir pazaryerinin en büyük itirazı; ona mekanizmadan
+önce cevap veriyoruz.
+
+**Dikey ritim.** Bölümler arası boşluk masaüstünde 112 px'ti — 900 px'lik bir ekranın
+sekizde biri, üstelik her bölümde. `pb-14 md:pb-20` ile 56/80 px'e indi; ölçülen
+aralık 56–90 px. Koyu hero'dan açık zemine geçiş bandı kendi bileşeni
+(`SceneTransition`) ve alt boşluğu kendisinde: arkasından gelen bölüm ekran
+genişliğine göre değiştiği için payı onlara koymak sayfanın ortasında fazladan
+boşluk bırakırdı.
+
+Araç yelpazesi telefonda tek sütundu ve tek başına 1.553 px tutuyordu; iki sütuna
+alındı (1.094 px). Kart 158 px genişliğinde, araç adları tek satıra sığıyor.
+
 ```
 ┌─────────────────────────────────────────────────────┐
 │  HERO                                               │

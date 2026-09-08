@@ -48,7 +48,7 @@ export function TwoSidedMarket({
   ];
 
   return (
-    <section className="theme-cream bg-bg pb-20 md:pb-28">
+    <section className="theme-cream bg-bg pb-14 md:pb-20">
       <div className="mx-auto max-w-[76rem] px-6">
         <Reveal>
           <h2 className="text-[clamp(1.9rem,4vw,3.1rem)] leading-[1.05]">
@@ -56,7 +56,7 @@ export function TwoSidedMarket({
           </h2>
         </Reveal>
 
-        <div className="mt-12 grid gap-12 md:grid-cols-2 md:gap-0">
+        <div className="mt-10 grid gap-10 md:grid-cols-2 md:gap-0">
           {sides.map((side, i) => (
             <Reveal key={side.eyebrow} delay={i * 90}>
               <div className={i === 1 ? 'md:border-l md:border-line md:pl-12' : 'md:pr-12'}>

@@ -31,7 +31,7 @@ export function VehicleRange({ vehicles }: { vehicles: VehicleType[] }) {
   if (vehicles.length === 0) return null;
 
   return (
-    <section id="araclar" className="theme-cream bg-bg pb-20 md:pb-28">
+    <section id="araclar" className="theme-cream bg-bg pb-14 md:pb-20">
       <div className="mx-auto max-w-[76rem] px-6">
         <Reveal className="lg:grid lg:grid-cols-[minmax(0,1.4fr)_minmax(0,1fr)] lg:items-end lg:gap-14">
           <div>
@@ -46,14 +46,14 @@ export function VehicleRange({ vehicles }: { vehicles: VehicleType[] }) {
           </p>
         </Reveal>
 
-        <div className="mt-10 grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
+        <div className="mt-8 grid grid-cols-2 gap-3 lg:grid-cols-3">
           {vehicles.map((vehicle, i) => {
             const soon = !vehicle.active;
             return (
               <Reveal key={vehicle.code} delay={Math.min(i, 5) * 60}>
                 <article
                   className={[
-                    'h-full rounded-card p-5',
+                    'h-full rounded-card p-4 sm:p-5',
                     soon
                       ? 'border border-dashed border-line text-muted'
                       : 'border border-line bg-surface',

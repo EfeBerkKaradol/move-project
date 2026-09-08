@@ -28,7 +28,7 @@ export async function ActiveCorridors() {
   };
 
   return (
-    <section className="theme-cream bg-bg pb-20 md:pb-28">
+    <section className="theme-cream bg-bg pb-14 md:pb-20">
       <div className="mx-auto max-w-[76rem] px-6">
         <Reveal className="lg:grid lg:grid-cols-[minmax(0,1.35fr)_minmax(0,1fr)] lg:items-end lg:gap-14">
           <div>
@@ -43,7 +43,7 @@ export async function ActiveCorridors() {
           </p>
         </Reveal>
 
-        <ul className="mt-10 grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
+        <ul className="mt-8 grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
           {corridors.map((corridor, i) => (
             <Reveal key={`${corridor.fromCity}-${corridor.toCity}`} delay={Math.min(i, 5) * 60}>
               <li className="h-full">

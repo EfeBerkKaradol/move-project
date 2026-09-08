@@ -18,7 +18,7 @@ export function SearchSection({ vehicles }: { vehicles: VehicleType[] }) {
   if (vehicles.length === 0) return null;
 
   return (
-    <section className="theme-cream bg-bg pb-20 md:pb-28 lg:hidden">
+    <section className="theme-cream bg-bg pb-14 md:pb-20 lg:hidden">
       <div className="mx-auto grid max-w-[76rem] gap-10 px-6 lg:grid-cols-[minmax(0,1fr)_minmax(0,1.1fr)] lg:items-center lg:gap-16">
         <Reveal>
           <p className="label-mono text-muted">Başla</p>
