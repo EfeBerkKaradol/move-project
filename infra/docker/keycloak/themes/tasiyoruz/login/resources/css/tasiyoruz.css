@@ -1,5 +1,5 @@
 /*
- * Taşıyoruz — Keycloak giriş/kayıt teması.
+ * KARINCA — Keycloak giriş/kayıt teması.
  *
  * Ürünün tasarım dili (docs/06): koyu zemin #0D1015, amber #F49F2C, krem kart.
  * Yalnızca CSS; FreeMarker şablonları override edilmiyor ki Keycloak
@@ -49,7 +49,7 @@ body, body.login-pf {
 #kc-header-wrapper, .login-pf-brand, .pf-v5-c-login__header img { display: none !important; }
 #kc-header, .pf-v5-c-login__header { text-align: center; display: block; }
 #kc-header::before, .pf-v5-c-login__header::before {
-  content: "Taşıyoruz";
+  content: "KARINCA";
   display: block;
   color: #fff;
   font-size: 1.55rem;

@@ -56,6 +56,13 @@ services:
         value: xforwarded
       - key: KC_HTTP_ENABLED
         value: "true"          # TLS'i Render sonlandırıyor; içeride düz HTTP
+      # Doğrulama ve "şifremi unuttum" postaları. Render ücretsiz planda giden SMTP
+      # portları kapalı olduğu için imajdaki eklenti postayı sağlayıcının HTTP API'si
+      # üzerinden gönderiyor. Anahtar verilmezse Keycloak'ın kendi SMTP göndericisine
+      # devrediliyor — yani boş bırakmak hiçbir şeyi bozmuyor, yalnızca posta gitmiyor.
+      # Gönderen adresi burada değil, realm'in Email sekmesinde.
+      - key: TASIYORUZ_MAIL_API_KEY
+        sync: false            # API servisiyle AYNI anahtar (Brevo → API keys)
       # Keycloak iki port açıyor: 8080 uygulama, 9000 yönetim. Hangisine
       # yönlendirileceği Render'ın taramasına bırakılmıyor.
       - key: PORT

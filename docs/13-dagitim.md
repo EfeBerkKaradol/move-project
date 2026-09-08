@@ -233,6 +233,19 @@ gönderici adresini ekle ve gelen postadaki bağlantıyla doğrula. Sonra hesap 
 ⚠️ SMTP anahtarı ile API anahtarı farklı şeyler; SMTP bağlantısı için **SMTP key**
 gerekiyor.
 
+⚠️ **Render ücretsiz planda giden SMTP portları (25/465/587) kapalı.** Kimlik
+bilgileri doğru olsa bile SMTP gönderimi zaman aşımına uğrar; Keycloak "Failed to
+send email" der ve sebebi söylemez. Bu yüzden hem Keycloak imajında hem API'de
+gönderim sağlayıcının **HTTP API'si** üzerinden yapılıyor. Gereken tek ek şey
+API anahtarı:
+
+- Brevo → **SMTP & API** → **API keys** sekmesi → yeni anahtar
+- Render → `tasiyoruz-api` **ve** `tasiyoruz-keycloak` → `TASIYORUZ_MAIL_API_KEY`
+
+Bu anahtar SMTP anahtarından farklı; ikisi karıştırılırsa sunucu 401 döner.
+Anahtar verilmezse davranış değişmiyor, gönderim SMTP'ye düşüyor (portun açık
+olduğu ortamlarda çalışır).
+
 **b) Keycloak'a gir** (doğrulama ve "şifremi unuttum" postalarını o gönderiyor).
 Realm settings → **Email**:
 
