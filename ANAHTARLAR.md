@@ -37,7 +37,9 @@ Süreler kaba tahmin; hesap açma ve onay bekleme sürelerini kapsamıyor.
 
 ## Adım 1 — Dağıtım hesapları · madde #17
 
-**[ ] Yapılacak**
+**[x] Tamamlandı** — Neon (API ve Keycloak için ayrı projeler), Upstash, Render
+(`tasiyoruz-api`, `tasiyoruz-keycloak`) ve Vercel canlı. Yaşanan tuzaklar ve
+teşhisleri: [docs/13-dagitim.md](docs/13-dagitim.md).
 
 **Ne için:** API ve Keycloak'ın herkese açık bir adreste çalışması. Vercel'e attığın
 sürümde giriş ve fiyat hesaplamanın çalışmamasının **tek sebebi** bu: Vercel yalnızca
@@ -67,7 +69,9 @@ geçilmeli (bkz. [sonraki fazlar](#sonraki-fazlar), madde #4).
 
 ## Adım 2 — Üretim sırları · maddeler #13 #14 #16 #15
 
-**[ ] Yapılacak** — Adım 1 ile **birlikte**.
+**[x] Tamamlandı.** #13 Render'ın ürettiği değer, #14 Vercel adresi, #16 Vercel
+ortam değişkenleri, #15 Render'ın ürettiği yönetici parolası. Aşağıdaki komutlar
+kendi alan adına geçerken tekrar gerekecek.
 
 Bunlar dış servis değil, **senin üreteceğin** değerler. Yerel varsayılanlarıyla
 üretime çıkmak, imzalama anahtarı `local-development-secret` kalmış bir sistemi
@@ -226,7 +230,14 @@ sağlayıcısı (kuş uçuşu × yol katsayısı) devrede ve fiyatlar makul ama 
 
 ## Adım 7 — SMS sağlayıcısı · madde #2
 
-**[ ] Yapılacak**
+**[~] Kod hazır, hesap bekliyor.** Doğrulama akışının tamamı yazıldı ve test altında
+(`/api/v1/me/phone`, `/hesap`). Eksik olan yalnızca sağlayıcı adaptörü — hesap
+açılmadan yazılan entegrasyon denenemez.
+
+⚠️ **Anahtarları girmek tek başına yetmez.** Şu an `SMS_PROVIDER` vb. doldurulsa bile
+adaptör olmadığı için doğrulama kapalı çalışmaya devam eder ve açılışta
+"adaptör henüz yazılmadı" hatası basar. Doğru sıra: önce hesap ve BTK gönderici
+başlığı başvurusu, sonra adaptör.
 
 **Ne için:** Telefon + SMS tek kullanımlık kod ile giriş. Ayrıca sipariş durumu
 bildirimleri ve alıcıya gönderilen takip linki.
