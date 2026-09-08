@@ -23,6 +23,7 @@ export async function saveApplication(_prev: ActionState, form: FormData): Promi
         // Alan ekranda büyük harf gösteriliyor; değeri de öyle gönderelim ki
         // kullanıcının gördüğüyle kaydedilen aynı olsun
         plate: text('plate')?.toLocaleUpperCase('tr') ?? null,
+        complianceDeclared: form.get('complianceDeclared') === 'on',
       }),
     });
   } catch (e) {

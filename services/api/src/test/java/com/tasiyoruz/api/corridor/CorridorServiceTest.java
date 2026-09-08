@@ -57,7 +57,7 @@ class CorridorServiceTest extends IntegrationTestBase {
                 "SCHEDULED", vehicle,
                 new CreateListingRequest.Stop(city(fromCity), 0, true),
                 new CreateListingRequest.Stop(city(toCity), 0, true),
-                List.of(), listingFixture.items(), listingFixture.photoIds(shipper), "Test yükü",
+                List.of(), listingFixture.items(), listingFixture.photoIds(shipper), true, "Test yükü",
                 Instant.now().plus(Duration.ofHours(4)),
                 Instant.now().plus(Duration.ofHours(10))));
     }

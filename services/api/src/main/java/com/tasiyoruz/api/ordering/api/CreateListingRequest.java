@@ -27,6 +27,15 @@ public record CreateListingRequest(
         @NotEmpty(message = "Yükünün en az bir fotoğrafını yüklemelisin.")
         @Size(max = 10, message = "En fazla 10 fotoğraf yükleyebilirsin.")
         List<String> photoIds,
+        /**
+         * Göndericinin hukuka uygunluk beyanı.
+         *
+         * <p>İşlem bazında alınıyor, kayıt sırasında bir kez değil: beyan taşınan
+         * <em>bu</em> yüke ait. Bir kez kabul edilip unutulan bir onay kutusu,
+         * hangi yük için ne beyan edildiğini söyleyemez.
+         */
+        @AssertTrue(message = "Eşyanın hukuka uygunluğuna dair beyanı onaylaman gerekiyor.")
+        boolean lawfulnessDeclared,
         @Size(max = 1000) String cargoDescription,
         Instant pickupWindowStart,
         Instant pickupWindowEnd) {

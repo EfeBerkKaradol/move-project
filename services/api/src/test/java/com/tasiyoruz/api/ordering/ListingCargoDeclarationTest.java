@@ -94,7 +94,7 @@ class ListingCargoDeclarationTest extends IntegrationTestBase {
     void fotografsizIlanYayinlanamaz() {
         var r = request(listingFixture.items());
         var fotografsiz = new CreateListingRequest(r.serviceModel(), r.vehicleTypeCode(), r.pickup(), r.dropoff(),
-                r.extraServices(), r.cargoItems(), List.of(), r.cargoDescription(), null, null);
+                r.extraServices(), r.cargoItems(), List.of(), true, r.cargoDescription(), null, null);
 
         assertThatThrownBy(() -> marketplace.publish(SHIPPER, fotografsiz))
                 .isInstanceOf(ResponseStatusException.class)
@@ -117,7 +117,7 @@ class ListingCargoDeclarationTest extends IntegrationTestBase {
         var yabanci = listingFixture.photoIds(OTHER);
         var r = request(listingFixture.items());
         var calinti = new CreateListingRequest(r.serviceModel(), r.vehicleTypeCode(), r.pickup(), r.dropoff(),
-                r.extraServices(), r.cargoItems(), yabanci, null, null, null);
+                r.extraServices(), r.cargoItems(), yabanci, true, null, null, null);
 
         assertThatThrownBy(() -> marketplace.publish(SHIPPER, calinti))
                 .isInstanceOf(ResponseStatusException.class);
@@ -128,7 +128,7 @@ class ListingCargoDeclarationTest extends IntegrationTestBase {
         var ids = listingFixture.photoIds(SHIPPER);
         var r = request(listingFixture.items());
         var ilk = new CreateListingRequest(r.serviceModel(), r.vehicleTypeCode(), r.pickup(), r.dropoff(),
-                r.extraServices(), r.cargoItems(), ids, null, null, null);
+                r.extraServices(), r.cargoItems(), ids, true, null, null, null);
         marketplace.publish(SHIPPER, ilk);
 
         assertThatThrownBy(() -> marketplace.publish(SHIPPER, ilk))
@@ -203,7 +203,7 @@ class ListingCargoDeclarationTest extends IntegrationTestBase {
         return new CreateListingRequest("INSTANT", "KAMYONET",
                 new CreateListingRequest.Stop(district("34", "kadikoy"), 0, true),
                 new CreateListingRequest.Stop(district("34", "besiktas"), 0, true),
-                List.of(), items, listingFixture.photoIds(SHIPPER), null, null, null);
+                List.of(), items, listingFixture.photoIds(SHIPPER), true, null, null, null);
     }
 
     private String district(String city, String slug) {

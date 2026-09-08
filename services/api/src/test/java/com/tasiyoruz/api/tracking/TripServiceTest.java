@@ -54,7 +54,7 @@ class TripServiceTest extends IntegrationTestBase {
         var l = marketplace.publish(SHIPPER, new CreateListingRequest("INSTANT", "PANELVAN",
                 new CreateListingRequest.Stop(district("34", "kadikoy"), 0, true),
                 new CreateListingRequest.Stop(district("34", "besiktas"), 0, true), List.of(),
-                listingFixture.items(), listingFixture.photoIds(SHIPPER), null, null, null));
+                listingFixture.items(), listingFixture.photoIds(SHIPPER), true, null, null, null));
         var o = marketplace.submitOffer(CARRIER, "Ali D.", l.id(), new SubmitOfferRequest(new BigDecimal("2500"), null, null));
         marketplace.acceptOffer(SHIPPER, l.id(), o.id());
         return tripService.startFromAward(l.id(), SHIPPER, CARRIER, "Ali D.", new BigDecimal("2500"));

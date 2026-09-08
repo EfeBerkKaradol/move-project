@@ -5,6 +5,7 @@ import { useActionState, useState } from 'react';
 import { PhoneInput } from '@/components/form/PhoneInput';
 import { PlateInput } from '@/components/form/PlateInput';
 import { saveApplication, type ActionState } from './actions';
+import { LegalCheckbox } from '@/components/legal/LegalCheckbox';
 
 const FIELD =
   'min-h-11 w-full rounded-field border border-line bg-surface-2 px-3 py-2.5 text-[15px] outline-none transition hover:border-muted focus:border-route focus:ring-2 focus:ring-route/25';
@@ -71,6 +72,25 @@ export function ApplicationForm({
             <span className="mt-1 block text-xs text-muted">Şahıs şirketinde TCKN, sermaye şirketinde vergi no.</span>
           </label>
         </>
+      )}
+
+      {editable && (
+        <div className="border-t border-line pt-5 sm:col-span-2">
+          {/* Taahhüt başvurunun parçası: onaylanmadan kayıt sunucuda da reddediliyor */}
+          <LegalCheckbox
+            name="complianceDeclared"
+            required
+            links={[
+              { href: '/legal/tasiyici-sozlesmesi', label: 'Taşıyıcı Sözleşmesi' },
+              { href: '/legal/yasakli-esyalar', label: 'Yasaklı eşyalar' },
+            ]}
+          >
+            Platformu ve taşıma hizmetlerini yürürlükteki mevzuata uygun şekilde
+            kullanacağımı, hukuka aykırı veya yasaklı bir eşyanın taşınmasına bilerek
+            aracılık etmeyeceğimi ve şüpheli ya da hukuka aykırı durumlarda platform
+            üzerindeki bildirim mekanizmalarını kullanacağımı kabul ve taahhüt ederim.
+          </LegalCheckbox>
+        </div>
       )}
 
       {editable && (

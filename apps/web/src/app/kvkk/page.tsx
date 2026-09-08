@@ -1,14 +1,9 @@
-import type { Metadata } from 'next';
-import { PlaceholderPage } from '@/components/site/PlaceholderPage';
+import { permanentRedirect } from 'next/navigation';
 
-export const metadata: Metadata = { title: 'KVKK aydınlatma metni' };
-
-/** Yasal metin hukuk incelemesinden geçmeden yayımlanmaz; uydurma sözleşme konmaz. */
-export default function KvkkPage() {
-  return (
-    <PlaceholderPage eyebrow="Yasal" title="KVKK aydınlatma metni hazırlanıyor.">
-      <p>Kişisel verilerin Türkiye’de barındırılır ve yurt dışındaki servislere aktarılmaz. Hangi verinin hangi amaçla işlendiği, saklama süreleri ve haklarını nasıl kullanacağın bu sayfada yayımlanacak.</p>
-      <p>Yayımlandığında bu sayfada ve kayıt ekranında yer alacak.</p>
-    </PlaceholderPage>
-  );
+/**
+ * Eski yasal adres. Belgeler /legal altında toplandı; dışarıya verilmiş
+ * bağlantılar ve arama sonuçları kırılmasın diye kalıcı yönlendirme bırakıldı.
+ */
+export default function Page() {
+  permanentRedirect('/legal/kvkk-aydinlatma');
 }

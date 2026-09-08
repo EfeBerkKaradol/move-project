@@ -5,6 +5,12 @@ import static com.tasiyoruz.api.ordering.internal.MarketplaceExceptions.*;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.tasiyoruz.api.catalog.api.CargoCatalog;
+import com.tasiyoruz.api.compliance.api.CargoScreening;
+import com.tasiyoruz.api.compliance.api.ComplianceGuard;
+import com.tasiyoruz.api.compliance.api.ConsentService;
+import com.tasiyoruz.api.compliance.api.ConsentType;
+import com.tasiyoruz.api.compliance.api.LegalDocType;
+import com.tasiyoruz.api.compliance.api.RecordConsent;
 import com.tasiyoruz.api.catalog.api.CargoItemView;
 import com.tasiyoruz.api.fleet.api.CarrierDirectory;
 import com.tasiyoruz.api.geo.api.District;
@@ -57,6 +63,9 @@ class DefaultMarketplaceService implements MarketplaceService {
     private final CargoCatalog cargoCatalog;
     private final ListingPhotoService photos;
     private final CarrierVisibility visibility;
+    private final ComplianceGuard compliance;
+    private final ConsentService consents;
+    private final CargoScreening screening;
     private final ApplicationEventPublisher events;
     private final ObjectMapper mapper;
     private final Clock clock;
@@ -64,7 +73,8 @@ class DefaultMarketplaceService implements MarketplaceService {
     DefaultMarketplaceService(LoadListingRepository listings, CarrierOfferRepository offers,
                               CarrierDirectory carriers, GeoService geo,
                               PricingService pricing, CargoCatalog cargoCatalog, ListingPhotoService photos,
-                              CarrierVisibility visibility, ApplicationEventPublisher events, ObjectMapper mapper,
+                              CarrierVisibility visibility, ComplianceGuard compliance, ConsentService consents,
+                              CargoScreening screening, ApplicationEventPublisher events, ObjectMapper mapper,
                               Clock clock) {
         this.listings = listings;
         this.offers = offers;
@@ -74,6 +84,9 @@ class DefaultMarketplaceService implements MarketplaceService {
         this.cargoCatalog = cargoCatalog;
         this.photos = photos;
         this.visibility = visibility;
+        this.compliance = compliance;
+        this.consents = consents;
+        this.screening = screening;
         this.events = events;
         this.mapper = mapper;
         this.clock = clock;
@@ -87,6 +100,12 @@ class DefaultMarketplaceService implements MarketplaceService {
         if (r.photoIds() == null || r.photoIds().isEmpty()) {
             throw badRequest("Yükünün en az bir fotoğrafını yüklemelisin.");
         }
+        if (!r.lawfulnessDeclared()) {
+            throw badRequest("Eşyanın hukuka uygunluğuna dair beyanı onaylaman gerekiyor.");
+        }
+        // Kısıtlı hesap yeni ilan açamaz. Kontrol serviste: yalnızca arayüzde
+        // gizlenen bir kısıtlama, doğrudan API çağrısıyla aşılabilirdi.
+        compliance.requireCanTransact(shipperId);
 
         var pickup = geo.district(r.pickup().districtId()).orElseThrow(() -> badRequest("Alış ilçesi tanınmadı."));
         var dropoff = geo.district(r.dropoff().districtId()).orElseThrow(() -> badRequest("Teslim ilçesi tanınmadı."));
@@ -123,6 +142,18 @@ class DefaultMarketplaceService implements MarketplaceService {
                 snapshot, quote.totalAmount().amount(), now, expiresAt));
 
         var attached = photos.attach(shipperId, listing.getId(), r.photoIds(), now);
+
+        // Beyan ilana bağlanıyor: ihtilafta "bu yük için ne beyan edilmişti"
+        // sorusunun cevabı, ilanın kendisiyle aynı yerde duruyor.
+        consents.record(shipperId, RecordConsent.declaration(
+                ConsentType.SHIPPER_DECLARATION, "LISTING_CREATE", listing.getId().toString(),
+                LegalDocType.SHIPPER_TERMS, null));
+
+        // Tarama ilanı ENGELLEMİYOR, gerekirse insan incelemesi açıyor: kelime
+        // eşleşmesi bağlamı bilmiyor ve masum bir ilanı durdurmak, gerçek bir
+        // ihlali yakalamaktan daha sık olurdu.
+        screening.screenListing(shipperId, listing.getId().toString(), r.cargoDescription(),
+                listing.getDeclaredItems().stream().map(DeclaredItem::displayName).toList());
 
         events.publishEvent(new ListingPublished(listing.getId().toString(), listing.getVehicleTypeCode(),
                 pickup.id(), dropoff.id(), listing.getEstimatedAmount()));

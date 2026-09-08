@@ -166,6 +166,16 @@ export type ListingPlace = {
  * Rota, araç, büyüklük ve tarife tahmini var; fotoğraf, açıklama, kalem dökümü,
  * kat/asansör ve yük verenin kimliği yok — onlar onaylı araç sahibine açılıyor.
  */
+/** Yürürlükteki bir hukuki belgenin künyesi. Metin depoda, sürüm burada. */
+export type LegalDocumentView = {
+  docType: string;
+  version: string;
+  title: string;
+  slug: string;
+  effectiveAt: string;
+  requiresReacceptance: boolean;
+};
+
 export type PublicListingView = {
   id: string;
   fromCity: string;
@@ -285,6 +295,11 @@ export type CreateListingRequest = {
   cargoItems: { cargoItemCode: string; quantity: number }[];
   /** Zorunlu: önce yüklenen fotoğrafların kimlikleri. */
   photoIds: string[];
+  /**
+   * Göndericinin hukuka uygunluk beyanı. İşlem bazında alınıyor — beyan bu yüke
+   * ait, hesaba değil.
+   */
+  lawfulnessDeclared: boolean;
   cargoDescription?: string | null;
   pickupWindowStart?: string | null;
   pickupWindowEnd?: string | null;
@@ -481,6 +496,8 @@ export type CarrierApplicationRequest = {
   taxId?: string | null;
   vehicleTypeCode: string;
   plate: string;
+  /** Taşıyıcının mevzuata uygunluk taahhüdü. Onaylanmadan başvuru kaydedilmiyor. */
+  complianceDeclared: boolean;
 };
 
 

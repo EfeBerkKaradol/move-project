@@ -5,6 +5,6 @@
  */
 @org.springframework.modulith.ApplicationModule(
         displayName = "Filo ve belgeler",
-        allowedDependencies = { "catalog::api", "shared::storage" }
+        allowedDependencies = { "compliance::api", "catalog::api", "shared::storage" }
 )
 package com.tasiyoruz.api.fleet;

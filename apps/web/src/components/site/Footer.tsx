@@ -29,9 +29,25 @@ const COLUMNS = [
   {
     title: 'Yasal',
     links: [
-      { href: '/kvkk', label: 'KVKK aydınlatma metni' },
-      { href: '/gizlilik-politikasi', label: 'Gizlilik politikası' },
-      { href: '/kullanici-sozlesmesi', label: 'Kullanıcı sözleşmesi' },
+      { href: '/legal/kullanici-sozlesmesi', label: 'Kullanıcı sözleşmesi' },
+      { href: '/legal/gonderici-sozlesmesi', label: 'Gönderici sözleşmesi' },
+      { href: '/legal/tasiyici-sozlesmesi', label: 'Taşıyıcı sözleşmesi' },
+      { href: '/legal/kvkk-aydinlatma', label: 'KVKK aydınlatma' },
+      { href: '/legal/gizlilik', label: 'Gizlilik politikası' },
+      { href: '/legal/cerez-politikasi', label: 'Çerez politikası' },
+    ],
+  },
+  {
+    // Yasaklı eşyalar ve ihlal bildirimi ayrı başlık altında: bunlar sözleşme
+    // metni değil, kullanıcının iş yaparken ihtiyaç duyduğu kurallar. Yasal
+    // listenin dibine gömüldüklerinde kimse açmıyordu.
+    title: 'Kurallar',
+    links: [
+      { href: '/legal/yasakli-esyalar', label: 'Yasaklı eşyalar' },
+      { href: '/legal/hukuka-aykiri-kullanim', label: 'Hukuka aykırı kullanım' },
+      { href: '/legal/iptal-iade', label: 'İptal ve iade' },
+      { href: '/legal/ihlaller-ve-sikayetler', label: 'İhlal bildirimi' },
+      { href: '/legal', label: 'Tüm yasal belgeler' },
     ],
   },
 ];

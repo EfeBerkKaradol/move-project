@@ -36,6 +36,13 @@ class SecurityConfig {
                         .requestMatchers("/ws/public/**", "/ws/track/**").permitAll()
                         .requestMatchers("/actuator/health/**", "/actuator/prometheus").permitAll()
                         .requestMatchers("/v3/api-docs/**", "/swagger-ui/**", "/swagger-ui.html").permitAll()
+                        // Uyum uçları operasyona KAPALI ve bu kural genel admin
+                        // kuralından ÖNCE geliyor — sonra gelseydi ilk eşleşen kural
+                        // kazanır ve operasyon ekibi hesap kapatabilirdi. Uyum
+                        // kayıtları hesap kısıtlaması, ihlal bildirimi ve kişisel veri
+                        // içeriyor; onay kuyruğunu yürütmek bunlara erişimi gerektirmiyor
+                        // (docs/14 yetkilendirme).
+                        .requestMatchers("/api/v1/admin/compliance/**").hasAnyRole("COMPLIANCE", "ADMIN")
                         // Operasyon ekibi onay kuyruğunu yürütüyor (docs/01 FR-13.3).
                         // Yazma yalnızca ADMIN olsaydı belge onaylamak da yönetici işi
                         // olurdu ve kuyruk tıkanırdı.

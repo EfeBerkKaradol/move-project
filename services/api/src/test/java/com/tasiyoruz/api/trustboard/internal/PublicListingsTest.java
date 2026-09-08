@@ -133,7 +133,7 @@ class PublicListingsTest extends IntegrationTestBase {
         return new CreateListingRequest("INSTANT", "KAMYONET",
                 new CreateListingRequest.Stop(district("34", "kadikoy"), 3, false),
                 new CreateListingRequest.Stop(district("06", "cankaya"), 0, true),
-                List.of(), listingFixture.items(), listingFixture.photoIds(SHIPPER),
+                List.of(), listingFixture.items(), listingFixture.photoIds(SHIPPER), true,
                 "Kırılacak eşya var, dikkatli taşınmalı.", null, null);
     }
 

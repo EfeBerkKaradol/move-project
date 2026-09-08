@@ -27,7 +27,7 @@ class CarrierServiceTest extends IntegrationTestBase {
     }
 
     private static CarrierApplicationRequest application(String vehicle) {
-        return new CarrierApplicationRequest("Ali Demir", "05321234567", null, null, vehicle, "34 ABC 123");
+        return new CarrierApplicationRequest("Ali Demir", "05321234567", null, null, vehicle, "34 ABC 123", true);
     }
 
     private static UploadedFile file(String name, String type, int bytes) {
@@ -66,7 +66,7 @@ class CarrierServiceTest extends IntegrationTestBase {
     void plakaNormalize_edilir() {
         var id = carrier();
         var p = carriers.apply(id, new CarrierApplicationRequest(
-                "Ayşe Yıldız", "05321234567", null, null, "MOTOR", "34 abc 123"));
+                "Ayşe Yıldız", "05321234567", null, null, "MOTOR", "34 abc 123", true));
         assertThat(p.plate()).isEqualTo("34ABC123");
     }
 
@@ -76,7 +76,7 @@ class CarrierServiceTest extends IntegrationTestBase {
         // hâlde "34 abc 123" yazan kullanıcı reddedilirdi
         var id = carrier();
         var p = carriers.apply(id, new CarrierApplicationRequest(
-                "Ali Demir", "05321234567", null, null, "MOTOR", "34 abc 123"));
+                "Ali Demir", "05321234567", null, null, "MOTOR", "34 abc 123", true));
         assertThat(p.plate()).isEqualTo("34ABC123");
     }
 
@@ -221,7 +221,7 @@ class CarrierServiceTest extends IntegrationTestBase {
         var id = carrier();
         var p = carriers.apply(id, new CarrierApplicationRequest(
                 "Demir Nakliyat Ltd.", "05321234567", "Demir Nakliyat Ltd. Şti.", "1234567890",
-                "MOTOR", "34 ABC 123"));
+                "MOTOR", "34 ABC 123", true));
 
         assertThat(p.missingDocuments()).contains(DocumentKind.TAX_PLATE);
     }

@@ -25,7 +25,7 @@ public class CarrierFixture {
     /** Başvuruyu açar, zorunlu belgeleri yükler, hepsini onaylar ve başvuruyu onaylar. */
     public void approve(String carrierId, String vehicleTypeCode) {
         carriers.apply(carrierId, new CarrierApplicationRequest(
-                "Test Taşıyıcı", "05321234567", null, null, vehicleTypeCode, "34 TST 34"));
+                "Test Taşıyıcı", "05321234567", null, null, vehicleTypeCode, "34 TST 34", true));
 
         var profile = carriers.profileOf(carrierId).orElseThrow();
         for (var kind : profile.missingDocuments()) {

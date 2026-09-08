@@ -63,7 +63,7 @@ class MarketplaceServiceTest extends IntegrationTestBase {
                 "INSTANT", "PANELVAN",
                 new CreateListingRequest.Stop(district("34", "besiktas"), 0, true),
                 new CreateListingRequest.Stop(district("06", "cankaya"), 0, true),
-                List.of(), listingFixture.items(), listingFixture.photoIds(SHIPPER), null, null, null));
+                List.of(), listingFixture.items(), listingFixture.photoIds(SHIPPER), true, null, null, null));
 
         assertThat(corridorCount("İstanbul", "Ankara")).isEqualTo(before + 3);
         // Üç ilan iki farklı İstanbul ilçesinden; yine de tek satır olmalı
@@ -96,7 +96,7 @@ class MarketplaceServiceTest extends IntegrationTestBase {
                 "INSTANT", "KAMYONET",
                 new CreateListingRequest.Stop(district("34", "kadikoy"), 3, false),
                 new CreateListingRequest.Stop(district("06", "cankaya"), 0, true),
-                List.of("PORTERAGE"), listingFixture.items(), listingFixture.photoIds(SHIPPER),
+                List.of("PORTERAGE"), listingFixture.items(), listingFixture.photoIds(SHIPPER), true,
                 "Buzdolabı ve 8 koli", null, null));
     }
 
@@ -252,7 +252,7 @@ class MarketplaceServiceTest extends IntegrationTestBase {
                 "SCHEDULED", "KAMYONET",
                 new CreateListingRequest.Stop(district("34", "kadikoy"), 0, true),
                 new CreateListingRequest.Stop(district("06", "cankaya"), 0, true),
-                List.of(), listingFixture.items(), listingFixture.photoIds(SHIPPER), "Geçmiş",
+                List.of(), listingFixture.items(), listingFixture.photoIds(SHIPPER), true, "Geçmiş",
                 java.time.Instant.now().minus(Duration.ofHours(2)),
                 java.time.Instant.now().minus(Duration.ofHours(1)))))
                 .isInstanceOf(ResponseStatusException.class)

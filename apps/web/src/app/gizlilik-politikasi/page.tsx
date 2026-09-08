@@ -1,14 +1,9 @@
-import type { Metadata } from 'next';
-import { PlaceholderPage } from '@/components/site/PlaceholderPage';
+import { permanentRedirect } from 'next/navigation';
 
-export const metadata: Metadata = { title: 'Gizlilik politikası' };
-
-/** Yasal metin hukuk incelemesinden geçmeden yayımlanmaz; uydurma sözleşme konmaz. */
-export default function GizlilikPolitikasiPage() {
-  return (
-    <PlaceholderPage eyebrow="Yasal" title="Gizlilik politikası hazırlanıyor.">
-      <p>Konum verisi yalnızca aktif bir taşıma sırasında ve yük sahibinin görebileceği şekilde işlenir. Herkese açık hiçbir ekranda ham konum veya kişi bilgisi gösterilmez.</p>
-      <p>Yayımlandığında bu sayfada ve kayıt ekranında yer alacak.</p>
-    </PlaceholderPage>
-  );
+/**
+ * Eski yasal adres. Belgeler /legal altında toplandı; dışarıya verilmiş
+ * bağlantılar ve arama sonuçları kırılmasın diye kalıcı yönlendirme bırakıldı.
+ */
+export default function Page() {
+  permanentRedirect('/legal/gizlilik');
 }

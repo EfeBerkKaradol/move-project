@@ -1,5 +1,6 @@
 import type {
   CargoCategory,
+  LegalDocumentView,
   PublicCorridorView,
   PublicListingView,
   CargoDeclarationRequest,
@@ -97,6 +98,12 @@ export const getCargoItems = () => get<CargoItem[]>('/cargo-items');
 export const getCargoPresets = () => get<CargoPreset[]>('/cargo-presets');
 export const getDistricts = () => get<District[]>('/districts');
 /** Ana sayfa sayaçları; API kapalıysa null döner ve arayüz tire gösterir. */
+/**
+ * Yürürlükteki hukuki belgeler. Bir saat önbellekli: sürüm ancak yeni bir
+ * migration ile değişiyor, dakikalık tazelik gerektirmiyor.
+ */
+export const getLegalDocuments = () => get<LegalDocumentView[]>('/legal-documents').then((d) => d ?? []);
+
 export const getCorridors = () => get<PublicCorridorView[]>('/corridors', 60);
 
 /**

@@ -24,12 +24,16 @@ export async function publishListing(_prev: ActionState, form: FormData): Promis
     extraServices: String(form.get('extraServices') ?? '').split(',').filter(Boolean),
     cargoItems: parseItems(String(form.get('cargoItems') ?? '')),
     photoIds: String(form.get('photoIds') ?? '').split(',').filter(Boolean),
+    lawfulnessDeclared: form.get('lawfulnessDeclared') === 'on',
     cargoDescription: String(form.get('cargoDescription') ?? '').trim() || null,
   };
   // Sunucu da reddediyor; buradaki kontrol kullanıcıya API hata metni yerine
   // ne yapması gerektiğini söyleyen bir cümle döndürmek için
   if (body.cargoItems.length === 0) return { error: 'Yükünü kalem kalem seçmelisin.' };
   if (body.photoIds.length === 0) return { error: 'Yükünün en az bir fotoğrafını yüklemelisin.' };
+  if (!body.lawfulnessDeclared) {
+    return { error: 'Eşyanın hukuka uygunluğuna dair beyanı onaylaman gerekiyor.' };
+  }
   let created: ListingView;
   try {
     created = await apiFetch<ListingView>('/listings', { method: 'POST', body: JSON.stringify(body) });

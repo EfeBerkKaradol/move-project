@@ -45,16 +45,18 @@ class DefaultCarrierService implements CarrierService, CarrierDirectory {
     private final ObjectStorage storage;
     private final FleetService fleet;
     private final ApplicationEventPublisher events;
+    private final com.tasiyoruz.api.compliance.api.ConsentService consents;
     private final Clock clock;
 
     DefaultCarrierService(CarrierProfileRepository profiles, CarrierDocumentRepository documents,
                           ObjectStorage storage, FleetService fleet, ApplicationEventPublisher events,
-                          Clock clock) {
+                          com.tasiyoruz.api.compliance.api.ConsentService consents, Clock clock) {
         this.profiles = profiles;
         this.documents = documents;
         this.storage = storage;
         this.fleet = fleet;
         this.events = events;
+        this.consents = consents;
         this.clock = clock;
     }
 
@@ -63,6 +65,14 @@ class DefaultCarrierService implements CarrierService, CarrierDirectory {
         if (fleet.capacityRank(r.vehicleTypeCode()).isEmpty()) {
             throw badRequest("Araç tipi tanınmadı.");
         }
+        if (!r.complianceDeclared()) {
+            throw badRequest("Mevzuata uygunluk taahhüdünü onaylaman gerekiyor.");
+        }
+        // Beyan başvuruya bağlanıyor; hangi taahhütle onaylandığı sonradan okunabilsin
+        consents.record(carrierId, com.tasiyoruz.api.compliance.api.RecordConsent.declaration(
+                com.tasiyoruz.api.compliance.api.ConsentType.CARRIER_DECLARATION,
+                "CARRIER_ONBOARDING", carrierId,
+                com.tasiyoruz.api.compliance.api.LegalDocType.CARRIER_TERMS, null));
         var now = Instant.now(clock);
         var profile = profiles.findByCarrierId(carrierId).orElse(null);
         if (profile == null) {

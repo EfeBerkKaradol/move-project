@@ -5,6 +5,8 @@ import { useActionState, useState } from 'react';
 import { publishListing, type ActionState } from '../../actions';
 import { CargoDeclaration, summarize } from './CargoDeclaration';
 import { CargoPhotos } from './CargoPhotos';
+import { LegalCheckbox } from '@/components/legal/LegalCheckbox';
+import { ProhibitedNotice } from '@/components/legal/ProhibitedNotice';
 
 /**
  * Yayınla düğmesi.
@@ -59,6 +61,7 @@ export function PublishForm({
   const [state, action, pending] = useActionState<ActionState, FormData>(publishListing, {});
   const [selected, setSelected] = useState<Record<string, number>>({});
   const [photoIds, setPhotoIds] = useState<string[]>([]);
+  const [declared, setDeclared] = useState(false);
   const chosenExtras = extras.filter((e) => initial.extraServices.includes(e.code));
 
   const totals = summarize(cargoItems, selected);
@@ -67,6 +70,7 @@ export function PublishForm({
   const missing = [
     totals.pieces === 0 ? { short: 'yük', long: 'yükünü seç' } : null,
     photoIds.length === 0 ? { short: 'fotoğraf', long: 'en az bir fotoğraf ekle' } : null,
+    declared ? null : { short: 'beyan', long: 'hukuka uygunluk beyanını onayla' },
   ].filter((m) => m !== null);
 
   return (
@@ -127,6 +131,31 @@ export function PublishForm({
               placeholder="Örn. Kırılacak eşya var. Bina girişi dar, araç kapıya yanaşamıyor."
               className="mt-1.5 w-full rounded-field border border-line bg-surface-2 px-3.5 py-3 text-[15px] outline-none placeholder:text-muted transition hover:border-muted focus:border-route focus:ring-2 focus:ring-route/25" />
             <p className="mt-1 text-xs text-muted">İsteğe bağlı. Kalem listesinin anlatmadığı şeyler için.</p>
+          </div>
+
+          {/* Beyan son adımda: kullanıcı ne beyan ettiğini görmeden onaylamasın.
+              Formun başına konsaydı, henüz seçilmemiş bir yük için onay alınırdı. */}
+          <div className="mt-6 border-t border-line pt-6">
+            <p className="label-mono text-muted">Hukuka uygunluk beyanı</p>
+            <div className="mt-3">
+              <ProhibitedNotice />
+            </div>
+            <div className="mt-4">
+              <LegalCheckbox
+                name="lawfulnessDeclared"
+                required
+                onCheckedChange={setDeclared}
+                links={[
+                  { href: '/legal/yasakli-esyalar', label: 'Yasaklı eşyalar' },
+                  { href: '/legal/gonderici-sozlesmesi', label: 'Gönderici Sözleşmesi' },
+                ]}
+              >
+                Taşınmasını talep ettiğim eşyanın hukuka uygun olduğunu, yasaklı veya suç
+                konusu bir eşya içermediğini, eşyanın niteliği hakkında doğru ve eksiksiz
+                bilgi verdiğimi ve bu beyanımın gerçeğe aykırı olması hâlinde doğabilecek
+                hukuki ve cezai sonuçlardan sorumlu olabileceğimi kabul ve beyan ederim.
+              </LegalCheckbox>
+            </div>
           </div>
         </div>
       </div>

@@ -1,14 +1,9 @@
-import type { Metadata } from 'next';
-import { PlaceholderPage } from '@/components/site/PlaceholderPage';
+import { permanentRedirect } from 'next/navigation';
 
-export const metadata: Metadata = { title: 'Kullanıcı sözleşmesi' };
-
-/** Yasal metin hukuk incelemesinden geçmeden yayımlanmaz; uydurma sözleşme konmaz. */
-export default function KullaniciSozlesmesiPage() {
-  return (
-    <PlaceholderPage eyebrow="Yasal" title="Kullanıcı sözleşmesi hazırlanıyor.">
-      <p>Yük veren ve araç sahibi için karşılıklı yükümlülükler, teklif ve iptal kuralları, teslimatta onay ve ödeme koşulları bu sayfada yayımlanacak.</p>
-      <p>Yayımlandığında bu sayfada ve kayıt ekranında yer alacak.</p>
-    </PlaceholderPage>
-  );
+/**
+ * Eski yasal adres. Belgeler /legal altında toplandı; dışarıya verilmiş
+ * bağlantılar ve arama sonuçları kırılmasın diye kalıcı yönlendirme bırakıldı.
+ */
+export default function Page() {
+  permanentRedirect('/legal/kullanici-sozlesmesi');
 }

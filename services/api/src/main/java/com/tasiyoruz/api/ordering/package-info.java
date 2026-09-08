@@ -6,7 +6,7 @@
  */
 @org.springframework.modulith.ApplicationModule(
         displayName = "Pazar yeri",
-        allowedDependencies = { "catalog::api", "fleet::api", "geo::api", "pricing::api", "identity",
-                                "shared::storage" }
+        allowedDependencies = { "catalog::api", "compliance::api", "fleet::api", "geo::api", "pricing::api",
+                                "identity", "shared::storage" }
 )
 package com.tasiyoruz.api.ordering;

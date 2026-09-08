@@ -22,7 +22,16 @@ public record CarrierApplicationRequest(
         // göründüğü hâlde anlamsız bir hatayla karşılaşırdı.
         @Pattern(regexp = "^\\d{2} ?[A-Za-z]{1,3} ?\\d{2,5}$",
                 message = "Plaka 34 ABC 123 biçiminde olmalı")
-        String plate) {
+        String plate,
+        /**
+         * Taşıyıcının mevzuata uygunluk taahhüdü.
+         *
+         * <p>Başvuruda alınıyor: taşıyıcı bir kez onaylanıp uzun süre çalışıyor,
+         * beyanı her taşımada tekrar istemek anlamsız bir sürtünme olurdu. Araç
+         * tipi değişip başvuru taslağa döndüğünde yeniden isteniyor.
+         */
+        @AssertTrue(message = "Mevzuata uygunluk taahhüdünü onaylaman gerekiyor.")
+        boolean complianceDeclared) {
 
     /** Kurumsal başvuruda vergi numarası zorunlu (veritabanı kısıtıyla da tutuluyor). */
     @AssertTrue(message = "Firma unvanı girildiyse vergi numarası da gerekli")

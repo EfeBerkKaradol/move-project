@@ -30,6 +30,10 @@
         "description": "Operasyon ajanı"
       },
       {
+        "name": "COMPLIANCE",
+        "description": "Hukuk ve uyum ekibi: uyum olayları, bildirimler, hesap kısıtlamaları"
+      },
+      {
         "name": "ADMIN",
         "description": "Sistem yöneticisi"
       },
@@ -206,7 +210,8 @@
         }
       ],
       "realmRoles": [
-        "ADMIN"
+        "ADMIN",
+        "COMPLIANCE"
       ]
     },
     {
@@ -221,6 +226,24 @@
           "query-users"
         ]
       }
+    },
+    {
+      "username": "uyum@tasiyoruz.local",
+      "email": "uyum@tasiyoruz.local",
+      "firstName": "Uyum",
+      "lastName": "Ekibi",
+      "enabled": true,
+      "emailVerified": true,
+      "credentials": [
+        {
+          "type": "password",
+          "value": "tasiyoruz",
+          "temporary": false
+        }
+      ],
+      "realmRoles": [
+        "COMPLIANCE"
+      ]
     }
   ],
   "registrationAllowed": true,
