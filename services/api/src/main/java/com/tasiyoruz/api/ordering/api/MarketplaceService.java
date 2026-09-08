@@ -12,6 +12,15 @@ public interface MarketplaceService {
 
     List<ListingView> listingsOf(String shipperId);
 
+    /**
+     * İlanın araç sahibine görünen hâli.
+     *
+     * <p>Teklif için gereken her şeyi taşıyor — beyan, fotoğraf, tarife tahmini —
+     * ama yük verenin kimliğini taşımıyor. Görme hakkı olmayan taşıyıcıya boş döner:
+     * "yetkin yok" demek bile o ilanın var olduğunu söylerdi.
+     */
+    Optional<ListingView> listingForCarrier(String carrierId, String listingId);
+
     ListingView cancel(String shipperId, String listingId, String reason);
 
     /** Açık ve süresi dolmamış ilanlar; araç tipi ve alış ili filtrelenebilir. */

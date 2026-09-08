@@ -5,7 +5,9 @@ import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import java.util.List;
+import org.springframework.core.io.InputStreamResource;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.security.oauth2.jwt.Jwt;
 import org.springframework.web.bind.annotation.*;
@@ -17,9 +19,11 @@ import org.springframework.web.bind.annotation.*;
 class ShipperListingController {
 
     private final MarketplaceService marketplace;
+    private final ListingPhotoService photos;
 
-    ShipperListingController(MarketplaceService marketplace) {
+    ShipperListingController(MarketplaceService marketplace, ListingPhotoService photos) {
         this.marketplace = marketplace;
+        this.photos = photos;
     }
 
     @PostMapping
@@ -40,6 +44,13 @@ class ShipperListingController {
         var l = marketplace.listing(id).orElseThrow(() -> MarketplaceExceptions.notFound("İlan"));
         if (!jwt.getSubject().equals(l.shipperId())) throw MarketplaceExceptions.forbidden();
         return l;
+    }
+
+    @GetMapping("/{id}/photos/{photoId}/file")
+    @Operation(summary = "Yük fotoğrafını göster — yalnızca ilan sahibi")
+    ResponseEntity<InputStreamResource> photo(@AuthenticationPrincipal Jwt jwt, @PathVariable String id,
+                                              @PathVariable String photoId) {
+        return ListingPhotoResponse.of(photos.download(jwt.getSubject(), false, id, photoId));
     }
 
     @PostMapping("/{id}/cancel")

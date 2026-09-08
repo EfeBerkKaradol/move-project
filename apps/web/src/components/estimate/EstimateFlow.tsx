@@ -11,6 +11,7 @@ import type {
   VehicleType,
 } from '@tasiyoruz/contracts';
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import { FULL_LOAD_CATEGORY, isFullLoad } from '@/lib/cargo';
 import { PlaceSearch } from '@/components/site/PlaceSearch';
 import { fetchQuote } from '@/lib/api';
 import { cityOf, matchDistrict, sameCity } from '@/lib/places';
@@ -25,13 +26,6 @@ const GROUND: StopDetail = { floor: 0, hasElevator: true };
 
 /** Otomatik uygulanan ek hizmetler seçenek olarak gösterilmez (fiyat motoru kendi ekler). */
 const AUTO_EXTRAS = ['NO_ELEVATOR', 'WAITING', 'EXTRA_STOP'];
-
-/**
- * Tam araç işleri. Bu araçlarda yük tarifi koli sayısıyla değil yükün cinsiyle
- * yapılıyor: palet, tomruk, big-bag, konteyner.
- */
-const FULL_LOAD_VEHICLES = ['KAMYON', 'TIR'];
-const FULL_LOAD_CATEGORY = 'KOMPLE';
 
 /**
  * Taşıyoruz fiyat akışı (docs/11 §2): rota + araç tipi → tahmini aralık → ilan.
@@ -261,7 +255,7 @@ export function EstimateFlow({
                 // Kamyon/tır seçildiğinde tarif formu komple yüke geçiyor ve
                 // danışman kendiliğinden açılıyor: bu araçlarda "kaç koli?"
                 // sorusunun karşılığı yok.
-                const fullLoad = FULL_LOAD_VEHICLES.includes(code);
+                const fullLoad = isFullLoad(code);
                 setForcedCategory(fullLoad ? FULL_LOAD_CATEGORY : null);
                 if (fullLoad) setAdvisorOpen(true);
               }}

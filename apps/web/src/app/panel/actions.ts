@@ -1,6 +1,6 @@
 'use server';
 
-import type { CreateListingRequest, ListingView } from '@tasiyoruz/contracts';
+import type { CreateListingRequest, ListingPhotoView, ListingView } from '@tasiyoruz/contracts';
 import { revalidatePath } from 'next/cache';
 import { redirect } from 'next/navigation';
 import { ApiError, apiFetch } from '@/lib/api-server';
@@ -22,8 +22,14 @@ export async function publishListing(_prev: ActionState, form: FormData): Promis
       hasElevator: form.get('dropoffHasElevator') === 'on',
     },
     extraServices: String(form.get('extraServices') ?? '').split(',').filter(Boolean),
+    cargoItems: parseItems(String(form.get('cargoItems') ?? '')),
+    photoIds: String(form.get('photoIds') ?? '').split(',').filter(Boolean),
     cargoDescription: String(form.get('cargoDescription') ?? '').trim() || null,
   };
+  // Sunucu da reddediyor; buradaki kontrol kullanıcıya API hata metni yerine
+  // ne yapması gerektiğini söyleyen bir cümle döndürmek için
+  if (body.cargoItems.length === 0) return { error: 'Yükünü kalem kalem seçmelisin.' };
+  if (body.photoIds.length === 0) return { error: 'Yükünün en az bir fotoğrafını yüklemelisin.' };
   let created: ListingView;
   try {
     created = await apiFetch<ListingView>('/listings', { method: 'POST', body: JSON.stringify(body) });
@@ -32,6 +38,51 @@ export async function publishListing(_prev: ActionState, form: FormData): Promis
   }
   revalidatePath('/panel');
   redirect(`/panel/ilan/${created.id}`);
+}
+
+/**
+ * "KOD:ADET,KOD:ADET" biçimini çözer.
+ *
+ * <p>Gizli alanda JSON taşımak yerine bu: form verisi kullanıcı tarafından
+ * değiştirilebilir ve bozuk JSON'un çözümlenmesi eylemi patlatırdı. Bozuk satır
+ * burada sessizce düşüyor, sunucu zaten boş beyanı reddediyor.
+ */
+function parseItems(raw: string): CreateListingRequest['cargoItems'] {
+  return raw
+    .split(',')
+    .map((pair) => pair.split(':'))
+    .filter(([code, quantity]) => code && Number(quantity) > 0)
+    .map(([code, quantity]) => ({ cargoItemCode: code, quantity: Math.min(Number(quantity), 99) }));
+}
+
+/**
+ * Yük fotoğrafını yükler ve kimliğini döndürür.
+ *
+ * <p>İlan yayınlanmadan önce çalışıyor: kullanıcı kareleri seçerken görsün, yanlışını
+ * silsin istiyoruz. Dosya tarayıcıdan buraya, buradan API'ye gidiyor — erişim tokeni
+ * tarayıcıya inmediği için doğrudan yükleme mümkün değil.
+ */
+export async function uploadListingPhoto(form: FormData): Promise<{ id?: string; error?: string }> {
+  const file = form.get('file');
+  if (!(file instanceof File) || file.size === 0) return { error: 'Dosya seçilmedi.' };
+
+  const upload = new FormData();
+  upload.append('file', file);
+  try {
+    const photo = await apiFetch<ListingPhotoView>('/listing-photos', { method: 'POST', body: upload });
+    return { id: photo.id };
+  } catch (e) {
+    return { error: e instanceof ApiError ? e.message : 'Fotoğraf yüklenemedi.' };
+  }
+}
+
+export async function removeListingPhoto(id: string): Promise<ActionState> {
+  try {
+    await apiFetch(`/listing-photos/${id}`, { method: 'DELETE' });
+    return { ok: true };
+  } catch (e) {
+    return { error: e instanceof ApiError ? e.message : 'Fotoğraf silinemedi.' };
+  }
 }
 
 export async function acceptOffer(listingId: string, offerId: string): Promise<ActionState> {

@@ -1,15 +1,21 @@
-import type { District, ExtraService, VehicleType } from '@tasiyoruz/contracts';
+import type { CargoCategory, CargoItem, District, ExtraService, VehicleType } from '@tasiyoruz/contracts';
 import type { Metadata } from 'next';
 import Link from 'next/link';
 import { redirect } from 'next/navigation';
 import { auth, canCallApi, homeFor, isCustomer } from '@/auth';
 import { Shell } from '@/components/app/Shell';
-import { getDistricts, getExtraServices, getVehicleTypes } from '@/lib/api';
+import { getCargoCategories, getCargoItems, getDistricts, getExtraServices, getVehicleTypes } from '@/lib/api';
+import { categoriesFor } from '@/lib/cargo';
 import { matchDistrict } from '@/lib/places';
 import { PublishForm } from './PublishForm';
 
 export const metadata: Metadata = { title: 'İlanı yayınla' };
 export const dynamic = 'force-dynamic';
+
+function itemsFor(vehicleCode: string, items: CargoItem[]): CargoItem[] {
+  const allowed = categoriesFor(vehicleCode);
+  return items.filter((i) => allowed.includes(i.categoryCode));
+}
 
 type Params = Promise<Record<string, string | string[] | undefined>>;
 const first = (v: string | string[] | undefined) => (Array.isArray(v) ? v[0] : v) ?? '';
@@ -19,8 +25,9 @@ const first = (v: string | string[] | undefined) => (Array.isArray(v) ? v[0] : v
  * /giris'e yollar ve kullanıcı aynı adrese geri döner — seçimi kaybolmaz.
  */
 export default async function NewListingPage({ searchParams }: { searchParams: Params }) {
-  const [session, p, districts, vehicles, extras] = await Promise.all([
+  const [session, p, districts, vehicles, extras, items, categories] = await Promise.all([
     auth(), searchParams, getDistricts(), getVehicleTypes(), getExtraServices(),
+    getCargoItems(), getCargoCategories(),
   ]);
   if (!canCallApi(session)) redirect('/giris');
   if (!isCustomer(session.roles)) redirect(homeFor(session.roles));
@@ -47,6 +54,8 @@ export default async function NewListingPage({ searchParams }: { searchParams: P
         dropoff={dropoff as District}
         vehicle={vehicle as VehicleType}
         extras={(extras ?? []) as ExtraService[]}
+        cargoItems={itemsFor(vehicle.code, (items ?? []) as CargoItem[])}
+        cargoCategories={(categories ?? []) as CargoCategory[]}
         initial={{
           serviceModel: first(p.model) === 'SCHEDULED' ? 'SCHEDULED' : 'INSTANT',
           pickupFloor: Number(first(p.pf) || 0),

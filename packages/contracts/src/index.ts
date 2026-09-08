@@ -159,6 +159,22 @@ export type ListingPlace = {
   hasElevator: boolean | null;
 };
 
+/** İlana yazılmış yük kalemi — katalogdan kopyalanmış hâliyle. */
+export type DeclaredItem = {
+  itemCode: string;
+  displayName: string;
+  quantity: number;
+  volumeM3: number;
+  weightKg: number;
+};
+
+/** Yük fotoğrafının üstverisi; dosya ayrı bir uçtan, oturum arkasından akıyor. */
+export type ListingPhotoView = {
+  id: string;
+  sizeBytes: number;
+  uploadedAt: string;
+};
+
 export type ListingView = {
   id: string;
   listingNumber: string;
@@ -169,6 +185,8 @@ export type ListingView = {
   pickup: ListingPlace;
   dropoff: ListingPlace;
   extraServices: string[];
+  cargoItems: DeclaredItem[];
+  photos: ListingPhotoView[];
   cargoDescription: string | null;
   pickupWindowStart: string | null;
   pickupWindowEnd: string | null;
@@ -238,6 +256,10 @@ export type CreateListingRequest = {
   pickup: { districtId: string; floor?: number | null; hasElevator?: boolean | null };
   dropoff: { districtId: string; floor?: number | null; hasElevator?: boolean | null };
   extraServices?: string[];
+  /** Zorunlu: ilan neyi taşıdığını söylemeden yayınlanamıyor. */
+  cargoItems: { cargoItemCode: string; quantity: number }[];
+  /** Zorunlu: önce yüklenen fotoğrafların kimlikleri. */
+  photoIds: string[];
   cargoDescription?: string | null;
   pickupWindowStart?: string | null;
   pickupWindowEnd?: string | null;

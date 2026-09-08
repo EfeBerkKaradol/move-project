@@ -1,6 +1,7 @@
 import type { District, ListingView, OfferView } from '@tasiyoruz/contracts';
 import { formatPrice } from '@tasiyoruz/shared';
 import type { Metadata } from 'next';
+import Link from 'next/link';
 import { redirect } from 'next/navigation';
 import { auth, canCallApi, homeFor, isDriver } from '@/auth';
 import { ListingsMap, type MapListing } from '@/components/app/ListingsMap';
@@ -15,6 +16,19 @@ import { OfferForm } from './OfferForm';
 
 export const metadata: Metadata = { title: 'Açık ilanlar' };
 export const dynamic = 'force-dynamic';
+
+/**
+ * Yükün tek satırlık özeti.
+ *
+ * <p>Listede kalem kalem dökmek kartı bir ekran boyuna çıkarıyordu; ilk üç kalem ve
+ * kalanın sayısı, "bu bana göre mi?" sorusuna yetiyor. Tamamı detay sayfasında.
+ */
+function cargoSummary(l: ListingView): string {
+  if (l.cargoItems.length === 0) return l.cargoDescription ?? 'Beyan yok';
+  const shown = l.cargoItems.slice(0, 3).map((i) => `${i.quantity}× ${i.displayName}`).join(', ');
+  const rest = l.cargoItems.length - 3;
+  return rest > 0 ? `${shown} ve ${rest} kalem daha` : shown;
+}
 
 export default async function DriverPage() {
   const session = await auth();
@@ -91,8 +105,19 @@ export default async function DriverPage() {
                 <span className="label-mono text-muted">{l.vehicleTypeCode} · {(l.estimate.distanceMeters / 1000).toFixed(0)} km</span>
                 <span className="ml-auto text-sm text-muted">tarife tahmini <span className="stat text-ink">{formatPrice(l.estimatedAmount.amount)}</span></span>
               </div>
-              {l.cargoDescription && <p className="mt-2 text-sm">{l.cargoDescription}</p>}
-              <p className="label-mono mt-1 text-muted">{l.offerCount} teklif · {new Date(l.expiresAt).toLocaleString('tr-TR')} tarihine kadar açık</p>
+              <p className="mt-2 text-sm">{cargoSummary(l)}</p>
+              <p className="label-mono mt-1 text-muted">
+                {l.offerCount} teklif · {new Date(l.expiresAt).toLocaleString('tr-TR')} tarihine kadar açık
+              </p>
+              {/* Detay teklif düğmesinin üstünde: fotoğrafa bakmadan fiyat vermek tam
+                  olarak düzeltmeye çalıştığımız alışkanlık */}
+              <Link href={`/nakliyeci/ilan/${l.id}`}
+                className="mt-3 inline-flex items-center gap-1.5 text-sm font-semibold underline underline-offset-4 transition hover:text-route-deep">
+                Yükü gör
+                {l.photos.length > 0 && (
+                  <span className="label-mono font-normal text-muted">{l.photos.length} fotoğraf</span>
+                )}
+              </Link>
               <div className="mt-4 border-t border-line pt-4">
                 {mine.get(l.id) ? (
                   <div className="flex flex-wrap items-center gap-3">

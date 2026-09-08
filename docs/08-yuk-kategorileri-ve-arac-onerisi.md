@@ -259,3 +259,64 @@ yapar; referans ürünlerin en iyi yaptığı şey bu.
 Sürücü uygulamasında işi kabul ettikten sonra tek dokunuşluk geri bildirim:
 **"Yük tahmini doğru muydu?"** → *Doğru / Fazla büyük araç / Yük sığmadı*.
 Bu tek soru, katsayıları kalibre etmek için gereken en değerli veri.
+
+---
+
+## 8. İlanda yük beyanı ve fotoğraf
+
+Fiyat akışındaki tarif tahmin içindi ve ilana taşınmıyordu; ilan araç sahibine tek
+satır serbest metinle gidiyordu ("buzdolabı, çamaşır makinesi ve 8 koli"). Teklif,
+görülmemiş bir yüke veriliyordu ve iş kapıda bozuluyordu.
+
+İlan artık **beyansız ve fotoğrafsız yayınlanamıyor**.
+
+### Beyan
+
+Kalemler aynı katalogdan seçiliyor (`cargo_items`), adetleriyle. Araç tipi hangi
+kalemlerin gösterileceğini belirliyor:
+
+| Araç | Gösterilen kategoriler |
+|---|---|
+| Motor … kamyonet | Tekil eşya, koli, zarf |
+| Kamyon, TIR | Komple yük (palet, tomruk, big-bag, makine, karışık kargo) |
+
+Kamyona gelen kullanıcı ev eşyası taşımıyor; ona koltuk listesi göstermek, aradığı
+paleti otuz kalem arasında aratmak olurdu.
+
+Beyan ilana **kopyalanıyor**, katalog kaydına atıf yapılmıyor: kalemin adı ya da hacmi
+sonradan güncellenirse yayınlanmış ilanın beyanı değişmemeli. Fiyat snapshot'ı ile aynı
+gerekçe (docs/04). Hacim ve ağırlık istemciden alınmıyor — alınsaydı kullanıcı yükünü
+olduğundan küçük göstererek ucuz araca sığdırabilirdi.
+
+`DIGER_ESYA` bir çıkış kapısı: beyan zorunlu olduğu için katalogda karşılığı olmayan
+bir eşya kullanıcıyı kilitlememeli. Orta boy sayılıyor, tarifi metin alanına yazılıyor.
+
+**Araç uyarısı** seçim sırasında çalışıyor: en uzun kenar kasadan uzunsa, ağırlık
+kapasiteyi aşıyorsa ya da hacim kasanın %90'ını geçiyorsa uyarı çıkıyor. Engellemiyor —
+kalem hacimleri yaklaşık ve "sığmaz" demek yanlış olabilir; kararı kullanıcı veriyor.
+
+### Fotoğraf
+
+En az bir kare zorunlu, en çok on. Fotoğraf beyanın yalanlanamayan hâli: "iki koltuk"
+yazan ilanla gelen araç sahibi koltuğun kapıdan çıkmadığını yerinde öğreniyordu.
+
+Kareler **ilandan önce** yükleniyor (`POST /listing-photos`) ve yayın anında
+iliştiriliyor. Alternatifi yayın isteğine dosyaları da koymaktı; o zaman kullanıcı
+yayınlamadan önce ne yüklediğini göremez, yanlış kareyi tek tek silemezdi. Bedeli,
+iliştirilmeden kalan yüklemeler — saatlik bir iş 24 saatten eskileri siliyor.
+
+**Kim görüyor:**
+
+| | Beyan ve fotoğraflar |
+|---|---|
+| İlan sahibi | Her zaman |
+| Onaylı araç sahibi, ilan açıkken | Görüyor — teklifi buna bakarak veriyor |
+| Onaylı araç sahibi, iş verildikten sonra | Yalnızca işi alan |
+| Herkese açık yüzey (güven panosu) | Hiçbir zaman |
+
+Kural tek yerde (`CarrierVisibility`): ilan detayı ile fotoğrafın ayrışması, üstverisi
+gizlenmiş bir ilanın fotoğrafının açık kalmasına yol açardı.
+
+Formda kullanıcıya ne çekeceği söyleniyor: **eşyanın kendisi, kimlik/adres/yüz değil.**
+Karelerin kimlerin göreceği aynı cümlede yazıyor — sonradan öğrenilen bir görünürlük,
+verilmemiş bir rızadır.

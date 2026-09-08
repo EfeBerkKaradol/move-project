@@ -37,6 +37,12 @@ DRIVER rolünü otomatik verir; askı geri alır.
 
 E-postalar yerelde Mailhog'a düşer: http://localhost:8025
 
+**Örnek ilan verisi:** `pnpm demo:listings` — ana sayfadaki açık koridorlar, araç
+sahibinin ilan listesi ve haritası gerçek ilana bakıyor; sıfırdan kurulan bir ortamda
+hiç ilan olmadığı için bu ekranlar boş görünür. Tekrar çalıştırılabilir. Fotoğraf
+eklemiyor (dosyalar nesne deposunda, SQL oraya yazamaz); fotoğraflı bir ilan için
+panelden bir tane yayınlamak gerekiyor.
+
 **Eksik anahtarlar:** [ANAHTARLAR.md](ANAHTARLAR.md) — adım sırasına göre dizilmiş;
 her maddede nasıl alınacağı ve hangi dosyaya gireceği yazıyor. Başlıklardaki `#N`
 eski madde numaraları; kod yorumları onlara atıf yapıyor, dosyanın sonunda dizini var.

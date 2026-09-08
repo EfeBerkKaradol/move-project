@@ -22,6 +22,7 @@ import org.springframework.web.server.ResponseStatusException;
 class MarketplaceServiceTest extends IntegrationTestBase {
 
     @Autowired MarketplaceService marketplace;
+    @Autowired com.tasiyoruz.api.ListingFixture listingFixture;
     @Autowired GeoService geo;
     @Autowired com.tasiyoruz.api.fleet.api.CarrierService carriers;
     @Autowired com.tasiyoruz.api.MutableClock clock;
@@ -62,7 +63,7 @@ class MarketplaceServiceTest extends IntegrationTestBase {
                 "INSTANT", "PANELVAN",
                 new CreateListingRequest.Stop(district("34", "besiktas"), 0, true),
                 new CreateListingRequest.Stop(district("06", "cankaya"), 0, true),
-                List.of(), null, null, null));
+                List.of(), listingFixture.items(), listingFixture.photoIds(SHIPPER), null, null, null));
 
         assertThat(corridorCount("İstanbul", "Ankara")).isEqualTo(before + 3);
         // Üç ilan iki farklı İstanbul ilçesinden; yine de tek satır olmalı
@@ -95,7 +96,8 @@ class MarketplaceServiceTest extends IntegrationTestBase {
                 "INSTANT", "KAMYONET",
                 new CreateListingRequest.Stop(district("34", "kadikoy"), 3, false),
                 new CreateListingRequest.Stop(district("06", "cankaya"), 0, true),
-                List.of("PORTERAGE"), "Buzdolabı ve 8 koli", null, null));
+                List.of("PORTERAGE"), listingFixture.items(), listingFixture.photoIds(SHIPPER),
+                "Buzdolabı ve 8 koli", null, null));
     }
 
     private static SubmitOfferRequest offer(String amount) {
@@ -250,7 +252,7 @@ class MarketplaceServiceTest extends IntegrationTestBase {
                 "SCHEDULED", "KAMYONET",
                 new CreateListingRequest.Stop(district("34", "kadikoy"), 0, true),
                 new CreateListingRequest.Stop(district("06", "cankaya"), 0, true),
-                List.of(), "Geçmiş",
+                List.of(), listingFixture.items(), listingFixture.photoIds(SHIPPER), "Geçmiş",
                 java.time.Instant.now().minus(Duration.ofHours(2)),
                 java.time.Instant.now().minus(Duration.ofHours(1)))))
                 .isInstanceOf(ResponseStatusException.class)

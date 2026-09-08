@@ -30,6 +30,7 @@ import org.springframework.web.server.ResponseStatusException;
 class CorridorServiceTest extends IntegrationTestBase {
 
     @Autowired CorridorService corridors;
+    @Autowired com.tasiyoruz.api.ListingFixture listingFixture;
     @Autowired CarrierFixture carrierFixture;
     @Autowired MarketplaceService marketplace;
     @Autowired GeoService geo;
@@ -51,11 +52,12 @@ class CorridorServiceTest extends IntegrationTestBase {
     }
 
     private ListingView publish(String fromCity, String toCity, String vehicle) {
-        return marketplace.publish("shipper-" + UUID.randomUUID(), new CreateListingRequest(
+        var shipper = "shipper-" + UUID.randomUUID();
+        return marketplace.publish(shipper, new CreateListingRequest(
                 "SCHEDULED", vehicle,
                 new CreateListingRequest.Stop(city(fromCity), 0, true),
                 new CreateListingRequest.Stop(city(toCity), 0, true),
-                List.of(), "Test yükü",
+                List.of(), listingFixture.items(), listingFixture.photoIds(shipper), "Test yükü",
                 Instant.now().plus(Duration.ofHours(4)),
                 Instant.now().plus(Duration.ofHours(10))));
     }

@@ -5,7 +5,9 @@ import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import java.util.List;
+import org.springframework.core.io.InputStreamResource;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.security.oauth2.jwt.Jwt;
 import org.springframework.web.bind.annotation.*;
@@ -17,9 +19,11 @@ import org.springframework.web.bind.annotation.*;
 class CarrierListingController {
 
     private final MarketplaceService marketplace;
+    private final ListingPhotoService photos;
 
-    CarrierListingController(MarketplaceService marketplace) {
+    CarrierListingController(MarketplaceService marketplace, ListingPhotoService photos) {
         this.marketplace = marketplace;
+        this.photos = photos;
     }
 
     @GetMapping("/listings/open")
@@ -27,6 +31,20 @@ class CarrierListingController {
     List<ListingView> open(@RequestParam(required = false) String vehicleType,
                            @RequestParam(required = false) String city) {
         return marketplace.openListings(vehicleType, city);
+    }
+
+    @GetMapping("/listings/{id}")
+    @Operation(summary = "İlan detayı — beyan, fotoğraflar, tarife tahmini")
+    ListingView one(@AuthenticationPrincipal Jwt jwt, @PathVariable String id) {
+        return marketplace.listingForCarrier(jwt.getSubject(), id)
+                .orElseThrow(() -> MarketplaceExceptions.notFound("İlan"));
+    }
+
+    @GetMapping("/listings/{id}/photos/{photoId}/file")
+    @Operation(summary = "Yük fotoğrafını göster")
+    ResponseEntity<InputStreamResource> photo(@AuthenticationPrincipal Jwt jwt, @PathVariable String id,
+                                              @PathVariable String photoId) {
+        return ListingPhotoResponse.of(photos.download(jwt.getSubject(), true, id, photoId));
     }
 
     @PostMapping("/listings/{id}/offers")

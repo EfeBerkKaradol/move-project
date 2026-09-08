@@ -19,4 +19,5 @@ public final class DomainAccess {
     public static void award(LoadListing l, UUID offerId) { l.award(offerId); }
     public static void expire(LoadListing l) { l.expire(); }
     public static void cancel(LoadListing l, String reason, Instant now) { l.cancel(reason, now); }
+    public static void attach(ListingPhoto p, UUID listingId, Instant now) { p.attachTo(listingId, now); }
 }

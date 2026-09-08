@@ -26,6 +26,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 class TripServiceTest extends IntegrationTestBase {
 
     @Autowired TripService tripService;
+    @Autowired com.tasiyoruz.api.ListingFixture listingFixture;
     @Autowired MarketplaceService marketplace;
     @Autowired GeoService geo;
 
@@ -52,7 +53,8 @@ class TripServiceTest extends IntegrationTestBase {
     private TripView freshTrip() {
         var l = marketplace.publish(SHIPPER, new CreateListingRequest("INSTANT", "PANELVAN",
                 new CreateListingRequest.Stop(district("34", "kadikoy"), 0, true),
-                new CreateListingRequest.Stop(district("34", "besiktas"), 0, true), List.of(), null, null, null));
+                new CreateListingRequest.Stop(district("34", "besiktas"), 0, true), List.of(),
+                listingFixture.items(), listingFixture.photoIds(SHIPPER), null, null, null));
         var o = marketplace.submitOffer(CARRIER, "Ali D.", l.id(), new SubmitOfferRequest(new BigDecimal("2500"), null, null));
         marketplace.acceptOffer(SHIPPER, l.id(), o.id());
         return tripService.startFromAward(l.id(), SHIPPER, CARRIER, "Ali D.", new BigDecimal("2500"));

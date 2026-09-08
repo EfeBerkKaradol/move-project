@@ -1,5 +1,6 @@
 package com.tasiyoruz.api.ordering.domain;
 
+import com.tasiyoruz.api.ordering.api.DeclaredItem;
 import com.tasiyoruz.api.ordering.api.ListingStatus;
 import jakarta.persistence.*;
 import java.math.BigDecimal;
@@ -37,6 +38,14 @@ public class LoadListing {
     @JdbcTypeCode(SqlTypes.JSON) @Column(nullable = false, columnDefinition = "jsonb")
     private List<String> extraServices;
 
+    /**
+     * Beyan edilen kalemler, katalogdan kopyalanmış hâlleriyle. Ayrı tablo yerine jsonb:
+     * satırlar hiçbir zaman tek başına sorgulanmıyor, hep ilanla birlikte okunuyor —
+     * ve zaten anlık görüntü oldukları için ilişkisel bütünlük aranmıyor.
+     */
+    @JdbcTypeCode(SqlTypes.JSON) @Column(nullable = false, columnDefinition = "jsonb")
+    private List<DeclaredItem> declaredItems;
+
     @Column(columnDefinition = "text") private String cargoDescription;
     private Instant pickupWindowStart;
     private Instant pickupWindowEnd;
@@ -62,7 +71,8 @@ public class LoadListing {
                                       String vehicleTypeCode, UUID pickupDistrictId, UUID dropoffDistrictId,
                                       Integer pickupFloor, Boolean pickupHasElevator,
                                       Integer dropoffFloor, Boolean dropoffHasElevator,
-                                      List<String> extraServices, String cargoDescription,
+                                      List<String> extraServices, List<DeclaredItem> declaredItems,
+                                      String cargoDescription,
                                       Instant pickupWindowStart, Instant pickupWindowEnd,
                                       Map<String, Object> estimateSnapshot, BigDecimal estimatedAmount,
                                       Instant now, Instant expiresAt) {
@@ -78,6 +88,7 @@ public class LoadListing {
         l.dropoffFloor = dropoffFloor;
         l.dropoffHasElevator = dropoffHasElevator;
         l.extraServices = List.copyOf(extraServices);
+        l.declaredItems = List.copyOf(declaredItems);
         l.cargoDescription = cargoDescription;
         l.pickupWindowStart = pickupWindowStart;
         l.pickupWindowEnd = pickupWindowEnd;

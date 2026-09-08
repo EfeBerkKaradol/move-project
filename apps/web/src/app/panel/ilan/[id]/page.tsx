@@ -4,6 +4,7 @@ import { formatPrice } from '@tasiyoruz/shared';
 import type { Metadata } from 'next';
 import { notFound, redirect } from 'next/navigation';
 import { auth, canCallApi, homeFor, isCustomer } from '@/auth';
+import { CargoPanel } from '@/components/app/CargoPanel';
 import { RouteLine } from '@/components/app/RouteLine';
 import { Shell } from '@/components/app/Shell';
 import { StatusPill } from '@/components/app/StatusPill';
@@ -57,7 +58,11 @@ export default async function ListingPage({ params }: { params: Promise<{ id: st
           <p className="label-mono mt-2 text-muted">
             {listing.vehicleTypeCode} · {(listing.estimate.distanceMeters / 1000).toFixed(0)} km · tarife tahmini {formatPrice(listing.estimatedAmount.amount)}
           </p>
-          {listing.cargoDescription && <p className="mt-4 text-sm">{listing.cargoDescription}</p>}
+          {/* Yük veren de teklif verenlerin gördüğü şeyi görüyor: beyanı eksikse
+              düşük teklifin neden geldiğini burada anlıyor */}
+          <div className="mt-4">
+            <CargoPanel listing={listing} />
+          </div>
 
           <h2 className="mt-8 text-lg">Teklifler ({offers.length})</h2>
           {offers.length === 0 ? (

@@ -4,6 +4,8 @@ import static com.tasiyoruz.api.ordering.internal.MarketplaceExceptions.*;
 
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.tasiyoruz.api.catalog.api.CargoCatalog;
+import com.tasiyoruz.api.catalog.api.CargoItemView;
 import com.tasiyoruz.api.fleet.api.CarrierDirectory;
 import com.tasiyoruz.api.geo.api.District;
 import com.tasiyoruz.api.geo.api.GeoService;
@@ -13,11 +15,13 @@ import com.tasiyoruz.api.ordering.api.MarketplaceEvents.ListingExpired;
 import com.tasiyoruz.api.ordering.api.MarketplaceEvents.ListingPublished;
 import com.tasiyoruz.api.ordering.api.MarketplaceEvents.OfferSubmitted;
 import com.tasiyoruz.api.ordering.domain.CarrierOffer;
+import com.tasiyoruz.api.ordering.domain.ListingPhoto;
 import com.tasiyoruz.api.ordering.domain.DomainAccess;
 import com.tasiyoruz.api.ordering.domain.LoadListing;
 import com.tasiyoruz.api.pricing.api.Money;
 import com.tasiyoruz.api.pricing.api.PricingService;
 import com.tasiyoruz.api.pricing.api.QuoteRequest;
+import java.math.BigDecimal;
 import java.time.Clock;
 import java.time.Duration;
 import java.time.Instant;
@@ -50,19 +54,26 @@ class DefaultMarketplaceService implements MarketplaceService {
     private final CarrierDirectory carriers;
     private final GeoService geo;
     private final PricingService pricing;
+    private final CargoCatalog cargoCatalog;
+    private final ListingPhotoService photos;
+    private final CarrierVisibility visibility;
     private final ApplicationEventPublisher events;
     private final ObjectMapper mapper;
     private final Clock clock;
 
     DefaultMarketplaceService(LoadListingRepository listings, CarrierOfferRepository offers,
                               CarrierDirectory carriers, GeoService geo,
-                              PricingService pricing, ApplicationEventPublisher events, ObjectMapper mapper,
+                              PricingService pricing, CargoCatalog cargoCatalog, ListingPhotoService photos,
+                              CarrierVisibility visibility, ApplicationEventPublisher events, ObjectMapper mapper,
                               Clock clock) {
         this.listings = listings;
         this.offers = offers;
         this.carriers = carriers;
         this.geo = geo;
         this.pricing = pricing;
+        this.cargoCatalog = cargoCatalog;
+        this.photos = photos;
+        this.visibility = visibility;
         this.events = events;
         this.mapper = mapper;
         this.clock = clock;
@@ -70,6 +81,13 @@ class DefaultMarketplaceService implements MarketplaceService {
 
     @Override
     public ListingView publish(String shipperId, CreateListingRequest r) {
+        // İstekteki @NotEmpty yalnızca HTTP ucunda çalışıyor; bu servis modülün dışa
+        // açık arayüzü ve beyansız ilan bir kural ihlali, bir form hatası değil
+        if (r.cargoItems() == null || r.cargoItems().isEmpty()) throw badRequest("Yükünü kalem kalem seçmelisin.");
+        if (r.photoIds() == null || r.photoIds().isEmpty()) {
+            throw badRequest("Yükünün en az bir fotoğrafını yüklemelisin.");
+        }
+
         var pickup = geo.district(r.pickup().districtId()).orElseThrow(() -> badRequest("Alış ilçesi tanınmadı."));
         var dropoff = geo.district(r.dropoff().districtId()).orElseThrow(() -> badRequest("Teslim ilçesi tanınmadı."));
         if (r.pickupWindowStart() != null && r.pickupWindowEnd() != null
@@ -100,12 +118,40 @@ class DefaultMarketplaceService implements MarketplaceService {
         var listing = listings.save(LoadListing.publish(number, shipperId, r.serviceModel(), r.vehicleTypeCode(),
                 UUID.fromString(pickup.id()), UUID.fromString(dropoff.id()),
                 r.pickup().floor(), r.pickup().hasElevator(), r.dropoff().floor(), r.dropoff().hasElevator(),
-                r.extraServicesOrEmpty(), r.cargoDescription(), r.pickupWindowStart(), r.pickupWindowEnd(),
+                r.extraServicesOrEmpty(), declare(r.cargoItems()), r.cargoDescription(),
+                r.pickupWindowStart(), r.pickupWindowEnd(),
                 snapshot, quote.totalAmount().amount(), now, expiresAt));
+
+        var attached = photos.attach(shipperId, listing.getId(), r.photoIds(), now);
 
         events.publishEvent(new ListingPublished(listing.getId().toString(), listing.getVehicleTypeCode(),
                 pickup.id(), dropoff.id(), listing.getEstimatedAmount()));
-        return view(listing);
+        return view(listing, attached);
+    }
+
+    /**
+     * Beyanı katalogdan çözer ve ilana kopyalanacak hâline getirir.
+     *
+     * <p>Hacim ve ağırlık istemciden alınmıyor: alınsaydı kullanıcı yükünü olduğundan
+     * küçük göstererek daha ucuz araca sığdırabilirdi. Kod tanınmıyorsa istek reddediliyor
+     * — bilinmeyen bir kalemi sessizce atmak, beyanı eksik bir ilan üretirdi.
+     */
+    private java.util.List<DeclaredItem> declare(java.util.List<CreateListingRequest.ItemLine> lines) {
+        var codes = lines.stream().map(CreateListingRequest.ItemLine::cargoItemCode).distinct().toList();
+        var byCode = cargoCatalog.items(codes).stream()
+                .collect(java.util.stream.Collectors.toMap(CargoItemView::code, i -> i));
+        var missing = codes.stream().filter(c -> !byCode.containsKey(c)).toList();
+        if (!missing.isEmpty()) throw badRequest("Şu eşya kodları tanınmadı: " + String.join(", ", missing));
+
+        // Aynı kalem birden çok satırda gelebilir (arayüzde iki kez eklenmiş); adetler
+        // toplanıyor, yoksa ilanda "2 koli" ve "3 koli" diye iki satır görünürdü
+        var quantities = new java.util.LinkedHashMap<String, Integer>();
+        for (var line : lines) quantities.merge(line.cargoItemCode(), line.quantity(), Integer::sum);
+
+        return quantities.entrySet().stream().map(e -> {
+            var item = byCode.get(e.getKey());
+            return new DeclaredItem(item.code(), item.displayName(), e.getValue(), item.volumeM3(), item.weightKg());
+        }).toList();
     }
 
     /** Ortalamanın yayınlanabilmesi için gereken en az ilan sayısı. */
@@ -134,7 +180,7 @@ class DefaultMarketplaceService implements MarketplaceService {
                 ? listings.findAll(org.springframework.data.domain.Sort.by(
                         org.springframework.data.domain.Sort.Direction.DESC, "publishedAt"))
                 : listings.findByStatusInOrderByPublishedAtDesc(List.of(status));
-        return all.stream().map(this::view).toList();
+        return views(all);
     }
 
     @Override
@@ -179,8 +225,16 @@ class DefaultMarketplaceService implements MarketplaceService {
 
     @Override
     @Transactional(readOnly = true)
+    public Optional<ListingView> listingForCarrier(String carrierId, String listingId) {
+        return parse(listingId).flatMap(listings::findById)
+                .filter(l -> visibility.maySee(l, carrierId))
+                .map(l -> view(l).forCarrier());
+    }
+
+    @Override
+    @Transactional(readOnly = true)
     public List<ListingView> listingsOf(String shipperId) {
-        return listings.findByShipperIdOrderByPublishedAtDesc(shipperId).stream().map(this::view).toList();
+        return views(listings.findByShipperIdOrderByPublishedAtDesc(shipperId));
     }
 
     @Override
@@ -203,8 +257,8 @@ class DefaultMarketplaceService implements MarketplaceService {
         List<UUID> districtIds = cityCode == null ? null
                 : geo.districtsOf(cityCode).stream().map(d -> UUID.fromString(d.id())).toList();
         if (districtIds != null && districtIds.isEmpty()) return List.of();
-        return listings.findOpen(ListingStatus.OPEN, Instant.now(clock), vehicleTypeCode, districtIds).stream()
-                .map(l -> view(l).forCarrier())
+        return views(listings.findOpen(ListingStatus.OPEN, Instant.now(clock), vehicleTypeCode, districtIds)).stream()
+                .map(ListingView::forCarrier)
                 .toList();
     }
 
@@ -341,11 +395,27 @@ class DefaultMarketplaceService implements MarketplaceService {
     }
 
     private ListingView view(LoadListing l) {
+        return view(l, photos.of(l.getId()));
+    }
+
+    /**
+     * Liste ekranları için: fotoğraflar tek sorguda toplanıp burada dağıtılıyor.
+     * İlan başına ayrı okuma, açık ilan akışında sorgu sayısını ilan sayısı kadar
+     * artırırdı.
+     */
+    private java.util.List<ListingView> views(java.util.List<LoadListing> all) {
+        var byListing = photos.byListing(all.stream().map(LoadListing::getId).toList());
+        return all.stream().map(l -> view(l, byListing.getOrDefault(l.getId(), java.util.List.of()))).toList();
+    }
+
+    private ListingView view(LoadListing l, java.util.List<ListingPhoto> listingPhotos) {
         return new ListingView(l.getId().toString(), l.getListingNumber(), l.getShipperId(),
                 l.getServiceModel(), l.getVehicleTypeCode(),
                 place(l.getPickupDistrictId(), l.getPickupFloor(), l.getPickupHasElevator()),
                 place(l.getDropoffDistrictId(), l.getDropoffFloor(), l.getDropoffHasElevator()),
-                l.getExtraServices(), l.getCargoDescription(), l.getPickupWindowStart(), l.getPickupWindowEnd(),
+                l.getExtraServices(), l.getDeclaredItems(),
+                listingPhotos.stream().map(ListingPhotoService::view).toList(),
+                l.getCargoDescription(), l.getPickupWindowStart(), l.getPickupWindowEnd(),
                 Money.tryOf(l.getEstimatedAmount()), l.getEstimateSnapshot(), l.getStatus(),
                 l.getAwardedOfferId() == null ? null : l.getAwardedOfferId().toString(),
                 offers.countByListingIdAndStatus(l.getId(), OfferStatus.SUBMITTED),
