@@ -136,6 +136,18 @@ export type QuoteRequest = {
 
 // ── Teklif pazarı (docs/05 §4b) ─────────────────────────────────────
 
+/**
+ * Herkese açık koridor kaydı. Tek tek ilan değil il düzeyinde sayı —
+ * devam eden siparişlerin herkese açık gösterilmesi ADR-0008'de reddedildi.
+ *
+ * <p>Taşıyıcının kendi boş dönüş koridoru ayrı bir tip: {@link CorridorView}.
+ */
+export type PublicCorridorView = {
+  fromCity: string;
+  toCity: string;
+  openListings: number;
+};
+
 export type ListingStatus = 'OPEN' | 'AWARDED' | 'EXPIRED' | 'CANCELLED';
 export type OfferStatus = 'SUBMITTED' | 'WITHDRAWN' | 'ACCEPTED' | 'REJECTED';
 

@@ -209,6 +209,25 @@ class DefaultMarketplaceService implements MarketplaceService {
     }
 
     @Override
+    @Transactional(readOnly = true)
+    public List<CorridorSummary> openCorridors() {
+        var open = listings.findOpen(ListingStatus.OPEN, Instant.now(clock), null, null);
+        // İlçe → il: ilan yalnızca ilçe kimliği tutuyor, il adı katalogdan geliyor.
+        var counts = new java.util.LinkedHashMap<java.util.List<String>, Integer>();
+        for (var listing : open) {
+            var from = geo.district(listing.getPickupDistrictId().toString());
+            var to = geo.district(listing.getDropoffDistrictId().toString());
+            if (from.isEmpty() || to.isEmpty()) continue;
+            var key = List.of(from.get().cityName(), to.get().cityName());
+            counts.merge(key, 1, Integer::sum);
+        }
+        return counts.entrySet().stream()
+                .map(e -> new CorridorSummary(e.getKey().get(0), e.getKey().get(1), e.getValue()))
+                .sorted(java.util.Comparator.comparingInt(CorridorSummary::listingCount).reversed())
+                .toList();
+    }
+
+    @Override
     public OfferView submitOffer(String carrierId, String carrierDisplayName, String listingId,
                                  SubmitOfferRequest r) {
         var listing = parse(listingId).flatMap(listings::findById).orElseThrow(() -> notFound("İlan"));

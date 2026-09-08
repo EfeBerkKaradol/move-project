@@ -1,5 +1,6 @@
 import { auth, isDriver } from '@/auth';
 import { Hero } from '@/components/hero/Hero';
+import { ActiveCorridors } from '@/components/site/ActiveCorridors';
 import { Footer } from '@/components/site/Footer';
 import { Header } from '@/components/site/Header';
 import { HowItWorks } from '@/components/site/HowItWorks';
@@ -31,6 +32,9 @@ export default async function HomePage() {
           widget={vehicles?.length ? <QuoteWidget vehicles={vehicles} tone="scene" /> : null}
         />
         <HowItWorks />
+        {/* Anlatının hemen ardından: ürünün çalıştığının kanıtı. Koridor düzeyinde
+            ve yalnızca sayı — tek tek ilan yayınlamak ADR-0008'de reddedildi. */}
+        <ActiveCorridors carrierHref={carrierHref} />
         <SearchSection vehicles={vehicles ?? []} />
         <TwoSidedMarket shipperHref={shipperHref} carrierHref={carrierHref} />
         <VehicleRange vehicles={vehicles ?? []} />

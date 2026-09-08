@@ -1,5 +1,6 @@
 import type {
   CargoCategory,
+  PublicCorridorView,
   CargoDeclarationRequest,
   CargoItem,
   CargoPreset,
@@ -57,10 +58,15 @@ const SERVER_FETCH_TIMEOUT_MS = 6000;
  * önce buradan geçiyor. API ulaşılamazsa null dönüyor; çağıran taraf ya yedek
  * veriyle ya da bilgilendirici bir durumla devam ediyor.
  */
-async function get<T>(path: string): Promise<T | null> {
+/**
+ * @param revalidateSeconds Katalog verisi saatlerce değişmiyor; canlı sayaç ve
+ *   koridorlar değişiyor. Varsayılan bir saat, canlı uçlar kendi süresini verir —
+ *   yoksa "şu an yolda" bölümü bir saat önceki tabloyu gösterirdi.
+ */
+async function get<T>(path: string, revalidateSeconds = 3600): Promise<T | null> {
   try {
     const res = await fetch(`${API_URL}/api/v1/public${path}`, {
-      next: { revalidate: 3600 },
+      next: { revalidate: revalidateSeconds },
       signal: AbortSignal.timeout(SERVER_FETCH_TIMEOUT_MS),
     });
     if (!res.ok) {
@@ -90,7 +96,8 @@ export const getCargoItems = () => get<CargoItem[]>('/cargo-items');
 export const getCargoPresets = () => get<CargoPreset[]>('/cargo-presets');
 export const getDistricts = () => get<District[]>('/districts');
 /** Ana sayfa sayaçları; API kapalıysa null döner ve arayüz tire gösterir. */
-export const getPublicStats = () => get<PublicStatsView>('/stats');
+export const getCorridors = () => get<PublicCorridorView[]>('/corridors', 60);
+export const getPublicStats = () => get<PublicStatsView>('/stats', 60);
 export const getExtraServices = () => get<ExtraService[]>('/extra-services');
 
 /** Araç önerisi — tarayıcıdan çağrılır, her seçim değişikliğinde yenilenir. */

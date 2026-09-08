@@ -45,6 +45,51 @@ class MarketplaceServiceTest extends IntegrationTestBase {
         return geo.districtsOf(city).stream().filter(d -> d.slug().equals(slug)).findFirst().orElseThrow().id();
     }
 
+    /**
+     * Koridor özeti herkese açık yüzeyin kaynağı: il düzeyinde, yalnızca sayı.
+     * Farklı ilçelerden ilanlar tek koridorda toplanmalı — ilçe kırılımı dışarı
+     * sızarsa ADR-0008'in reddettiği ayrıntı yayınlanmış olur.
+     *
+     * <p>Testler veritabanını paylaştığı için mutlak sayı değil DEĞİŞİM ölçülüyor.
+     */
+    @Test
+    void acikKoridorlarIlDuzeyindeToplanir() {
+        var before = corridorCount("İstanbul", "Ankara");
+
+        publish(); // Kadıköy → Çankaya
+        publish();
+        marketplace.publish(SHIPPER, new CreateListingRequest(
+                "INSTANT", "PANELVAN",
+                new CreateListingRequest.Stop(district("34", "besiktas"), 0, true),
+                new CreateListingRequest.Stop(district("06", "cankaya"), 0, true),
+                List.of(), null, null, null));
+
+        assertThat(corridorCount("İstanbul", "Ankara")).isEqualTo(before + 3);
+        // Üç ilan iki farklı İstanbul ilçesinden; yine de tek satır olmalı
+        assertThat(marketplace.openCorridors())
+                .filteredOn(c -> c.fromCity().equals("İstanbul") && c.toCity().equals("Ankara"))
+                .hasSize(1);
+    }
+
+    /** Kapanan ilan koridor sayısından da düşmeli; pano yalnızca açık işi gösteriyor. */
+    @Test
+    void iptalEdilenIlanKoridordanDuser() {
+        var before = corridorCount("İstanbul", "Ankara");
+        var listing = publish();
+        assertThat(corridorCount("İstanbul", "Ankara")).isEqualTo(before + 1);
+
+        marketplace.cancel(SHIPPER, listing.id(), "Vazgeçtim");
+
+        assertThat(corridorCount("İstanbul", "Ankara")).isEqualTo(before);
+    }
+
+    private int corridorCount(String from, String to) {
+        return marketplace.openCorridors().stream()
+                .filter(c -> c.fromCity().equals(from) && c.toCity().equals(to))
+                .mapToInt(c -> c.listingCount())
+                .sum();
+    }
+
     private ListingView publish() {
         return marketplace.publish(SHIPPER, new CreateListingRequest(
                 "INSTANT", "KAMYONET",

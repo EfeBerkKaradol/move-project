@@ -36,6 +36,15 @@ public interface MarketplaceService {
      */
     int expireOverdueListings();
 
+    /**
+     * Açık ilanların il çifti bazında toplamı.
+     *
+     * <p>Yalnızca sayı döner; hangi ilan, kimin, hangi ilçede olduğu yok. Gizlilik
+     * eşiği burada uygulanmıyor — yayın kararı ve k-anonimlik eşiği güven panosunun
+     * işi (ADR-0008 kural 7: herkese açık yüzeye yalnızca trustboard yayın yapar).
+     */
+    java.util.List<CorridorSummary> openCorridors();
+
     /** Herkese açık sayaç: teklif toplayan ilan sayısı. */
     long openListingCount();
 

@@ -157,3 +157,32 @@ Bu mesaj hem müşteriye (fiyat avantajı) hem sürücüye (kazanç avantajı) a
 **Komisyona geçiş dürüst yapılmalı:** Oran değişimi en az 30 gün önceden hem panoda hem
 e-posta ile duyurulur. Sessizce komisyon eklemek, panoyla inşa edilen güvenin tamamını
 tek hamlede harcar.
+
+## Ek — Açık koridorlar (ana sayfa)
+
+**Uç:** `GET /api/v1/public/corridors` · **Modül:** `trustboard`
+
+Ana sayfada "şu an nerede iş var?" sorusunu cevaplayan bölüm. Tek tek ilan
+**yayınlanmıyor**: ADR-0008 devam eden siparişlerin herkese açık gösterilmesini
+reddediyor — açık bir ilanı yayınlamak "şu anda şu semtteki şu ev boşaltılacak"
+demek ve hiçbir gecikme bunu güvenli yapmıyor.
+
+Yayınlanan şey toplu ve kimliksiz:
+
+| Yayınlanan | Yayınlanmayan |
+|---|---|
+| Alış ili → teslim ili | İlçe, adres, kat |
+| O koridordaki açık ilan sayısı | İlan kimliği, tutar, yük tarifi |
+| — | Kullanıcı, taşıyıcı, zaman damgası |
+
+**k-anonimlik:** 2'den az ilanı olan koridor hiç dönmüyor. Tek ilanlık bir il
+çifti, o ilanın kim olduğunu daraltmaya yarar.
+
+**Neden bu güvenli:** ADR toplu canlı sayaçları açıkça serbest bırakıyor
+("onlar anlık, çünkü kimseyi tanımlamıyorlar"). Koridor sayısı da aynı sınıfta:
+kaç iş olduğunu söylüyor, kimin işi olduğunu değil. Araç sahibinin ihtiyacı olan
+sinyal — "bu hatta yük var mı?" — bu düzeyde zaten karşılanıyor.
+
+Veri `ordering::api`'den canlı okunup 60 saniye önbelleklıyor; sayaçlarla aynı
+gerekçe (herkese açık trafik çekirdek tablolara yüklenmesin). Gerçek projeksiyona
+geçilirken bu uç da oraya taşınacak.
