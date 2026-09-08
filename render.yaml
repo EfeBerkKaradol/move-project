@@ -121,6 +121,11 @@ services:
         sync: false
       - key: STORAGE_BUCKET
         sync: false
+      # Gönderen adresi. Girilmezse varsayılanı no-reply@tasiyoruz.local — sahte bir
+      # alan adı; sağlayıcı doğrulanmamış göndericiyi reddeder ve bildirimler sessizce
+      # FAILED olur. Sağlayıcıda doğruladığın adresin AYNISI yazılmalı.
+      - key: NOTIFICATION_FROM
+        sync: false            # ÖRNEK: bildirim@karinca.tech
       - key: SMTP_HOST
         sync: false
       - key: SMTP_PORT
