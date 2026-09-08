@@ -32,14 +32,14 @@ class PricingServiceTest extends IntegrationTestBase {
     }
 
     private QuoteRequest request(String cityCode, String from, String to, String vehicle) {
-        return new QuoteRequest(
-                "INSTANT",
-                vehicle,
-                List.of(
-                        new QuoteRequest.Stop(districtId(cityCode, from), 0, true),
-                        new QuoteRequest.Stop(districtId(cityCode, to), 0, true)),
-                List.of(),
-                null);
+        return new QuoteRequest("INSTANT", vehicle, stopsIn(cityCode, from, to), List.of(), null);
+    }
+
+    /** Zemin katta, asansörlü iki durak — kat etkisini denemeyen testlerin ortak zemini. */
+    private List<QuoteRequest.Stop> stopsIn(String cityCode, String from, String to) {
+        return List.of(
+                new QuoteRequest.Stop(districtId(cityCode, from), 0, true),
+                new QuoteRequest.Stop(districtId(cityCode, to), 0, true));
     }
 
     @Test
@@ -206,6 +206,44 @@ class PricingServiceTest extends IntegrationTestBase {
                 .singleElement()
                 // 4 kat × 120 ₺ (V6 ek hizmet tarifesi)
                 .satisfies(l -> assertThat(l.amount().amount()).isEqualByComparingTo("480.00"));
+    }
+
+    /**
+     * Hamaliye kişi başına ücretlendiriliyor ve kişi sayısı araç tipinden geliyor:
+     * motora sığan yükü bir kişi taşır, kamyonetteki koltuğu iki kişi. Sabit ücret
+     * küçük işi pahalı, büyük işi karşılıksız bırakıyordu.
+     */
+    @Test
+    void hamaliyeKisiSayisiAracTipineGoreDegisir() {
+        var tek = pricing.quote(new QuoteRequest(
+                "INSTANT", "MINI_PANELVAN", stopsIn("34", "kadikoy", "besiktas"),
+                List.of("PORTERAGE"), null));
+        var cift = pricing.quote(new QuoteRequest(
+                "INSTANT", "KAMYONET", stopsIn("34", "kadikoy", "besiktas"),
+                List.of("PORTERAGE"), null));
+
+        var tekSatir = porterage(tek);
+        var ciftSatir = porterage(cift);
+
+        assertThat(tekSatir.label()).contains("1 kişi");
+        assertThat(ciftSatir.label()).contains("2 kişi");
+        assertThat(ciftSatir.amount().amount())
+                .isEqualByComparingTo(tekSatir.amount().amount().multiply(new BigDecimal("2")));
+    }
+
+    /** Hamaliye seçilmemişse dökümde hiç görünmemeli — otomatik eklenen bir hizmet değil. */
+    @Test
+    void hamaliyeSecilmemisseUcretlendirilmez() {
+        var quote = pricing.quote(request("34", "kadikoy", "besiktas", "KAMYONET"));
+
+        assertThat(quote.breakdown()).noneMatch(l -> l.code().equals("PORTERAGE"));
+    }
+
+    private static Quote.BreakdownLine porterage(Quote quote) {
+        return quote.breakdown().stream()
+                .filter(l -> l.code().equals("PORTERAGE"))
+                .findFirst()
+                .orElseThrow(() -> new AssertionError("Hamaliye satırı yok"));
     }
 
     /** Bekleme süresi taşıma bitince belli olur; teklif anında ücretlendirilmemeli. */

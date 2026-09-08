@@ -127,9 +127,13 @@ class DefaultPricingService implements PricingService {
                     .orElseThrow(() -> new IllegalArgumentException("Bilinmeyen ek hizmet: " + code));
             var units = units(svc, request, noElevatorFloors);
             if (units == 0) continue;
-            var label = "NO_ELEVATOR".equals(code)
-                    ? "Asansörsüz kat (%d kat)".formatted(noElevatorFloors)
-                    : svc.getDisplayName();
+            // Birim sayısı fiyatı belirliyorsa dökümde de görünmeli: kullanıcı
+            // "Hamaliye 3.000 ₺" değil "Hamaliye (2 kişi)" okumalı.
+            var label = switch (code) {
+                case "NO_ELEVATOR" -> "Asansörsüz kat (%d kat)".formatted(noElevatorFloors);
+                case "PORTERAGE" -> "Hamaliye (%d kişi)".formatted(units);
+                default -> svc.getDisplayName();
+            };
             lines.add(line(code, label, extraCost(svc, subtotal, units), null));
         }
 
@@ -213,9 +217,28 @@ class DefaultPricingService implements PricingService {
         return switch (svc.getCode()) {
             case "NO_ELEVATOR" -> noElevatorFloors;
             case "EXTRA_STOP" -> Math.max(0, request.stops().size() - 2);
+            case "PORTERAGE" -> porterCount(request.vehicleTypeCode());
             // Bekleme süresi taşıma bitince belli olur; teklif anında ücretlendirilmez
             case "WAITING" -> 0;
             default -> 1;
+        };
+    }
+
+    /**
+     * Yükün kaç kişiyle taşınacağı.
+     *
+     * <p>Araç tipinden türetiliyor çünkü araç zaten yükten hesaplanıyor: motor ya da
+     * otomobile sığan bir yükü bir kişi taşır, panelvana giren koltuk ya da beyaz
+     * eşyayı tek kişi taşıyamaz. Böylece kullanıcıya ayrıca "kaç kişi lazım?" diye
+     * sorulmuyor — zaten bilemeyeceği bir soru.
+     *
+     * <p>Asansörsüz katlar bu sayıya girmiyor; onlar kat başına ayrı ücretleniyor.
+     */
+    static int porterCount(String vehicleTypeCode) {
+        return switch (vehicleTypeCode) {
+            case "MOTOR", "OTOMOBIL", "MINI_PANELVAN" -> 1;
+            case "PANELVAN", "KAMYONET" -> 2;
+            default -> 3;
         };
     }
 

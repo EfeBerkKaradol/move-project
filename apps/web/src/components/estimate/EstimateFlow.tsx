@@ -290,7 +290,11 @@ export function EstimateFlow({
                   >
                     {e.displayName}
                     <span className="label-mono ml-2 text-muted">
-                      {e.pricingType === 'PERCENT' ? `%${e.rate}` : `+${e.rate.toLocaleString('tr-TR')} ₺`}
+                      {/* Birim etiketi olmadan "+1.500 ₺" tek seferlik bir ücret gibi
+                          okunuyordu; hamaliye kişi başına, asansörsüz kat kat başına. */}
+                      {e.pricingType === 'PERCENT'
+                        ? `%${e.rate}`
+                        : `+${e.rate.toLocaleString('tr-TR')} ₺${e.unitLabel ? ` / ${e.unitLabel}` : ''}`}
                     </span>
                   </button>
                 );

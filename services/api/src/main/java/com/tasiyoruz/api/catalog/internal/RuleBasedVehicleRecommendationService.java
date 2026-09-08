@@ -175,7 +175,7 @@ class RuleBasedVehicleRecommendationService implements VehicleRecommendationServ
         } else if (heaviest.filter(i -> i.getWeightKg() >= PORTERAGE_ITEM_WEIGHT_KG).isPresent()
                 || estimate.volumeM3().compareTo(PORTERAGE_VOLUME_M3) > 0) {
             extras.add(new VehicleRecommendation.SuggestedExtra(
-                    "PORTERAGE", "Ağır ve hacimli yük için yükleme desteği önerilir."));
+                    "PORTERAGE", "Ağır ve hacimli yük; tek kişiyle taşınmaz."));
         }
 
         if ("INSAAT".equals(request.categoryCode())) {
