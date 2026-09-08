@@ -28,7 +28,7 @@ export default async function HomePage() {
         <Hero
           shipperHref={shipperHref}
           carrierHref={carrierHref}
-          widget={vehicles?.length ? <QuoteWidget vehicles={vehicles} /> : null}
+          widget={vehicles?.length ? <QuoteWidget vehicles={vehicles} tone="scene" /> : null}
         />
         <HowItWorks />
         <SearchSection vehicles={vehicles ?? []} />

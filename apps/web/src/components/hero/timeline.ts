@@ -105,8 +105,8 @@ export const MARKS = {
   back: [0.8, 0.94],
   izmir: [0.92, 0.96],
   outro: [0.94, 0.99],
-  /** Widget bu aralıkta silikten tam görünüre geçer. */
-  widget: [0.08, 0.5],
+  /** Widget anlatının sonuna doğru silikten tam görünüre geçer. */
+  widget: [0.72, 0.94],
 } as const;
 
 export function sceneAt(p: number): SceneState {

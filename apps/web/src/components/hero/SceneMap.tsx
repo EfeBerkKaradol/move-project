@@ -109,11 +109,13 @@ export function SceneMap({
           transformOrigin: origin,
         }}
       >
+        {/* Ülke silüeti İstanbul yakın planından daha güçlü çiziliyor: rota bu
+            ölçekte kısa ve haritanın kendisi anlatının zeminini kuruyor. */}
         <path
           d={turkeyPath}
-          fill="rgb(255 255 255 / 0.028)"
-          stroke="rgb(255 255 255 / 0.16)"
-          strokeWidth={1.1}
+          fill="rgb(255 255 255 / 0.055)"
+          stroke="rgb(255 255 255 / 0.3)"
+          strokeWidth={1.4}
           strokeLinejoin="round"
         />
 

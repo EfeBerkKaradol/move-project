@@ -25,7 +25,17 @@ const TARGET: Record<Side, string> = {
   CARRIER: '/sofor-ol',
 };
 
-export function QuoteWidget({ vehicles }: { vehicles: VehicleType[] }) {
+export function QuoteWidget({
+  vehicles,
+  tone = 'card',
+}: {
+  vehicles: VehicleType[];
+  /**
+   * `card` — beyaz kart, açık zeminli bölümlerde.
+   * `scene` — hero'nun içinde: saydam, koyu, haritanın çizgisel diliyle aynı.
+   */
+  tone?: 'card' | 'scene';
+}) {
   const router = useRouter();
   const [side, setSide] = useState<Side>('SHIPPER');
   const [from, setFrom] = useState('');
@@ -62,7 +72,13 @@ export function QuoteWidget({ vehicles }: { vehicles: VehicleType[] }) {
     <form
       action={TARGET[side]}
       onSubmit={submit}
-      className="theme-cream rounded-card border border-line bg-surface p-4 shadow-card sm:p-5"
+      className={
+        tone === 'scene'
+          ? // Zemin bilerek yarı saydam: harita panelin arkasından görünüyor,
+            // widget sahnenin üstünde ayrı bir kart gibi değil onun katmanı gibi duruyor.
+            'theme-dark rounded-card border border-white/12 bg-[rgb(23_26_25/0.42)] p-4 sm:p-5'
+          : 'theme-cream rounded-card border border-line bg-surface p-4 shadow-card sm:p-5'
+      }
     >
       {/* Sekmeler */}
       <div role="tablist" aria-label="Taraf seçimi" className="flex gap-1 rounded-field bg-surface-2 p-1">

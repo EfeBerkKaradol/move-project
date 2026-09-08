@@ -195,8 +195,15 @@ export function HeroScene({
           {/* Mobilde harita alt yarıda ve tam genişlikte; masaüstünde sağ-alt bölgeye
               çekiliyor. Rota, başlık sütununun üzerinden geçmemeli — araç metnin
               üstünden geçerse ikisi de okunmaz oluyor. */}
-          <div className="pointer-events-none absolute inset-x-0 bottom-0 top-[44%] md:bottom-[4%] md:left-[21%] md:right-0 md:top-[14%] lg:left-[14%] lg:right-[24%]">
-            <div ref={mapRef} className="relative size-full">
+          <div className="pointer-events-none absolute inset-x-0 bottom-0 top-[44%] md:bottom-[4%] md:top-[14%] lg:top-[24%]">
+            {/* Harita, navbar'ın içeriğiyle aynı kutuya hizalanıyor: sol kenarı
+                logoyla, sağ kenarı "Yük ver" düğmesiyle aynı hatta. Widget bu
+                kutunun sağ ucunda, haritanın üstünde duruyor. */}
+            <div className="mx-auto h-full max-w-[76rem] px-6">
+              {/* Ölçüm kutusu dolgunun İÇİNDE: `absolute inset-0` dolguyu yok
+                  sayar, ölçüm dış öğeden alınsaydı harita navbar içeriğinden
+                  iki yandan 24 piksel taşardı. */}
+              <div ref={mapRef} className="relative h-full">
               <SceneMap
                 cityRouteRef={cityRouteRef}
                 outRef={outRef}
@@ -233,8 +240,19 @@ export function HeroScene({
                 title="8 ton · Dönüş rotanda" meta={['Ankara → İzmir', 'Sapma yok']}
                 className="left-1/2 top-2 -translate-x-1/2 md:left-[6%] md:top-[58%] md:translate-x-0"
               />
+              </div>
             </div>
           </div>
+
+          {/* Metin sütununun arkasında yumuşak bir karartma. Harita navbar hizasına
+              kadar sola geldiği için "İstanbul" etiketi ve rotanın batı ucu metnin
+              altına giriyor; ikisi de beyaz olduğu için ikisi de okunmuyordu.
+              Kart değil gradyan: sağa doğru tamamen saydamlaşıyor, harita
+              kapanmıyor, yalnızca metnin arkası koyulaşıyor. */}
+          <div
+            aria-hidden
+            className="pointer-events-none absolute inset-y-0 left-0 hidden w-[46%] bg-gradient-to-r from-[rgb(23_26_25/0.92)] via-[rgb(23_26_25/0.7)] to-transparent md:block"
+          />
 
           {/* ── FİYAT SORGUSU ──────────────────────────────────────── */}
           {/* Birincil eylem anlatı boyunca ekranda kalıyor: kullanıcı hikâyeyi
@@ -247,7 +265,7 @@ export function HeroScene({
               // Taban değer BURADA tanımlı, alt öğede değil: satır içi stil sınıf
               // tabanlı bir geçersiz kılmayı hep yener, değişken alt öğeye satır içi
               // yazıldığında hover/odak kuralı hiçbir zaman devreye girmiyordu.
-              style={{ ['--widget-alpha' as string]: 'calc(0.34 + var(--widget-in, 0) * 0.66)' }}
+              style={{ ['--widget-alpha' as string]: 'calc(0.14 + var(--widget-in, 0) * 0.86)' }}
             >
               {/*
                 Açılışta silik: sahne ön planda, widget varlığını belli eden bir
@@ -308,7 +326,9 @@ export function HeroScene({
             </div>
 
             {/* Sonraki fazların metinleri aynı yuvada sırayla belirir */}
-            <div className="pointer-events-none absolute inset-x-6 top-24 max-w-xl md:top-32">
+            {/* Faz metinleri açılış başlığından dar: harita sola alındıkça rota ve şehir
+                etiketleri sola yaklaşıyor, geniş bir paragraf onların üstüne biniyordu. */}
+            <div className="pointer-events-none absolute inset-x-6 top-24 max-w-sm md:top-32">
               <PhaseText layer="enterLoad" kicker="Adım 1" title="Yükünü gir."
                 body="Nereden nereye, ne kadar. Araç tipini bilmiyorsan sistem öneriyor." />
               <PhaseText layer="crossing" kicker="Boğaz geçişi" title="Avrupa yakasından Anadolu yakasına."
@@ -381,16 +401,20 @@ function PhaseText({
  * okumuyor.
  */
 function EmptyReturnTitle() {
+  // Iki kelime aynı ızgara gözünde üst üste duruyor: kutunun yüksekliğini
+  // hangisi uzunsa o belirliyor. "Yüklü dönüş." mutlak konumlandırıldığında
+  // kutuya yükseklik katmıyor, dar ekranda ikinci satıra düşüp altındaki
+  // paragrafın üstüne biniyordu.
   return (
-    <span className="relative inline-block">
+    <span className="grid">
       <span
-        className="block"
+        className="col-start-1 row-start-1"
         style={{ opacity: 'calc(1 - var(--loaded, 0))' }}
       >
         Boş dönüş.
       </span>
       <span
-        className="absolute inset-0 block text-route"
+        className="col-start-1 row-start-1 text-route"
         style={{
           opacity: 'var(--loaded, 0)',
           transform: 'translateY(calc((1 - var(--loaded, 0)) * 12px))',
