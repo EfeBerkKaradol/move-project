@@ -92,6 +92,19 @@ describe('sceneAt', () => {
     }
   });
 
+  it('iki faz metni aynı anda okunur olmaz', () => {
+    // Üst üste binen iki başlık çapraz geçiş değil, karmaşa. Devreden metin
+    // yeni metin belirmeden sönmeli.
+    for (let p = 0; p <= 1; p += 0.005) {
+      const { texts } = sceneAt(p);
+      const strong = Object.entries(texts)
+        .filter(([, alpha]) => alpha > 0.35)
+        .map(([key]) => key);
+      // Hata mesajı hangi ilerlemede hangi ikilinin çakıştığını söylesin
+      expect({ p: +p.toFixed(3), strong }).toEqual({ p: +p.toFixed(3), strong: strong.slice(0, 1) });
+    }
+  });
+
   it('aralık dışı ilerleme kırpılır', () => {
     expect(sceneAt(-1)).toEqual(sceneAt(0));
     expect(sceneAt(4)).toEqual(sceneAt(1));

@@ -70,21 +70,30 @@ export type SceneState = {
 };
 
 /** Fazların sınırları tek yerde; kaydırmak isteyen buraya bakar. */
+/**
+ * Fazların sınırları tek yerde; kaydırmak isteyen buraya bakar.
+ *
+ * <p>Kural: bir metin bitmeden sonraki başlamaz. Pencereler geniş tutulduğunda
+ * iki başlık aynı anda yarı saydam duruyor ve ikisi de okunmuyordu — çapraz
+ * geçiş değil, üst üste binme oluyordu. `metinlerCakismaz` testi bunu koruyor.
+ */
 export const MARKS = {
   mapIn: [0.02, 0.18],
   introOut: [0.1, 0.17],
   truckIn: [0.15, 0.21],
   pickup: [0.13, 0.19],
-  enterLoad: [0.16, 0.23, 0.28, 0.33],
+  enterLoad: [0.16, 0.23, 0.24, 0.28],
   city: [0.22, 0.36],
   bridge: [0.27, 0.32],
-  crossing: [0.26, 0.31, 0.36, 0.4],
+  crossing: [0.28, 0.32, 0.36, 0.4],
   handover: [0.36, 0.44],
   outbound: [0.44, 0.62],
   match: [0.47, 0.53, 0.62, 0.67],
   ankara: [0.6, 0.65],
-  arrival: [0.62, 0.67, 0.7, 0.75],
-  empty: [0.7, 0.75],
+  arrival: [0.62, 0.67, 0.68, 0.72],
+  empty: [0.72, 0.76],
+  /** "Yüklü dönüş" cümlesi, kapanış başlığı gelmeden önce sönmeli. */
+  emptyOut: [0.9, 0.94],
   newLoad: [0.76, 0.81, 0.9, 0.95],
   loaded: [0.78, 0.86],
   back: [0.8, 0.94],
@@ -156,8 +165,11 @@ export function sceneAt(p: number): SceneState {
       enterLoad: window_(progress, m.enterLoad[0], m.enterLoad[1], m.enterLoad[2], m.enterLoad[3]),
       crossing: window_(progress, m.crossing[0], m.crossing[1], m.crossing[2], m.crossing[3]),
       arrival: window_(progress, m.arrival[0], m.arrival[1], m.arrival[2], m.arrival[3]),
-      // Boş dönüş metni yüklü dönüşe geçince kaybolur — yerini outro alır
-      empty: ramp(progress, m.empty[0], m.empty[1]) * (1 - ramp(progress, m.outro[0], m.outro[1])),
+      // Boş/yüklü dönüş cümlesi kapanıştan ÖNCE söner. Sönmesi outro'nun
+      // belirmesine bağlanmıştı ve ikisi bir aralıkta birlikte okunuyordu.
+      empty:
+        ramp(progress, m.empty[0], m.empty[1]) *
+        (1 - ramp(progress, m.emptyOut[0], m.emptyOut[1])),
       outro: ramp(progress, m.outro[0], m.outro[1]),
     },
   };

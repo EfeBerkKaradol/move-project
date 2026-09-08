@@ -6,7 +6,7 @@ import { Icon } from '@/components/ui/Icon';
 import { BRAND } from '@/lib/brand';
 import { HANDOVER } from './geo-data';
 import { SceneCard } from './SceneCard';
-import { SceneMap, toPercent } from './SceneMap';
+import { SceneMap, mapProjection } from './SceneMap';
 import { TruckAsset } from './TruckAsset';
 import { sceneAt } from './timeline';
 import { useMedia, usePrefersReducedMotion, useScrollProgress } from './useScrollProgress';
@@ -34,9 +34,35 @@ export function HeroScene({ shipperHref, carrierHref }: { shipperHref: string; c
   const shownRef = useRef<Map<string, boolean>>(new Map());
   /** Yol uzunlukları sabit; her karede getTotalLength çağırmak gereksiz. */
   const lengthsRef = useRef<Map<SVGPathElement, number>>(new Map());
+  /** Harita kutusu → piksel dönüşümü; yalnızca boyut değişince yeniden kurulur. */
+  const mapRef = useRef<HTMLDivElement>(null);
+  const projectRef = useRef<ReturnType<typeof mapProjection> | null>(null);
 
   const reduced = usePrefersReducedMotion();
-  const isCompact = useMedia('(max-width: 767px)');
+  /**
+   * Mobil öncelikli: sunucu ve ilk kare kaba geometriyi çiziyor, masaüstü
+   * bağlandıktan sonra ayrıntılıya yükseliyor.
+   *
+   * <p>Tersi telefona iki kez ödetiyordu: SSR çıktısı ayrıntılı yolları taşıyor
+   * (HTML'de fazladan ~7 KB), telefon onları bir kez boyuyor, sonra kaba sürüme
+   * geçip yeniden boyuyordu. Masaüstünde o fazladan render'ın bütçesi var.
+   */
+  const isWide = useMedia('(min-width: 768px)');
+  const compact = isWide !== true;
+
+  /** Kapsayıcı boyutu değişince harita→piksel dönüşümü yeniden kurulur. */
+  useEffect(() => {
+    const el = mapRef.current;
+    if (!el) return;
+    const measure = () => {
+      const rect = el.getBoundingClientRect();
+      projectRef.current = mapProjection(rect);
+    };
+    measure();
+    const observer = new ResizeObserver(measure);
+    observer.observe(el);
+    return () => observer.disconnect();
+  }, []);
 
   useEffect(() => {
     const root = sceneRef.current;
@@ -55,7 +81,10 @@ export function HeroScene({ shipperHref, carrierHref }: { shipperHref: string; c
 
     const set = (key: string, value: number | string) => root.style.setProperty(key, String(value));
 
-    set('--ist-in', s.istanbulIn);
+    // Açılışta sahne kapkaranlık olmamalı: harita silik de olsa oradadır,
+    // kaydırma onu tam görünürlüğe çıkarır. İki sahneli yazıma geçerken bu
+    // taban kaybolmuştu ve hero duruş hâlinde boş görünüyordu.
+    set('--ist-in', Math.max(s.istanbulIn, 0.22 * (1 - s.handover)));
     set('--tr-in', s.turkeyIn);
     set('--ist-zoom', s.istanbulZoom);
     set('--tr-zoom', s.turkeyZoom);
@@ -94,6 +123,10 @@ export function HeroScene({ shipperHref, carrierHref }: { shipperHref: string; c
     }
 
     // ── Aracın konumu ────────────────────────────────────────────────
+    // Araç görünmezken hesabı atlamak cazipti ama yanlıştı: hareket tercihi
+    // çözülene kadar sahne bir kez p=1 ile uygulanıyor (dönüş bacağı, araç
+    // batıya bakar) ve atlama o yönü olduğu gibi bırakıyordu. Ölçüm zaten
+    // çağrı başına 0,02 ms — atlamanın kazancı yok, riski vardı.
     let x: number;
     let y: number;
     let facingRight = true;
@@ -127,9 +160,11 @@ export function HeroScene({ shipperHref, carrierHref }: { shipperHref: string; c
       facingRight = ahead.x >= before.x;
     }
 
-    const { left, top } = toPercent(x, y);
-    set('--truck-x', `${left}%`);
-    set('--truck-y', `${top}%`);
+    const project = projectRef.current;
+    if (!project) return;
+    const { left, top } = project(x, y);
+    set('--truck-x', `${left}px`);
+    set('--truck-y', `${top}px`);
     set('--truck-dir', facingRight ? 1 : -1);
   }, []);
 
@@ -151,12 +186,12 @@ export function HeroScene({ shipperHref, carrierHref }: { shipperHref: string; c
               çekiliyor. Rota, başlık sütununun üzerinden geçmemeli — araç metnin
               üstünden geçerse ikisi de okunmaz oluyor. */}
           <div className="pointer-events-none absolute inset-x-0 bottom-0 top-[44%] md:bottom-[4%] md:left-[21%] md:right-0 md:top-[14%]">
-            <div className="relative size-full">
+            <div ref={mapRef} className="relative size-full">
               <SceneMap
                 cityRouteRef={cityRouteRef}
                 outRef={outRef}
                 backRef={backRef}
-                compact={isCompact === true}
+                compact={compact}
               />
 
               {/* Araç: harita kutusunun üstünde, rota noktasına oturuyor */}
@@ -169,7 +204,7 @@ export function HeroScene({ shipperHref, carrierHref }: { shipperHref: string; c
                   transform: 'translate(-50%, -72%) scaleX(var(--truck-dir, 1))',
                 }}
               >
-                <TruckAsset className="h-auto w-[clamp(5rem,13vw,9.5rem)] drop-shadow-[0_8px_18px_rgb(0_0_0/0.45)]" />
+                <TruckAsset className="h-auto w-[clamp(5rem,13vw,9.5rem)] md:drop-shadow-[0_8px_18px_rgb(0_0_0/0.45)]" />
               </div>
 
               {/* Kartlar rotanın çevresinde; mobilde tek bir yuvada üst üste */}

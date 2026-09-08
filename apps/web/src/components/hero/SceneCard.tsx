@@ -35,7 +35,7 @@ export function SceneCard({
     >
       <div
         className={[
-          'w-[min(17rem,72vw)] rounded-card border bg-[rgb(31_35_33/0.92)] p-3.5 backdrop-blur-sm',
+          'w-[min(17rem,72vw)] rounded-card border bg-[rgb(31_35_33/0.96)] p-3.5 md:bg-[rgb(31_35_33/0.92)] md:backdrop-blur-sm',
           tone === 'match' ? 'border-route/60' : 'border-white/12',
         ].join(' ')}
       >

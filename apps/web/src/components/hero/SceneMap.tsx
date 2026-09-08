@@ -5,12 +5,14 @@ import {
   CITIES,
   ISTANBUL_NODES,
   ISTANBUL_PATHS,
+  ISTANBUL_PATHS_COMPACT,
   MAP_BOX,
   MAP_VIEWBOX,
   ROUTE_BACK,
   ROUTE_CITY,
   ROUTE_OUT,
   TURKEY_PATH,
+  TURKEY_PATH_COMPACT,
 } from './geo-data';
 
 /**
@@ -40,6 +42,17 @@ export function SceneMap({
   const anchor = CITIES.find((c) => c.id === 'istanbul')!;
   const origin = `${((anchor.x / MAP_BOX.w) * 100).toFixed(1)}% ${((anchor.y / MAP_BOX.h) * 100).toFixed(1)}%`;
   const stroke = compact ? 3.2 : 2.4;
+  // Telefonda kıyı çizgisinin ince detayı zaten görünmüyor; boyama maliyeti
+  // görünüyor. Kaba sürüm aynı kutuya oturduğu için araç konumu değişmiyor.
+  const istanbulPaths = compact ? ISTANBUL_PATHS_COMPACT : ISTANBUL_PATHS;
+  const turkeyPath = compact ? TURKEY_PATH_COMPACT : TURKEY_PATH;
+
+  /**
+   * Her iki harita da kaydırma boyunca opaklık ve ölçek değiştiriyor. Kendi
+   * derleme katmanına alınmazlarsa tarayıcı her karede yüzlerce yolu yeniden
+   * raster ediyor; katmanla iş GPU'da bileşimden ibaret kalıyor.
+   */
+  const layer = { willChange: 'opacity, transform' } as const;
 
   return (
     <>
@@ -50,12 +63,13 @@ export function SceneMap({
         preserveAspectRatio="xMidYMid meet"
         aria-hidden
         style={{
+          ...layer,
           opacity: 'var(--ist-in, 0)',
           transform: 'scale(var(--ist-zoom, 1))',
           transformOrigin: '50% 50%',
         }}
       >
-        {ISTANBUL_PATHS.map((d, i) => (
+        {istanbulPaths.map((d, i) => (
           <path
             key={i}
             d={d}
@@ -89,13 +103,14 @@ export function SceneMap({
         preserveAspectRatio="xMidYMid meet"
         aria-hidden
         style={{
+          ...layer,
           opacity: 'var(--tr-in, 0)',
           transform: 'scale(var(--tr-zoom, 1))',
           transformOrigin: origin,
         }}
       >
         <path
-          d={TURKEY_PATH}
+          d={turkeyPath}
           fill="rgb(255 255 255 / 0.028)"
           stroke="rgb(255 255 255 / 0.16)"
           strokeWidth={1.1}
@@ -175,12 +190,24 @@ function Node({
 }
 
 /**
- * Kutu koordinatını kapsayıcı içindeki yüzdeye çevirir.
+ * Kutu koordinatını kapsayıcı içindeki piksele çevirir.
  *
  * <p>Araç SVG'nin içinde değil üstünde duran bir HTML öğesi: fotogerçekçi bir
- * görsel `<image>` olarak ölçeklenirken netliğini kaybediyor. İki harita da aynı
- * kutuya oturduğu için dönüşüm her sahnede aynı.
+ * görsel `<image>` olarak ölçeklenirken netliğini kaybediyor. Konumu bu yüzden
+ * elle hesaplanıyor.
+ *
+ * <p>Yüzde kullanmak yanlıştı. `preserveAspectRatio="xMidYMid meet"` haritayı
+ * kapsayıcıya <em>sığdırıyor</em>: oranlar tutmadığında kenarlarda boşluk kalıyor
+ * ve harita kutunun tamamını doldurmuyor. Yüzde hesabı doldurduğunu varsaydığı
+ * için araç rotanın dışına düşüyordu — mobilde 56 piksel, masaüstünde kapsayıcı
+ * oranı tesadüfen yakın olduğu için fark edilmeyecek kadar az.
  */
-export function toPercent(x: number, y: number) {
-  return { left: (x / MAP_BOX.w) * 100, top: (y / MAP_BOX.h) * 100 };
+export function mapProjection(box: { width: number; height: number }) {
+  const scale = Math.min(box.width / MAP_BOX.w, box.height / MAP_BOX.h);
+  const offsetX = (box.width - MAP_BOX.w * scale) / 2;
+  const offsetY = (box.height - MAP_BOX.h * scale) / 2;
+  return (x: number, y: number) => ({
+    left: offsetX + x * scale,
+    top: offsetY + y * scale,
+  });
 }

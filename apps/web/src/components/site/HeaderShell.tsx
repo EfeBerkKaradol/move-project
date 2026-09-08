@@ -49,7 +49,9 @@ export function HeaderShell({
         // hangi position kazanacağı CSS sırasına kalır — biri seçilmeli.
         overlay ? 'fixed' : 'sticky',
         !overlay || scrolled
-          ? 'theme-cream border-b border-line bg-[rgb(244_242_236/0.86)] backdrop-blur-md'
+          // Blur yalnızca masaüstünde: telefonda kaydırma boyunca arkasındaki
+          // her kareyi yeniden bulanıklaştırmak pahalı. Mobilde opak zemin.
+          ? 'theme-cream border-b border-line bg-bg md:bg-[rgb(244_242_236/0.86)] md:backdrop-blur-md'
           : 'theme-dark border-b border-transparent bg-transparent',
       ].join(' ')}
     >

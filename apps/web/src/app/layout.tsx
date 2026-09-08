@@ -11,16 +11,25 @@ import { BRAND } from '@/lib/brand';
  * font dosyaları kendi alan adımızdan servis ediliyor, yükleme sırasında düzen
  * kayması olmuyor.
  */
+/**
+ * Ağırlık listesi verilmiyor: Archivo'nun değişken sürümü indiriliyor. Beş ayrı
+ * statik kesit yerine alt küme başına tek dosya geliyor ve aradaki her ağırlık
+ * (400–800) kullanılabilir oluyor.
+ */
 const archivo = Archivo({
-  subsets: ['latin-ext'],
-  weight: ['400', '500', '600', '700', '800'],
+  subsets: ['latin', 'latin-ext'],
   variable: '--font-archivo',
   display: 'swap',
 });
 
+/**
+ * Mono yalnızca iki yerde kullanılıyor: `.label-mono` (400) ve `.stat` (700).
+ * 500 ve 600 hiçbir yerde render edilmiyordu ama indiriliyordu — mobilde iki
+ * gereksiz istek ve ~20 KB.
+ */
 const plexMono = IBM_Plex_Mono({
-  subsets: ['latin-ext'],
-  weight: ['400', '500', '600', '700'],
+  subsets: ['latin', 'latin-ext'],
+  weight: ['400', '700'],
   variable: '--font-plex-mono',
   display: 'swap',
 });

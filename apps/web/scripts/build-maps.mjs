@@ -23,8 +23,20 @@ import { readFileSync, writeFileSync } from 'node:fs';
  * dolduruyor, hiçbiri kadrajda kaybolmuyor.
  */
 const BOX = { w: 1000, h: 470 };
-/** Sadeleştirme, nokta sayısı hedefe inene kadar toleransı büyüterek çalışır. */
-const TARGET = { turkey: 620, istanbulPerDistrict: 30 };
+/**
+ * Sadeleştirme, nokta sayısı hedefe inene kadar toleransı büyüterek çalışır.
+ *
+ * <p>İki ayrı bütçe: masaüstünde kıyı çizgisinin karakteri görünüyor, telefonda
+ * 375 px genişlikte görünmüyor ama boyama maliyeti aynı kalıyor. Mobil sürüm
+ * belirgin biçimde daha kaba — fark gözle seçilmiyor, kare süresi seçiliyor.
+ */
+const TARGET = {
+  turkey: 620,
+  turkeyCompact: 240,
+  istanbulPerDistrict: 30,
+  istanbulPerDistrictCompact: 16,
+};
+
 
 const [, , turkeyPath, istanbulPath] = process.argv;
 if (!turkeyPath || !istanbulPath) {
@@ -135,7 +147,10 @@ let turkeyRings = ringsOf(turkeyGeo.features[0].geometry);
 const biggest = Math.max(...turkeyRings.map(area));
 // Ada kalabalığı editoryal bir haritada gürültü; anakara ve Marmara adaları kalıyor
 turkeyRings = turkeyRings.filter((r) => area(r) > biggest / 900);
+const turkeyRingsCompact = simplifyToBudget(turkeyRings, TARGET.turkeyCompact);
 turkeyRings = simplifyToBudget(turkeyRings, TARGET.turkey);
+// Ölçekleme her iki sürüm için de aynı olmalı: mobil ve masaüstü aynı kutuya
+// oturmazsa araç sahne değişince kayar
 const fitTurkey = fitter(turkeyRings);
 
 // ── İstanbul ──────────────────────────────────────────────────────────────
@@ -152,6 +167,12 @@ for (const d of districts) {
   );
 }
 const fitIstanbul = fitter(districts.flatMap((d) => d.rings));
+
+// Bütün ilçeler mobilde de çiziliyor: biri atlanırsa kıyı çizgisinde delik kalır.
+// Kazanç ilçe sayısından değil, ilçe başına nokta sayısından geliyor.
+const districtsCompact = districts.map((d) => ({
+  rings: simplifyToBudget(d.rings, TARGET.istanbulPerDistrictCompact, 1e-4),
+}));
 
 // ── Noktalar ──────────────────────────────────────────────────────────────
 /** Ülke ölçeğindeki şehirler. */
@@ -236,9 +257,18 @@ export const MAP_VIEWBOX = '0 0 ${BOX.w} ${BOX.h}';
 export const TURKEY_PATH =
   '${toPath(turkeyRings, fitTurkey)}';
 
+/** Mobil sürüm — aynı kutuya oturur, yalnızca daha az nokta. */
+export const TURKEY_PATH_COMPACT =
+  '${toPath(turkeyRingsCompact, fitTurkey)}';
+
 /** İstanbul ilçeleri. Kıyı çizgisi ilçelerin dış sınırından, Boğaz aradaki boşluk. */
 export const ISTANBUL_PATHS: string[] = [
 ${districts.map((d) => `  // ${d.name}\n  '${toPath(d.rings, fitIstanbul)}',`).join('\n')}
+];
+
+/** Mobil: kabaca sadeleştirilmiş, küçük ilçeler atılmış. Aynı kutuya oturur. */
+export const ISTANBUL_PATHS_COMPACT: string[] = [
+${districtsCompact.map((d) => `  '${toPath(d.rings, fitIstanbul)}',`).join('\n')}
 ];
 
 export type MapNode = { id: string; label: string; x: number; y: number };
@@ -262,7 +292,10 @@ export const HANDOVER = {
 `;
 
 writeFileSync(new URL('../src/components/hero/geo-data.ts', import.meta.url), out);
+const count = (rings) => rings.reduce((n, r) => n + r.length, 0);
+const countDistricts = (list) => list.reduce((n, d) => n + count(d.rings), 0);
 console.log(
-  `Türkiye: ${turkeyRings.length} parça / ${turkeyRings.reduce((n, r) => n + r.length, 0)} nokta · ` +
-    `İstanbul: ${districts.length} ilçe / ${districts.reduce((n, d) => n + d.rings.reduce((m, r) => m + r.length, 0), 0)} nokta`,
+  `Türkiye: ${count(turkeyRings)} nokta (mobil ${count(turkeyRingsCompact)}) · ` +
+    `İstanbul: ${districts.length} ilçe / ${countDistricts(districts)} nokta ` +
+    `(mobil ${districtsCompact.length} ilçe / ${countDistricts(districtsCompact)} nokta)`,
 );
