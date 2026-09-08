@@ -98,6 +98,7 @@ export function HeroScene({
     set('--ist-zoom', s.istanbulZoom);
     set('--tr-zoom', s.turkeyZoom);
     set('--truck-in', s.truckIn);
+    set('--widget-in', s.widgetIn);
     set('--draw-city', s.cityDraw);
     set('--draw-out', s.outboundDraw);
     set('--draw-back', s.returnDraw);
@@ -194,7 +195,7 @@ export function HeroScene({
           {/* Mobilde harita alt yarıda ve tam genişlikte; masaüstünde sağ-alt bölgeye
               çekiliyor. Rota, başlık sütununun üzerinden geçmemeli — araç metnin
               üstünden geçerse ikisi de okunmaz oluyor. */}
-          <div className="pointer-events-none absolute inset-x-0 bottom-0 top-[44%] md:bottom-[4%] md:left-[21%] md:right-0 md:top-[14%] lg:left-[23%] lg:right-[34%]">
+          <div className="pointer-events-none absolute inset-x-0 bottom-0 top-[44%] md:bottom-[4%] md:left-[21%] md:right-0 md:top-[14%] lg:left-[14%] lg:right-[24%]">
             <div ref={mapRef} className="relative size-full">
               <SceneMap
                 cityRouteRef={cityRouteRef}
@@ -241,8 +242,30 @@ export function HeroScene({
               telefonda başlık, widget ve harita aynı ekrana sığmıyor, orada
               widget hero'nun hemen altındaki kendi bölümünde duruyor. */}
           {widget && (
-            <div className="pointer-events-auto absolute right-[max(1.5rem,calc((100vw-76rem)/2))] top-1/2 z-10 hidden max-h-[calc(100svh-7rem)] w-[20rem] -translate-y-1/2 overflow-y-auto lg:block xl:w-[22.5rem]">
-              {widget}
+            <div
+              className="group pointer-events-auto absolute right-[max(1.5rem,calc((100vw-76rem)/2))] top-1/2 z-10 hidden max-h-[calc(100svh-7rem)] w-[20rem] -translate-y-1/2 overflow-y-auto lg:block xl:w-[22.5rem]"
+              // Taban değer BURADA tanımlı, alt öğede değil: satır içi stil sınıf
+              // tabanlı bir geçersiz kılmayı hep yener, değişken alt öğeye satır içi
+              // yazıldığında hover/odak kuralı hiçbir zaman devreye girmiyordu.
+              style={{ ['--widget-alpha' as string]: 'calc(0.34 + var(--widget-in, 0) * 0.66)' }}
+            >
+              {/*
+                Açılışta silik: sahne ön planda, widget varlığını belli eden bir
+                katman. Kaydırma ilerledikçe öne çıkıyor.
+
+                Fareyle üzerine gelindiğinde ya da içine odaklanıldığında anında
+                tam görünür oluyor — silik bir formu doldurmaya çalışmak,
+                okunmayan alanlarla uğraşmak demekti.
+
+                Geçiş (transition) bilerek yok: değer kaydırmayla sürülüyor,
+                üstüne animasyon konunca opaklık kaydırmanın gerisinde
+                sürükleniyor ve hiçbir zaman hedefe varmıyordu.
+              */}
+              <div
+                className="opacity-[var(--widget-alpha)] group-focus-within:[--widget-alpha:1] group-hover:[--widget-alpha:1]"
+              >
+                {widget}
+              </div>
             </div>
           )}
 

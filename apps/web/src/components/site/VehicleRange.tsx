@@ -18,11 +18,14 @@ const IDEAL_ROUTE: Record<string, string> = {
 };
 
 /**
- * Araç yelpazesi, kart ızgarası değil bir ölçek dizisi.
+ * Araç yelpazesi. Kapasite tonaj yerine <strong>gerçek örneklerle</strong>
+ * anlatılıyor — kimse yükünün kaç m³ olduğunu bilmiyor, ama "1+1 ev eşyası"nı
+ * herkes biliyor.
  *
- * <p>Araçlar küçükten büyüğe tek bir hat üzerinde sıralanıyor: kullanıcı kendi
- * yükünün bu dizide nereye düştüğünü görüyor. Kapasite tonaj yerine gerçek
- * örneklerle anlatılıyor — kimse yükünün kaç m³ olduğunu bilmiyor.
+ * <p>Kart ızgarası: yedi aracın adı, örneği ve kapasitesi yan yana okunuyor.
+ * Tek sütunlu ölçek listesi denenmişti; satırlar ekran genişliğine yayılınca
+ * araç adı ile kapasitesi arasında yüzlerce piksel boşluk kalıyor ve sağdaki
+ * metinler ikinci satıra düşüyordu.
  */
 export function VehicleRange({ vehicles }: { vehicles: VehicleType[] }) {
   if (vehicles.length === 0) return null;
@@ -30,7 +33,7 @@ export function VehicleRange({ vehicles }: { vehicles: VehicleType[] }) {
   return (
     <section id="araclar" className="theme-cream bg-bg pb-20 md:pb-28">
       <div className="mx-auto max-w-[76rem] px-6">
-        <Reveal className="lg:grid lg:grid-cols-[minmax(0,1.35fr)_minmax(0,1fr)] lg:items-end lg:gap-14">
+        <Reveal className="lg:grid lg:grid-cols-[minmax(0,1.4fr)_minmax(0,1fr)] lg:items-end lg:gap-14">
           <div>
             <p className="label-mono text-muted">Araç yelpazesi</p>
             <h2 className="mt-3 text-[clamp(1.9rem,4vw,3.1rem)] leading-[1.05]">
@@ -43,48 +46,44 @@ export function VehicleRange({ vehicles }: { vehicles: VehicleType[] }) {
           </p>
         </Reveal>
 
-        <ol className="relative mt-14">
-          {/* Araçları birbirine bağlayan ölçek hattı */}
-          <span aria-hidden className="absolute left-[7px] top-3 h-[calc(100%-2rem)] w-px bg-line" />
-
+        <div className="mt-10 grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
           {vehicles.map((vehicle, i) => {
             const soon = !vehicle.active;
             return (
-              <Reveal key={vehicle.code} delay={Math.min(i, 4) * 60}>
-                <li
-                  className={`relative grid items-baseline gap-x-6 gap-y-1 border-b border-line py-6 pl-10 sm:grid-cols-[13rem_minmax(0,1fr)_11rem] ${
-                    soon ? 'text-muted' : ''
-                  }`}
+              <Reveal key={vehicle.code} delay={Math.min(i, 5) * 60}>
+                <article
+                  className={[
+                    'h-full rounded-card p-5',
+                    soon
+                      ? 'border border-dashed border-line text-muted'
+                      : 'border border-line bg-surface',
+                  ].join(' ')}
                 >
-                  <span
-                    aria-hidden
-                    className={`absolute left-0 top-8 size-[15px] rounded-full border-2 bg-bg ${
-                      soon ? 'border-line' : 'border-route'
-                    }`}
-                  />
-
-                  <span className="flex items-center gap-3">
-                    <VehicleGlyph code={vehicle.code} className="size-7 shrink-0" />
-                    <span className="text-lg font-bold text-ink">{vehicle.displayName}</span>
-                  </span>
-
-                  <span className="text-sm leading-relaxed text-muted">
+                  <VehicleGlyph code={vehicle.code} className="size-8" />
+                  <h3 className="mt-3 text-base font-bold text-ink">{vehicle.displayName}</h3>
+                  <p className="mt-1 text-sm text-muted">
                     {soon ? 'Hizmete yakında açılıyor.' : vehicle.exampleLoads}
-                  </span>
+                  </p>
 
-                  <span className="label-mono text-muted sm:text-right">
-                    {soon ? 'Yakında' : capacity(vehicle)}
-                    {!soon && IDEAL_ROUTE[vehicle.code] && (
-                      <span className="mt-1 block normal-case tracking-normal opacity-80">
-                        {IDEAL_ROUTE[vehicle.code]}
-                      </span>
-                    )}
-                  </span>
-                </li>
+                  {soon ? (
+                    <span className="label-mono mt-4 inline-block rounded bg-surface-2 px-2 py-1 text-muted">
+                      Yakında
+                    </span>
+                  ) : (
+                    <p className="label-mono mt-4 text-muted">
+                      {capacity(vehicle)}
+                      {IDEAL_ROUTE[vehicle.code] && (
+                        <span className="mt-1 block normal-case tracking-normal opacity-80">
+                          {IDEAL_ROUTE[vehicle.code]}
+                        </span>
+                      )}
+                    </p>
+                  )}
+                </article>
               </Reveal>
             );
           })}
-        </ol>
+        </div>
       </div>
     </section>
   );
@@ -94,6 +93,6 @@ function capacity(v: VehicleType) {
   const weight =
     v.payloadKg >= 1000
       ? `${(v.payloadKg / 1000).toLocaleString('tr-TR')} ton`
-      : `${v.payloadKg} kg`;
+      : `${v.payloadKg} kg'a kadar`;
   return v.volumeM3 >= 1 ? `${weight} · ${v.volumeM3.toLocaleString('tr-TR')} m³` : weight;
 }

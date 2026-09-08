@@ -37,6 +37,12 @@ export type SceneState = {
   istanbulZoom: number;
   turkeyZoom: number;
 
+  /**
+   * Fiyat sorgusunun belirginliği (0–1). Açılışta harita ön planda, widget
+   * silik bir katman; kaydırma ilerledikçe öne çıkıyor.
+   */
+  widgetIn: number;
+
   leg: Leg;
   legProgress: number;
   /** Sahne devri sırasında aracın iki sahne arasındaki geçiş oranı. */
@@ -99,6 +105,8 @@ export const MARKS = {
   back: [0.8, 0.94],
   izmir: [0.92, 0.96],
   outro: [0.94, 0.99],
+  /** Widget bu aralıkta silikten tam görünüre geçer. */
+  widget: [0.08, 0.5],
 } as const;
 
 export function sceneAt(p: number): SceneState {
@@ -134,6 +142,8 @@ export function sceneAt(p: number): SceneState {
     // İstanbul biraz küçülür, Türkiye yakından normale gelir: kamera geri çekiliyor
     istanbulZoom: mix(1, 0.78, handover),
     turkeyZoom: mix(1.35, 1, handover),
+
+    widgetIn: ramp(progress, m.widget[0], m.widget[1]),
 
     leg,
     legProgress,

@@ -105,6 +105,17 @@ describe('sceneAt', () => {
     }
   });
 
+  it('fiyat sorgusu silikten tam görünüre çıkar ve geri dönmez', () => {
+    expect(sceneAt(0).widgetIn).toBe(0);
+    expect(sceneAt(MARKS.widget[1]).widgetIn).toBe(1);
+    let previous = -1;
+    for (let p = 0; p <= 1; p += 0.01) {
+      const { widgetIn } = sceneAt(p);
+      expect(widgetIn).toBeGreaterThanOrEqual(previous);
+      previous = widgetIn;
+    }
+  });
+
   it('aralık dışı ilerleme kırpılır', () => {
     expect(sceneAt(-1)).toEqual(sceneAt(0));
     expect(sceneAt(4)).toEqual(sceneAt(1));
