@@ -49,7 +49,7 @@ class PublicListingsController {
 
     @GetMapping("/listings")
     @Operation(summary = "Açık ilanlar — rota, araç ve büyüklük; fotoğraf ve adres yok")
-    @Cacheable(cacheNames = "publicStats", cacheManager = "shortLivedCacheManager")
+    @Cacheable(cacheNames = "publicListings", cacheManager = "shortLivedCacheManager")
     public List<PublicListingView> listings(@RequestParam(required = false) String vehicleType,
                                             @RequestParam(required = false) String city) {
         return marketplace.openListings(vehicleType, city).stream()

@@ -47,7 +47,7 @@ class PublicCorridorsController {
     @GetMapping("/corridors")
     @Operation(summary = "Açık ilan bulunan koridorlar; il düzeyinde ve yalnızca sayı")
     // Sayaçlarla aynı gerekçe: her ana sayfa ziyareti çekirdek tablolara sorgu atmasın
-    @Cacheable(cacheNames = "publicStats", cacheManager = "shortLivedCacheManager")
+    @Cacheable(cacheNames = "publicCorridors", cacheManager = "shortLivedCacheManager")
     public List<PublicCorridorView> corridors() {
         return marketplace.openCorridors().stream()
                 .filter(c -> c.listingCount() >= MIN_LISTINGS)

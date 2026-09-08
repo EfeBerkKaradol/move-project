@@ -32,6 +32,11 @@ class CacheConfig {
     static final String DISTRICTS = "districts";
     /** Ana sayfa sayaçları: referans verisi değil, kısa ömürlü. */
     static final String PUBLIC_STATS = "publicStats";
+    // Her uç kendi adını kullanıyor. Tek ada toplandıklarında parametresiz metotlar
+    // aynı anahtarı (SimpleKey.EMPTY) üretiyor ve ilk çağrılan diğerinin sonucunu
+    // eziyordu; ikinci uç yanlış tipte nesne alıp ClassCastException atıyordu.
+    static final String PUBLIC_CORRIDORS = "publicCorridors";
+    static final String PUBLIC_LISTINGS = "publicListings";
 
     @Bean
     @Primary
@@ -56,7 +61,7 @@ class CacheConfig {
      */
     @Bean
     CacheManager shortLivedCacheManager() {
-        var manager = new CaffeineCacheManager(PUBLIC_STATS);
+        var manager = new CaffeineCacheManager(PUBLIC_STATS, PUBLIC_CORRIDORS, PUBLIC_LISTINGS);
         manager.setCaffeine(Caffeine.newBuilder()
                 .maximumSize(16)
                 .expireAfterWrite(Duration.ofSeconds(60)));
