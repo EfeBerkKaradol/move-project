@@ -325,3 +325,128 @@ input[type="checkbox"] { accent-color: var(--ts-amber); width: 1.15rem; height: 
   * { transition: none !important; }
   input[type="submit"]:active { transform: none; }
 }
+
+/* ── E-posta doğrulama kodu ekranı ──────────────────────────────── */
+/*
+ * Bu bloktaki !important'lar zorunlu, süs değil: yukarıdaki alan ve buton
+ * kuralları PatternFly'ı ezmek için !important kullanıyor ve onlar da bu
+ * elemanlarla eşleşiyor (input[type="text"], button[type="submit"]). Aynı
+ * bildirimi !important olmadan yazmak, özgüllük ne olursa olsun etkisiz kalıyor —
+ * ilk denemede "yeniden gönder" ikinci bir turuncu buton gibi çıkmıştı.
+ *
+ * Kod alanı tek bir input; altı ayrı kutu JS ile kurulabilirdi ama tarayıcıların
+ * otomatik kod doldurması (autocomplete="one-time-code") tek alanla çalışıyor.
+ * iOS ve Android gelen koddaki rakamları klavye üstünde öneriyor; altı kutuya
+ * bölünce bu öneri kayboluyor. Görsel etki harf aralığıyla veriliyor.
+ */
+.karinca-verify-lead {
+  margin: 0 0 1.25rem;
+  color: var(--ts-muted);
+  font-size: 0.95rem;
+  line-height: 1.5;
+}
+.karinca-verify-email {
+  display: block;
+  margin-top: 0.35rem;
+  color: var(--ts-ink);
+  font-weight: 700;
+  font-size: 1rem;
+  word-break: break-all;
+}
+
+.karinca-code-label {
+  display: block;
+  margin-bottom: 0.5rem;
+  color: var(--ts-muted);
+  font-family: var(--ts-mono);
+  font-size: 0.7rem;
+  font-weight: 700;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+}
+
+input.karinca-code-input[type="text"] {
+  display: block;
+  width: 100%;
+  box-sizing: border-box;
+  /* Dokunma hedefi ve okunurluk: kod tek seferde okunup girilen bir şey */
+  min-height: 4rem !important;
+  padding: 0 0.75rem !important;
+  border: 1.5px solid var(--ts-line) !important;
+  border-radius: var(--ts-radius) !important;
+  background: var(--ts-field) !important;
+  color: var(--ts-ink) !important;
+  font-family: var(--ts-mono) !important;
+  /* 16px altına inilmiyor: iOS Safari daha küçük yazıda alana odaklanınca
+     sayfayı otomatik yakınlaştırıyor ve düzen bozuluyor */
+  font-size: 1.9rem !important;
+  font-weight: 700 !important;
+  letter-spacing: 0.5em !important;
+  /* Harf aralığı son karakterden sonra da uygulanıyor; sola kaymayı bu dengeliyor */
+  text-indent: 0.5em !important;
+  text-align: center !important;
+  outline: none !important;
+  transition: border-color 0.15s ease, box-shadow 0.15s ease;
+}
+input.karinca-code-input[type="text"]::placeholder {
+  color: #c9c6bd;
+  font-weight: 400;
+}
+input.karinca-code-input[type="text"]:hover { border-color: #cfccc4 !important; }
+input.karinca-code-input[type="text"]:focus {
+  border-color: var(--ts-amber) !important;
+  box-shadow: 0 0 0 3px rgb(244 159 44 / 0.25) !important;
+}
+
+.karinca-code-hint {
+  margin: 0.6rem 0 1.5rem;
+  color: var(--ts-muted);
+  font-size: 0.8rem;
+  line-height: 1.5;
+}
+
+.karinca-resend-row {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: center;
+  gap: 0.4rem;
+  margin-top: 1.25rem;
+  color: var(--ts-muted);
+  font-size: 0.875rem;
+}
+button.karinca-resend-button[type="submit"] {
+  /* Form içinde ikinci bir submit: görsel olarak bağlantı, davranış olarak buton
+     (klavyeyle erişilebilsin ve JS'siz çalışsın diye) */
+  width: auto !important;
+  min-height: 2.75rem !important;
+  padding: 0 0.25rem !important;
+  border: 0 !important;
+  border-radius: 0.35rem !important;
+  background: none !important;
+  color: var(--ts-ink) !important;
+  font-family: var(--ts-sans) !important;
+  font-size: 0.875rem !important;
+  font-weight: 700 !important;
+  text-decoration: underline;
+  text-underline-offset: 3px;
+  box-shadow: none !important;
+  cursor: pointer;
+}
+button.karinca-resend-button[type="submit"]:hover {
+  background: none !important;
+  box-shadow: none !important;
+  color: var(--ts-amber-dark) !important;
+}
+button.karinca-resend-button[type="submit"]:focus-visible {
+  outline: 3px solid rgb(244 159 44 / 0.45) !important;
+  outline-offset: 2px;
+}
+
+@media (max-width: 30rem) {
+  input.karinca-code-input[type="text"] {
+    font-size: 1.55rem !important;
+    letter-spacing: 0.35em !important;
+    text-indent: 0.35em !important;
+  }
+}
