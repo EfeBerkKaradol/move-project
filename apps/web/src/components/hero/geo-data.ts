@@ -169,6 +169,101 @@ export const CITIES: MapNode[] = [
   }
 ];
 
+/** Rota dışı şehirler — küçük düğüm, ağın kapsamını gösteriyor. */
+export const NETWORK_CITIES: { label: string; x: number; y: number }[] =
+  [
+  {
+    label: "Bursa",
+    x: 181.3,
+    y: 159.4
+  },
+  {
+    label: "Balıkesir",
+    x: 122.8,
+    y: 194.6
+  },
+  {
+    label: "Eskişehir",
+    x: 254.4,
+    y: 186.2
+  },
+  {
+    label: "Denizli",
+    x: 182.8,
+    y: 314.6
+  },
+  {
+    label: "Antalya",
+    x: 263.9,
+    y: 371.3
+  },
+  {
+    label: "Konya",
+    x: 352.5,
+    y: 308.9
+  },
+  {
+    label: "Mersin",
+    x: 460.6,
+    y: 375.6
+  },
+  {
+    label: "Adana",
+    x: 494.7,
+    y: 363.7
+  },
+  {
+    label: "Kayseri",
+    x: 503.2,
+    y: 254.1
+  },
+  {
+    label: "Samsun",
+    x: 545.2,
+    y: 86.7
+  },
+  {
+    label: "Sivas",
+    x: 579.7,
+    y: 188.1
+  },
+  {
+    label: "Gaziantep",
+    x: 597.8,
+    y: 359.4
+  },
+  {
+    label: "Şanlıurfa",
+    x: 668.3,
+    y: 353.7
+  },
+  {
+    label: "Malatya",
+    x: 644.3,
+    y: 278.4
+  },
+  {
+    label: "Trabzon",
+    x: 714.9,
+    y: 106
+  },
+  {
+    label: "Diyarbakır",
+    x: 740.4,
+    y: 306.4
+  },
+  {
+    label: "Erzurum",
+    x: 792.5,
+    y: 178.4
+  },
+  {
+    label: "Van",
+    x: 898.1,
+    y: 269.4
+  }
+];
+
 export const ISTANBUL_NODES: MapNode[] = [
   {
     id: "pickup",

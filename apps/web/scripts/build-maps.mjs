@@ -175,11 +175,36 @@ const districtsCompact = districts.map((d) => ({
 }));
 
 // ── Noktalar ──────────────────────────────────────────────────────────────
-/** Ülke ölçeğindeki şehirler. */
+/** Rotanın üzerindeki şehirler — etiketli, kaydırmayla sırayla aktifleşiyor. */
 const CITIES = [
   ['istanbul', 'İstanbul', 28.98, 41.01],
   ['ankara', 'Ankara', 32.85, 39.93],
   ['izmir', 'İzmir', 27.14, 38.42],
+];
+
+/**
+ * Ağın geri kalanı. Rotaya dahil değiller; haritanın Türkiye olduğunu ve
+ * kapsamın 81 il olduğunu gösteren küçük düğümler.
+ */
+const NETWORK = [
+  ['Bursa', 29.06, 40.19],
+  ['Balıkesir', 27.89, 39.65],
+  ['Eskişehir', 30.52, 39.78],
+  ['Denizli', 29.09, 37.78],
+  ['Antalya', 30.71, 36.88],
+  ['Konya', 32.48, 37.87],
+  ['Mersin', 34.64, 36.81],
+  ['Adana', 35.32, 37.0],
+  ['Kayseri', 35.49, 38.73],
+  ['Samsun', 36.33, 41.29],
+  ['Sivas', 37.02, 39.75],
+  ['Gaziantep', 37.38, 37.07],
+  ['Şanlıurfa', 38.79, 37.16],
+  ['Malatya', 38.31, 38.35],
+  ['Trabzon', 39.72, 41.0],
+  ['Diyarbakır', 40.23, 37.91],
+  ['Erzurum', 41.27, 39.9],
+  ['Van', 43.38, 38.49],
 ];
 
 /**
@@ -202,6 +227,10 @@ const project2 = (fit) => ([lon, lat]) => fit(mercator([lon, lat]));
 const cities = CITIES.map(([id, label, lon, lat]) => {
   const [x, y] = project2(fitTurkey)([lon, lat]);
   return { id, label, x, y };
+});
+const network = NETWORK.map(([label, lon, lat]) => {
+  const [x, y] = project2(fitTurkey)([lon, lat]);
+  return { label, x, y };
 });
 const cityRoute = CITY_ROUTE.map(project2(fitIstanbul));
 const istanbulNodes = [
@@ -275,6 +304,10 @@ export type MapNode = { id: string; label: string; x: number; y: number };
 
 export const CITIES: MapNode[] = ${JSON.stringify(cities, null, 2).replace(/"([a-z]+)":/g, '$1:')};
 
+/** Rota dışı şehirler — küçük düğüm, ağın kapsamını gösteriyor. */
+export const NETWORK_CITIES: { label: string; x: number; y: number }[] =
+  ${JSON.stringify(network, null, 2).replace(/"([a-z]+)":/g, '$1:')};
+
 export const ISTANBUL_NODES: MapNode[] = ${JSON.stringify(istanbulNodes, null, 2).replace(/"([a-z]+)":/g, '$1:')};
 
 /** Avrupa yakası → Boğaz → Anadolu yakası → şehirlerarası çıkış. */
@@ -296,6 +329,7 @@ const count = (rings) => rings.reduce((n, r) => n + r.length, 0);
 const countDistricts = (list) => list.reduce((n, d) => n + count(d.rings), 0);
 console.log(
   `Türkiye: ${count(turkeyRings)} nokta (mobil ${count(turkeyRingsCompact)}) · ` +
+    `${network.length} ağ şehri · ` +
     `İstanbul: ${districts.length} ilçe / ${countDistricts(districts)} nokta ` +
     `(mobil ${districtsCompact.length} ilçe / ${countDistricts(districtsCompact)} nokta)`,
 );

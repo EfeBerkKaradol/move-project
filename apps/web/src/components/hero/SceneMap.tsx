@@ -6,6 +6,7 @@ import {
   ISTANBUL_NODES,
   ISTANBUL_PATHS,
   ISTANBUL_PATHS_COMPACT,
+  NETWORK_CITIES,
   MAP_BOX,
   MAP_VIEWBOX,
   ROUTE_BACK,
@@ -60,7 +61,7 @@ export function SceneMap({
       <svg
         viewBox={MAP_VIEWBOX}
         className="absolute inset-0 size-full"
-        preserveAspectRatio="xMidYMid meet"
+        preserveAspectRatio="xMidYMax meet"
         aria-hidden
         style={{
           ...layer,
@@ -100,7 +101,7 @@ export function SceneMap({
       <svg
         viewBox={MAP_VIEWBOX}
         className="absolute inset-0 size-full"
-        preserveAspectRatio="xMidYMid meet"
+        preserveAspectRatio="xMidYMax meet"
         aria-hidden
         style={{
           ...layer,
@@ -152,6 +153,28 @@ export function SceneMap({
           style={{ strokeDasharray: 1, strokeDashoffset: 'calc(1 - var(--loaded, 0))' }}
         />
 
+        {/* Ağın geri kalanı: rotaya dahil olmayan iller. Küçük ve sabit —
+            kaydırmayla aktifleşmiyorlar, haritanın Türkiye olduğunu ve kapsamın
+            81 il olduğunu söylüyorlar. */}
+        {NETWORK_CITIES.map((city) => (
+          <g key={city.label} opacity={0.5}>
+            <circle cx={city.x} cy={city.y} r={2.6} fill="var(--route)" />
+            {!compact && (
+              <text
+                x={city.x}
+                y={city.y + 15}
+                textAnchor="middle"
+                fill="#fff"
+                fontSize={10}
+                opacity={0.55}
+                letterSpacing="0.02em"
+              >
+                {city.label}
+              </text>
+            )}
+          </g>
+        ))}
+
         {CITIES.map((city) => (
           <Node key={city.id} node={city} compact={compact} />
         ))}
@@ -198,7 +221,7 @@ function Node({
  * görsel `<image>` olarak ölçeklenirken netliğini kaybediyor. Konumu bu yüzden
  * elle hesaplanıyor.
  *
- * <p>Yüzde kullanmak yanlıştı. `preserveAspectRatio="xMidYMid meet"` haritayı
+ * <p>Yüzde kullanmak yanlıştı. `preserveAspectRatio="xMidYMax meet"` haritayı
  * kapsayıcıya <em>sığdırıyor</em>: oranlar tutmadığında kenarlarda boşluk kalıyor
  * ve harita kutunun tamamını doldurmuyor. Yüzde hesabı doldurduğunu varsaydığı
  * için araç rotanın dışına düşüyordu — mobilde 56 piksel, masaüstünde kapsayıcı
@@ -207,7 +230,10 @@ function Node({
 export function mapProjection(box: { width: number; height: number }) {
   const scale = Math.min(box.width / MAP_BOX.w, box.height / MAP_BOX.h);
   const offsetX = (box.width - MAP_BOX.w * scale) / 2;
-  const offsetY = (box.height - MAP_BOX.h * scale) / 2;
+  // SVG'ler `xMidYMax` ile alta hizalı: harita kutunun altına oturuyor, böylece
+  // üstteki faz metniyle çakışması azalıyor. Buradaki hesap o hizayla birebir
+  // aynı olmak zorunda, yoksa araç rotadan kayar.
+  const offsetY = box.height - MAP_BOX.h * scale;
   return (x: number, y: number) => ({
     left: offsetX + x * scale,
     top: offsetY + y * scale,

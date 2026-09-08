@@ -195,7 +195,7 @@ export function HeroScene({
           {/* Mobilde harita alt yarıda ve tam genişlikte; masaüstünde sağ-alt bölgeye
               çekiliyor. Rota, başlık sütununun üzerinden geçmemeli — araç metnin
               üstünden geçerse ikisi de okunmaz oluyor. */}
-          <div className="pointer-events-none absolute inset-x-0 bottom-0 top-[44%] md:bottom-[4%] md:top-[14%] lg:top-[24%]">
+          <div className="pointer-events-none absolute inset-x-0 bottom-[6%] top-[44%] md:bottom-[4%] md:top-[14%] lg:top-[20%]">
             {/* Harita, navbar'ın içeriğiyle aynı kutuya hizalanıyor: sol kenarı
                 logoyla, sağ kenarı "Yük ver" düğmesiyle aynı hatta. Widget bu
                 kutunun sağ ucunda, haritanın üstünde duruyor. */}
@@ -228,17 +228,17 @@ export function HeroScene({
               <SceneCard
                 layer="cardCargo" icon="package" label="Yükün"
                 title="12 ton · Kuru yük" meta={['Hadımköy → Ankara', 'Kapalı kasa']}
-                className="left-1/2 top-2 -translate-x-1/2 md:left-[10%] md:top-[34%] md:translate-x-0"
+                className="left-1/2 top-2 -translate-x-1/2 md:left-[38%] md:top-[10%] md:translate-x-0"
               />
               <SceneCard
                 layer="cardMatch" tone="match" icon="handshake" label="Eşleşme bulundu"
                 title="3 uygun araç" meta={['İstanbul → Ankara', 'İlk teklif ~11 dk']}
-                className="left-1/2 top-2 -translate-x-1/2 md:left-auto md:right-[8%] md:top-[24%] md:translate-x-0"
+                className="left-1/2 top-2 -translate-x-1/2 md:left-[44%] md:top-[10%] md:translate-x-0"
               />
               <SceneCard
                 layer="cardNew" tone="match" icon="route" label="Yeni yük bulundu"
                 title="8 ton · Dönüş rotanda" meta={['Ankara → İzmir', 'Sapma yok']}
-                className="left-1/2 top-2 -translate-x-1/2 md:left-[6%] md:top-[58%] md:translate-x-0"
+                className="left-1/2 top-2 -translate-x-1/2 md:left-[38%] md:top-[64%] md:translate-x-0"
               />
               </div>
             </div>
@@ -288,7 +288,7 @@ export function HeroScene({
           )}
 
           {/* ── METİN KATMANLARI ───────────────────────────────────── */}
-          <div className="relative mx-auto flex h-full max-w-[76rem] flex-col px-6 pt-24 md:pt-32">
+          <div className="relative mx-auto flex h-full max-w-[76rem] flex-col px-6 pt-20 md:pt-24">
             {/* Açılış */}
             <div
               data-layer="intro"
@@ -328,7 +328,7 @@ export function HeroScene({
             {/* Sonraki fazların metinleri aynı yuvada sırayla belirir */}
             {/* Faz metinleri açılış başlığından dar: harita sola alındıkça rota ve şehir
                 etiketleri sola yaklaşıyor, geniş bir paragraf onların üstüne biniyordu. */}
-            <div className="pointer-events-none absolute inset-x-6 top-24 max-w-sm md:top-32">
+            <div className="pointer-events-none absolute inset-x-6 top-20 max-w-sm md:top-24">
               <PhaseText layer="enterLoad" kicker="Adım 1" title="Yükünü gir."
                 body="Nereden nereye, ne kadar. Araç tipini bilmiyorsan sistem öneriyor." />
               <PhaseText layer="crossing" kicker="Boğaz geçişi" title="Avrupa yakasından Anadolu yakasına."
