@@ -56,6 +56,16 @@ alındı, rakamlar yük/kurye pazarından.
 - Komple tır İstanbul–Ankara **18.000–28.000** ([Yük Yükle](https://yukyukle.tr/bloglar/ankara-istanbul-arasi-yuk-tasima-fiyatlari-ne-kadar-2026)); firma 80–110 ₺/km ([Ateşnak](https://www.atesnak.com/kamyon-nakliye-km-fiyati)); Armut 10.000–68.000 ([Armut](https://armut.com/fiyatlari/tir-nakliye_92982))
 - Hizmete açılmadı; arayüzde "Yakında". Tarifesi hazır bekliyor.
 
+> **Minivan V16'da kaldırıldı, yerine otomobil geldi.** Türkçe'de panelvan yük
+> sınıfı, minivan yolcu sınıfı: panelvanın arka bölümü camsız metal panel ve yük
+> için tasarlanmış, minivan koltuk konforuna göre kurgulanmış
+> ([Toyota](https://blog.toyota.com.tr/panelvan-nedir-minivan-farki-nedir/),
+> [Yolcu360](https://yolcu360.com/blog/panelvan-arac-alinir-mi/)). İkisini ayrı
+> basamak yapmak olmayan bir seçim sorduruyordu; panelvan minivanın kapasitesini
+> devraldı. Otomobil ise motor ile mini panelvan arasındaki gerçek boşluğu
+> dolduruyor: kurye pratiğinde motorun sınırı ~20 kg / 20 desi, üstü "araçlı
+> kurye" ([İki Yaka Kurye](https://www.ikiyakakurye.com/motorlu-kurye-ne-kadar-agirlik-tasiyabiliyor/)).
+
 > **Kırkayak (18 t) V7'de kaldırıldı.** Ne arz verisi ne fiyat kaynağı bulunabildi; kamyon
 > ile tır arasına tahminle yerleştirilmişti. Kamyon 10 t ile TIR 24 t arasındaki boşluk,
 > TIR hizmete açılınca gerçek talep verisiyle yeniden değerlendirilecek.
@@ -69,9 +79,9 @@ alındı, rakamlar yük/kurye pazarından.
 | Araç | Kapasite | Taban | Dahil km | ₺/km | ₺/dk | Minimum | Bekleme |
 |---|---|---|---|---|---|---|---|
 | Motor | 30 kg · 0,10 m³ | 125 | 2 | 11 | 1,00 | 195 | 5 dk ücretsiz, 9 ₺/dk |
+| Otomobil | 150 kg · 0,6 m³ | 260 | 2 | 13 | 1,20 | 400 | 10 dk, 9,0 ₺/dk |
 | Mini panelvan | 600 kg · 2,5 m³ | 480 | 3 | 15 | 1,40 | 720 | 30 dk, 3,0 ₺/dk |
-| Panelvan | 1 t · 5 m³ | 640 | 3 | 19 | 1,70 | 950 | 30 dk, 3,6 ₺/dk |
-| Minivan | 1,3 t · 8 m³ | 900 | 3 | 24 | 2,20 | 1.300 | 30 dk, 4,4 ₺/dk |
+| Panelvan | 1,3 t · 8 m³ | 900 | 3 | 24 | 2,20 | 1.300 | 30 dk, 4,4 ₺/dk |
 | Kamyonet | 3,5 t · 18 m³ | 2.300 | 3 | 34 | 3,50 | 3.300 | 30 dk, 7 ₺/dk |
 | Kamyon | 10 t · 45 m³ | 3.500 | 3 | 46 | 5,00 | 5.600 | 30 dk, 10 ₺/dk |
 | TIR *(yakında)* | 24 t · 90 m³ | 5.900 | 3 | 70 | 7,00 | 9.600 | 30 dk, 14 ₺/dk |

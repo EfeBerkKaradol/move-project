@@ -13,9 +13,9 @@ export type ServiceModel = (typeof SERVICE_MODELS)[number];
 
 export const VEHICLE_TYPES = [
   'MOTOR',
+  'OTOMOBIL',
   'MINI_PANELVAN',
   'PANELVAN',
-  'MINIVAN',
   'KAMYONET',
   'KAMYON',
   'TIR',

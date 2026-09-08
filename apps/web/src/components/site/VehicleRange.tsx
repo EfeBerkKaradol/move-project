@@ -8,10 +8,10 @@ import { VehicleGlyph } from './VehicleGlyph';
  * uydurma bir rota yazmaktansa hiç yazmamak doğru.
  */
 const IDEAL_ROUTE: Record<string, string> = {
-  MOTOR: 'Şehir içi · aynı gün',
+  MOTOR: 'Şehir içi · aynı saat',
+  OTOMOBIL: 'Şehir içi · aynı gün',
   MINI_PANELVAN: 'Şehir içi ve komşu il',
-  PANELVAN: 'Şehir içi · 300 km’ye kadar',
-  MINIVAN: 'Şehirlerarası · tek adres',
+  PANELVAN: 'Şehirlerarası · tek adres',
   KAMYONET: 'Şehirlerarası · ev ve ofis',
   KAMYON: 'Uzun yol · paletli sevkiyat',
   TIR: 'Uzun yol · komple yük',
@@ -59,7 +59,7 @@ export function VehicleRange({ vehicles }: { vehicles: VehicleType[] }) {
                       : 'border border-line bg-surface',
                   ].join(' ')}
                 >
-                  <VehicleGlyph code={vehicle.code} className="size-8" />
+                  <VehicleGlyph code={vehicle.code} className="size-6" />
                   <h3 className="mt-3 text-base font-bold text-ink">{vehicle.displayName}</h3>
                   <p className="mt-1 text-sm text-muted">
                     {soon ? 'Hizmete yakında açılıyor.' : vehicle.exampleLoads}

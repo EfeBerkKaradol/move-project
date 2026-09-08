@@ -8,7 +8,7 @@ import type { VehicleTypeCode } from '@tasiyoruz/shared';
  * ya da henüz dağıtılmamışken site boş görünürse, ziyaretçi ürünün çalışmadığını
  * düşünür. Filo nadiren değişen referans veri olduğu için burada da tutuluyor.
  *
- * <p>⚠️ Bu liste <code>V7__fleet_revision.sql</code> ile aynı kalmalı. Filoyu
+ * <p>⚠️ Bu liste <code>V16__fleet_car_and_van_cleanup.sql</code> ile aynı kalmalı. Filoyu
  * değiştirirken iki yeri birlikte güncelle; API erişilebilir olduğunda her zaman
  * o kazanır, bu yalnızca yedek.
  *
@@ -28,28 +28,28 @@ export const FALLBACK_FLEET: (VehicleType & { code: VehicleTypeCode })[] = [
     active: true,
   },
   {
+    code: 'OTOMOBIL',
+    displayName: 'Otomobil',
+    volumeM3: 0.6,
+    payloadKg: 150,
+    innerLengthCm: 120,
+    exampleLoads: '3-5 koli, valiz, küçük eşya',
+    sortOrder: 2,
+    active: true,
+  },
+  {
     code: 'MINI_PANELVAN',
     displayName: 'Mini panelvan',
     volumeM3: 2.5,
     payloadKg: 600,
     innerLengthCm: 150,
     exampleLoads: '5-6 koli, çamaşır makinesi',
-    sortOrder: 2,
+    sortOrder: 3,
     active: true,
   },
   {
     code: 'PANELVAN',
     displayName: 'Panelvan',
-    volumeM3: 5,
-    payloadKg: 1000,
-    innerLengthCm: 250,
-    exampleLoads: '10-12 koli, buzdolabı, çift yatak',
-    sortOrder: 3,
-    active: true,
-  },
-  {
-    code: 'MINIVAN',
-    displayName: 'Minivan',
     volumeM3: 8,
     payloadKg: 1300,
     innerLengthCm: 330,

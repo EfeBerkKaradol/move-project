@@ -33,11 +33,11 @@ class VehicleRecommendationTest extends IntegrationTestBase {
         var result = service.recommend(request);
 
         // Buzdolabı 0,80 + çamaşır 0,35 + 8 standart koli 0,96 = 2,11 m³
-        // istifleme payıyla (×1,25) 2,64 m³ → panelvanın 5 m³ kasasının ~yarısı
+        // istifleme payıyla (×1,25) 2,64 m³ → panelvanın 8 m³ kasasının ~üçte biri
         assertThat(result.primary().vehicleTypeCode()).isEqualTo("PANELVAN");
         assertThat(result.estimate().volumeM3()).isEqualByComparingTo("2.64");
         assertThat(result.estimate().longestEdgeCm()).isEqualTo(180);
-        assertThat(result.primary().fillRatePercent()).isEqualTo(53);
+        assertThat(result.primary().fillRatePercent()).isEqualTo(33);
         // Mini panelvan hacim olarak da yetmiyor: 2,50 m³ < 2,64 m³
         assertThat(result.primary().whyNotSmaller().vehicleTypeCode()).isEqualTo("MINI_PANELVAN");
     }

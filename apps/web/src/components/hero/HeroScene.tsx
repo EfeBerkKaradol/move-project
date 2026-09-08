@@ -288,7 +288,10 @@ export function HeroScene({
           )}
 
           {/* ── METİN KATMANLARI ───────────────────────────────────── */}
-          <div className="relative mx-auto flex h-full max-w-[76rem] flex-col px-6 pt-20 md:pt-24">
+          {/* Üst boşluk sabit menünün (69 px) altından başlıyor: metinler yukarı
+              çekilince kicker satırı menünün altına giriyordu. Harita kutunun
+              altına hizalı olduğu için aşağıda hâlâ yer var. */}
+            <div className="relative mx-auto flex h-full max-w-[76rem] flex-col px-6 pt-24 md:pt-28">
             {/* Açılış */}
             <div
               data-layer="intro"
@@ -328,7 +331,7 @@ export function HeroScene({
             {/* Sonraki fazların metinleri aynı yuvada sırayla belirir */}
             {/* Faz metinleri açılış başlığından dar: harita sola alındıkça rota ve şehir
                 etiketleri sola yaklaşıyor, geniş bir paragraf onların üstüne biniyordu. */}
-            <div className="pointer-events-none absolute inset-x-6 top-20 max-w-sm md:top-24">
+            <div className="pointer-events-none absolute inset-x-6 top-24 max-w-sm md:top-28">
               <PhaseText layer="enterLoad" kicker="Adım 1" title="Yükünü gir."
                 body="Nereden nereye, ne kadar. Araç tipini bilmiyorsan sistem öneriyor." />
               <PhaseText layer="crossing" kicker="Boğaz geçişi" title="Avrupa yakasından Anadolu yakasına."
