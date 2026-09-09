@@ -83,18 +83,15 @@ export default async function EstimatePage({ searchParams }: { searchParams: Sea
                */
               <div className="rounded-card border border-line bg-surface p-6">
                 <p className="font-semibold">Fiyat hesaplama şu an kullanılamıyor.</p>
+                {/*
+                  İlan yayınlama da aynı katalogdan besleniyor: burası
+                  çalışmıyorsa orası da çalışmıyor. Çalışmayacak bir işi
+                  önermek yerine yalnızca geri dönüş bırakılıyor.
+                */}
                 <p className="mt-2 max-w-md text-sm text-muted">
-                  Kısa süreli bir aksaklık olabilir; birazdan tekrar deneyin. Acil taşımanız
-                  varsa yükünüzü ilan olarak yayınlayabilirsiniz, araç sahipleri size teklif
-                  versin.
+                  Kısa süreli bir aksaklık olabilir; birazdan tekrar deneyin.
                 </p>
                 <div className="mt-5 flex flex-wrap gap-3">
-                  <Link
-                    href="/yuk-ver"
-                    className="rounded-field bg-route px-5 py-3 text-sm font-bold text-[var(--route-ink)] transition hover:bg-[var(--route-hover)] hover:shadow-[0_6px_18px_rgb(244_159_44_/_0.30)] active:translate-y-px"
-                  >
-                    Yük ilanı ver
-                  </Link>
                   <Link
                     href="/"
                     className="rounded-field border border-line px-5 py-3 text-sm font-semibold transition hover:border-route hover:bg-surface-2"

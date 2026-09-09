@@ -99,6 +99,18 @@ API 1.32 gönderiyor, Docker Engine 29 ise minimum 1.44 istiyor ve 400 dönüyor
 `services/api/build.gradle.kts` içindeki test task'ı `api.version` sistem özelliğini ve
 soket yolunu ayarlayarak bunu çözüyor. Linux CI'da bu blok devre dışı kalır.
 
+**Workspace'te tek React sürümü bulunmalı.** Expo için `pnpm-workspace.yaml` içinde
+`nodeLinker: hoisted` var; bu, tüm bağımlılıkları tek düzleme indiriyor. Web ile mobil
+farklı React sürümü bildirdiğinde düzlemde iki React kalıyor ve Next'in `pages/_error`
+paketi uygulamadan başka bir örnek alıyor: `next build`, `/404` ve `/500` üretilirken
+`Cannot read properties of null (reading 'useContext')` ile düşüyor. Derleme hatası
+olduğu için Vercel son başarılı sürümü servis etmeye devam ediyor — site çalışıyor
+görünür, yeni commit'ler yayına çıkmaz. Kök `package.json` içindeki
+`pnpm.overrides.react` / `react-dom` bunu tek sürüme sabitliyor; sürüm yükseltilecekse
+web ve `apps/driver` birlikte yükseltilmeli. Sabitlemeyi değiştirdikten sonra
+`pnpm install --lockfile-only` gerekiyor: kilit dosyası yenilenmezse eski peer
+çözümleri kalıyor ve hata sürüyor.
+
 **`next build` ile `next dev` aynı anda çalıştırılmaz.** İkisi de `apps/web/.next`
 dizinini kullanıyor; eşzamanlı çalıştırınca Turbopack panic atıp dev sunucuyu 500'e
 düşürüyor. Build almadan önce dev sunucuyu durdur.

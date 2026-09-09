@@ -15,8 +15,8 @@
     "@tasiyoruz/shared": "workspace:*",
     "next": "15.5.25",
     "next-auth": "5.0.0-beta.32",
-    "react": "19.2.8",
-    "react-dom": "19.2.8",
+    "react": "19.2.3",
+    "react-dom": "19.2.3",
     "@tasiyoruz/theme": "workspace:*"
   },
   "devDependencies": {
