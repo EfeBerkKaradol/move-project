@@ -244,6 +244,29 @@ class MarketplaceServiceTest extends IntegrationTestBase {
         }
     }
 
+    /**
+     * Planlı ilanda teklif penceresi alış saatinde kapanıyor: alış başladıktan sonra
+     * gelen teklifin karşılığı yok.
+     */
+    @Test
+    void planliIlanAlisPenceresiniSaklar_veTeklifAlisSaatindeKapanir() {
+        var basla = java.time.Instant.now().plus(Duration.ofDays(3));
+        var bit = basla.plus(Duration.ofHours(4));
+
+        var listing = marketplace.publish(SHIPPER, new CreateListingRequest(
+                "SCHEDULED", "KAMYONET",
+                new CreateListingRequest.Stop(district("34", "kadikoy"), 0, true),
+                new CreateListingRequest.Stop(district("06", "cankaya"), 0, true),
+                List.of(), listingFixture.items(), listingFixture.photoIds(SHIPPER), true,
+                null, basla, bit));
+
+        assertThat(listing.pickupWindowStart()).isEqualTo(basla);
+        assertThat(listing.pickupWindowEnd()).isEqualTo(bit);
+        assertThat(listing.expiresAt()).isEqualTo(basla);
+
+        marketplace.cancel(SHIPPER, listing.id(), "Test temizliği");
+    }
+
     @Test
     void gecmisAlisPenceresiyleIlanYayinlanamaz() {
         // Aksi hâlde ilan anında süresi dolmuş sayılır, beş dakika içinde kapanır ve

@@ -5,6 +5,7 @@ import { useActionState, useState } from 'react';
 import { publishListing, type ActionState } from '../../actions';
 import { CargoDeclaration, summarize } from './CargoDeclaration';
 import { CargoPhotos } from './CargoPhotos';
+import { PickupWindow } from './PickupWindow';
 import { LegalCheckbox } from '@/components/legal/LegalCheckbox';
 import { ProhibitedNotice } from '@/components/legal/ProhibitedNotice';
 
@@ -42,6 +43,15 @@ function SubmitButton({
   );
 }
 
+/** "12 Eylül Cuma · 08:00–12:00" — seçilen aralığın okunur hâli. */
+function pencereMetni({ start, end }: { start: string; end: string }) {
+  const bas = new Date(start);
+  const son = new Date(end);
+  const gun = bas.toLocaleDateString('tr-TR', { day: 'numeric', month: 'long', weekday: 'long' });
+  const saat = (d: Date) => d.toLocaleTimeString('tr-TR', { hour: '2-digit', minute: '2-digit' });
+  return `${gun} · ${saat(bas)}–${saat(son)}`;
+}
+
 export function PublishForm({
   pickup, dropoff, vehicle, extras, cargoItems, cargoCategories, initial,
 }: {
@@ -62,6 +72,8 @@ export function PublishForm({
   const [selected, setSelected] = useState<Record<string, number>>({});
   const [photoIds, setPhotoIds] = useState<string[]>([]);
   const [declared, setDeclared] = useState(false);
+  const [alisPenceresi, setAlisPenceresi] = useState<{ start: string; end: string } | null>(null);
+  const planli = initial.serviceModel === 'SCHEDULED';
   const chosenExtras = extras.filter((e) => initial.extraServices.includes(e.code));
 
   const totals = summarize(cargoItems, selected);
@@ -71,6 +83,7 @@ export function PublishForm({
     totals.pieces === 0 ? { short: 'yük', long: 'yükünü seç' } : null,
     photoIds.length === 0 ? { short: 'fotoğraf', long: 'en az bir fotoğraf ekle' } : null,
     declared ? null : { short: 'beyan', long: 'hukuka uygunluk beyanını onayla' },
+    planli && !alisPenceresi ? { short: 'tarih', long: 'alış gününü ve saat aralığını seç' } : null,
   ].filter((m) => m !== null);
 
   return (
@@ -94,6 +107,12 @@ export function PublishForm({
         value={Object.entries(selected).map(([code, quantity]) => `${code}:${quantity}`).join(',')}
       />
       <input type="hidden" name="photoIds" value={photoIds.join(',')} />
+      {alisPenceresi && (
+        <>
+          <input type="hidden" name="pickupWindowStart" value={alisPenceresi.start} />
+          <input type="hidden" name="pickupWindowEnd" value={alisPenceresi.end} />
+        </>
+      )}
 
       <div className="grid gap-6">
         <div className="rounded-card border border-line bg-surface p-6">
@@ -103,12 +122,25 @@ export function PublishForm({
           </p>
           <dl className="mt-4 grid grid-cols-2 gap-3 text-sm">
             <div><dt className="label-mono text-muted">Araç</dt><dd className="font-semibold">{vehicle.displayName}</dd></div>
-            <div><dt className="label-mono text-muted">Ne zaman</dt><dd className="font-semibold">{initial.serviceModel === 'INSTANT' ? 'Anlık' : 'Planlı'}</dd></div>
+            <div>
+              <dt className="label-mono text-muted">Ne zaman</dt>
+              <dd className="font-semibold">
+                {planli ? (alisPenceresi ? pencereMetni(alisPenceresi) : 'Planlı') : 'Anlık'}
+              </dd>
+            </div>
             <div><dt className="label-mono text-muted">Alış</dt><dd>{initial.pickupFloor}. kat · {initial.pickupHasElevator ? 'asansör var' : 'asansör yok'}</dd></div>
             <div><dt className="label-mono text-muted">Teslim</dt><dd>{initial.dropoffFloor}. kat · {initial.dropoffHasElevator ? 'asansör var' : 'asansör yok'}</dd></div>
           </dl>
           {chosenExtras.length > 0 && (
             <p className="mt-4 text-sm"><span className="label-mono text-muted">Ek hizmet </span>{chosenExtras.map((e) => e.displayName).join(' · ')}</p>
+          )}
+
+          {/* Yalnızca planlı taşımada: anlık ilanda alış zaten "şimdi" ve teklif
+              penceresi altı saat. Tarih sormak kullanıcıyı olmayan bir karara sokardı. */}
+          {planli && (
+            <div className="mt-6 border-t border-line pt-6">
+              <PickupWindow onChange={setAlisPenceresi} />
+            </div>
           )}
         </div>
 

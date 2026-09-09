@@ -26,6 +26,9 @@ export async function publishListing(_prev: ActionState, form: FormData): Promis
     photoIds: String(form.get('photoIds') ?? '').split(',').filter(Boolean),
     lawfulnessDeclared: form.get('lawfulnessDeclared') === 'on',
     cargoDescription: String(form.get('cargoDescription') ?? '').trim() || null,
+    // Yalnızca planlı taşımada dolu; anlıkta alış "şimdi" ve pencere yok
+    pickupWindowStart: String(form.get('pickupWindowStart') ?? '') || null,
+    pickupWindowEnd: String(form.get('pickupWindowEnd') ?? '') || null,
   };
   // Sunucu da reddediyor; buradaki kontrol kullanıcıya API hata metni yerine
   // ne yapması gerektiğini söyleyen bir cümle döndürmek için
@@ -33,6 +36,9 @@ export async function publishListing(_prev: ActionState, form: FormData): Promis
   if (body.photoIds.length === 0) return { error: 'Yükünün en az bir fotoğrafını yüklemelisin.' };
   if (!body.lawfulnessDeclared) {
     return { error: 'Eşyanın hukuka uygunluğuna dair beyanı onaylaman gerekiyor.' };
+  }
+  if (body.serviceModel === 'SCHEDULED' && !body.pickupWindowStart) {
+    return { error: 'Planlı taşımada alış günü ve saat aralığı gerekiyor.' };
   }
   let created: ListingView;
   try {
