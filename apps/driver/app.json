@@ -1,0 +1,31 @@
+{
+  "expo": {
+    "name": "KARINCA Sürücü",
+    "slug": "karinca-driver",
+    "version": "0.1.0",
+    "orientation": "portrait",
+    "icon": "./assets/icon.png",
+    "userInterfaceStyle": "light",
+    "ios": {
+      "supportsTablet": false,
+      "bundleIdentifier": "tech.karinca.driver"
+    },
+    "android": {
+      "package": "tech.karinca.driver",
+      "adaptiveIcon": {
+        "backgroundColor": "#171a19",
+        "foregroundImage": "./assets/android-icon-foreground.png",
+        "monochromeImage": "./assets/android-icon-monochrome.png"
+      },
+      "predictiveBackGestureEnabled": false
+    },
+    "web": {
+      "favicon": "./assets/favicon.png"
+    },
+    "plugins": [
+      "expo-font"
+    ],
+    "scheme": "tasiyoruz-driver",
+    "backgroundColor": "#171a19"
+  }
+}

@@ -20,6 +20,21 @@
         "api"
       ],
       "port": 8080
+    },
+    {
+      "name": "karinca-driver",
+      "runtimeExecutable": "pnpm",
+      "runtimeArgs": [
+        "-C",
+        "apps/driver",
+        "exec",
+        "expo",
+        "start",
+        "--web",
+        "--port",
+        "8090"
+      ],
+      "port": 8090
     }
   ]
 }

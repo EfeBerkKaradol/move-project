@@ -18,7 +18,10 @@
     "start": "bash scripts/start.sh",
     "doctor": "bash scripts/doctor.sh",
     "stop": "pnpm infra:down",
-    "demo:listings": "bash scripts/demo-listings.sh"
+    "demo:listings": "bash scripts/demo-listings.sh",
+    "driver": "pnpm -C apps/driver start",
+    "driver:ios": "pnpm -C apps/driver ios",
+    "driver:android": "pnpm -C apps/driver android"
   },
   "devDependencies": {
     "prettier": "3.4.2",

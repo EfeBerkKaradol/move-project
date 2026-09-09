@@ -1,3 +1,9 @@
 packages:
   - "apps/*"
   - "packages/*"
+
+# Expo, pnpm'in yalıtılmış (isolated) kurulumuyla native derlemede hata veriyor;
+# SDK 53'ten beri hoisted öneriliyor (docs.expo.dev/guides/monorepos).
+# Tüm workspace'i etkiliyor: hoisted daha gevşek, yani bir paketin bildirmediği
+# bir bağımlılığı yanlışlıkla bulması mümkün. Karşılığında mobil derleme çalışıyor.
+nodeLinker: hoisted
