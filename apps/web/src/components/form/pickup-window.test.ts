@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { anaCevir, pencereAraligi } from './PickupWindow';
+import { anaCevir, cozumle, pencereAraligi } from './PickupWindow';
 
 /**
  * Alış penceresi üretimi. Sunucu geçmiş pencereyi reddediyor; bu testin işi o
@@ -44,5 +44,38 @@ describe('alış penceresi', () => {
 
   it('geçersiz gün null', () => {
     expect(pencereAraligi('abc', 'sabah')).toBeNull();
+  });
+});
+
+/**
+ * Fiyat adımında seçilen aralık, ilan adımına URL ile taşınıyor ve orada geri
+ * çözülüyor. Çözüm bozulursa kullanıcı aynı soruyu iki kez cevaplar — ve bunu
+ * ancak giriş yapıp deneyerek fark ederiz.
+ */
+describe('önceki adımdan devralma', () => {
+  it('kendi ürettiği aralığı geri çözüyor', () => {
+    const aralik = pencereAraligi('2026-09-12', 'sabah', anaCevir('2026-09-10', '10:00'))!;
+    expect(cozumle(aralik)).toEqual({ gun: '2026-09-12', pencere: 'sabah' });
+  });
+
+  it('üç aralığın hepsi için geçerli', () => {
+    for (const id of ['sabah', 'ogleden-sonra', 'aksam']) {
+      const aralik = pencereAraligi('2026-10-01', id, anaCevir('2026-09-10', '10:00'))!;
+      expect(cozumle(aralik).pencere).toBe(id);
+    }
+  });
+
+  it('değer yoksa boş', () => {
+    expect(cozumle(null)).toEqual({ gun: '', pencere: '' });
+    expect(cozumle(undefined)).toEqual({ gun: '', pencere: '' });
+  });
+
+  /** Elle kurcalanmış URL formu kilitlemesin: tanınmayan saat boş seçim demek. */
+  it('hazır aralığa denk gelmeyen saat boş pencere', () => {
+    expect(cozumle({ start: '2026-09-12T06:30:00.000Z', end: '2026-09-12T09:00:00.000Z' }).pencere).toBe('');
+  });
+
+  it('bozuk tarih boş', () => {
+    expect(cozumle({ start: 'abc', end: 'def' })).toEqual({ gun: '', pencere: '' });
   });
 });

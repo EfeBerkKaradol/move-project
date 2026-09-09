@@ -63,6 +63,11 @@ export default async function NewListingPage({ searchParams }: { searchParams: P
           dropoffFloor: Number(first(p.df) || 0),
           dropoffHasElevator: first(p.de) !== '0',
           extraServices: first(p.ek).split(',').filter(Boolean),
+          // Fiyat adımında seçildiyse buraya taşınıyor; kullanıcı aynı soruyu
+          // iki kez cevaplamıyor ama burada değiştirebiliyor
+          pickupWindow: first(p.bas) && first(p.bit)
+            ? { start: first(p.bas), end: first(p.bit) }
+            : null,
         }}
       />
     </Shell>

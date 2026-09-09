@@ -15,6 +15,7 @@ import { FULL_LOAD_CATEGORY, isFullLoad } from '@/lib/cargo';
 import { PlaceSearch } from '@/components/site/PlaceSearch';
 import { fetchQuote } from '@/lib/api';
 import { cityOf, matchDistrict, sameCity } from '@/lib/places';
+import { PickupWindow } from '@/components/form/PickupWindow';
 import { CargoAdvisor } from './CargoAdvisor';
 import { EstimatePanel } from './EstimatePanel';
 import { VehiclePicker } from './VehiclePicker';
@@ -56,6 +57,7 @@ export function EstimateFlow({
   const [dropoff, setDropoff] = useState<StopDetail>(GROUND);
   const [extras, setExtras] = useState<string[]>([]);
   const [advisorOpen, setAdvisorOpen] = useState(false);
+  const [alisPenceresi, setAlisPenceresi] = useState<{ start: string; end: string } | null>(null);
   /** Araç seçiminin dayattığı kategori; kullanıcı kendi seçtiyse null. */
   const [forcedCategory, setForcedCategory] = useState<string | null>(null);
 
@@ -118,6 +120,11 @@ export function EstimateFlow({
       df: String(dropoff.floor), de: dropoff.hasElevator ? '1' : '0',
       ek: extras.join(','),
     });
+    // Planlı taşımada tarih burada seçildi; ilan adımı aynı soruyu tekrar sormasın
+    if (alisPenceresi) {
+      q.set('bas', alisPenceresi.start);
+      q.set('bit', alisPenceresi.end);
+    }
     return `/panel/ilan/yeni?${q.toString()}`;
   })();
 
@@ -229,6 +236,15 @@ export function EstimateFlow({
               );
             })}
           </div>
+
+          {/* Tarih, "planlı" denen yerde soruluyor. Yalnızca ilan adımında
+              sorulduğunda kullanıcı seçimi yapıp hiçbir şey görmüyor ve tarihin
+              nerede istendiğini bulamıyordu. */}
+          {serviceModel === 'SCHEDULED' && (
+            <div className="mt-5 rounded-card border border-line bg-surface p-5">
+              <PickupWindow onChange={setAlisPenceresi} defaultValue={alisPenceresi} />
+            </div>
+          )}
         </section>
 
         {/* Araç */}

@@ -5,7 +5,7 @@ import { useActionState, useState } from 'react';
 import { publishListing, type ActionState } from '../../actions';
 import { CargoDeclaration, summarize } from './CargoDeclaration';
 import { CargoPhotos } from './CargoPhotos';
-import { PickupWindow } from './PickupWindow';
+import { PickupWindow } from '@/components/form/PickupWindow';
 import { LegalCheckbox } from '@/components/legal/LegalCheckbox';
 import { ProhibitedNotice } from '@/components/legal/ProhibitedNotice';
 
@@ -66,13 +66,14 @@ export function PublishForm({
     pickupFloor: number; pickupHasElevator: boolean;
     dropoffFloor: number; dropoffHasElevator: boolean;
     extraServices: string[];
+    pickupWindow: { start: string; end: string } | null;
   };
 }) {
   const [state, action, pending] = useActionState<ActionState, FormData>(publishListing, {});
   const [selected, setSelected] = useState<Record<string, number>>({});
   const [photoIds, setPhotoIds] = useState<string[]>([]);
   const [declared, setDeclared] = useState(false);
-  const [alisPenceresi, setAlisPenceresi] = useState<{ start: string; end: string } | null>(null);
+  const [alisPenceresi, setAlisPenceresi] = useState(initial.pickupWindow);
   const planli = initial.serviceModel === 'SCHEDULED';
   const chosenExtras = extras.filter((e) => initial.extraServices.includes(e.code));
 
@@ -139,7 +140,7 @@ export function PublishForm({
               penceresi altı saat. Tarih sormak kullanıcıyı olmayan bir karara sokardı. */}
           {planli && (
             <div className="mt-6 border-t border-line pt-6">
-              <PickupWindow onChange={setAlisPenceresi} />
+              <PickupWindow onChange={setAlisPenceresi} defaultValue={initial.pickupWindow} />
             </div>
           )}
         </div>

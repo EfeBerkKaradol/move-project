@@ -47,6 +47,16 @@ export const anaCevir = (gun: string, saat: string) => new Date(`${gun}T${saat}:
  * "geçmiş mi" kontrolü. Sunucu geçmiş pencereyi zaten reddediyor, ama o noktada
  * kullanıcı formu çoktan doldurmuş oluyor.
  */
+/** Gelen ISO aralığı, hangi gün ve hangi hazır pencere olduğuna geri çözer. */
+export function cozumle(v?: { start: string; end: string } | null): { gun: string; pencere: string } {
+  if (!v) return { gun: '', pencere: '' };
+  const bas = new Date(v.start);
+  if (Number.isNaN(bas.getTime())) return { gun: '', pencere: '' };
+  const saat = `${String(bas.getHours()).padStart(2, '0')}:${String(bas.getMinutes()).padStart(2, '0')}`;
+  const p = PENCERELER.find((x) => x.from === saat);
+  return { gun: gunKatari(bas), pencere: p?.id ?? '' };
+}
+
 export function pencereAraligi(
   gun: string,
   pencereId: string,
@@ -61,13 +71,17 @@ export function pencereAraligi(
 
 export function PickupWindow({
   onChange,
+  defaultValue,
 }: {
   /** Seçim tamamlandığında ISO başlangıç ve bitiş; eksikse null. */
   onChange: (aralik: { start: string; end: string } | null) => void;
+  /** Önceki adımdan gelen seçim; kullanıcı aynı soruyu iki kez cevaplamasın. */
+  defaultValue?: { start: string; end: string } | null;
 }) {
   const bugun = useMemo(() => new Date(), []);
-  const [gun, setGun] = useState('');
-  const [pencere, setPencere] = useState<string>('');
+  const baslangic = useMemo(() => cozumle(defaultValue), [defaultValue]);
+  const [gun, setGun] = useState(baslangic.gun);
+  const [pencere, setPencere] = useState<string>(baslangic.pencere);
   const gunId = useId();
 
   const enGec = useMemo(() => {
