@@ -235,15 +235,20 @@ export function EstimateFlow({
         <section>
           <div className="flex flex-wrap items-baseline justify-between gap-2">
             <h2 className="label-mono text-muted">Araç tipi</h2>
-            {catalog && (
+            {catalog ? (
               <button
                 type="button"
                 onClick={() => setAdvisorOpen((o) => !o)}
                 aria-expanded={advisorOpen}
                 className="-my-2.5 rounded-md py-2.5 text-sm font-semibold text-[var(--route-deep)] underline-offset-4 transition hover:text-[#6d4708] hover:underline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-route pointer-coarse:min-h-11"
               >
-                {advisorOpen ? 'Danışmanı kapat' : 'Hangi araç lazım bilmiyorum →'}
+                {advisorOpen ? 'Danışmanı kapat' : 'Yükümü tarif edeyim →'}
               </button>
+            ) : (
+              /* Katalog gelmediğinde bölüm SESSİZCE kaybolmuyor. Eskiden öyleydi ve
+                 kısa bir API kesintisi, "yük seçme ekranı nereye gitti?" sorusunu
+                 cevapsız bırakıyordu. Eksik olanı söylemek, hiçbir şey dememekten iyi. */
+              <span className="text-sm text-muted">Yük tarif etme şu an yüklenemedi</span>
             )}
           </div>
           <div className="mt-2.5">

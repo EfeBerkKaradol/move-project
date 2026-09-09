@@ -4,13 +4,21 @@
     {
       "name": "web",
       "runtimeExecutable": "pnpm",
-      "runtimeArgs": ["-C", "apps/web", "dev"],
-      "port": 3000
+      "runtimeArgs": [
+        "-C",
+        "apps/web",
+        "dev"
+      ],
+      "port": 3000,
+      "autoPort": false
     },
     {
       "name": "api",
       "runtimeExecutable": "pnpm",
-      "runtimeArgs": ["run", "api"],
+      "runtimeArgs": [
+        "run",
+        "api"
+      ],
       "port": 8080
     }
   ]
