@@ -5,11 +5,20 @@
  * Hero sahnesindeki haritalar elle çizilmiş silüetler değil, gerçek sınır
  * verisinden türetiliyor:
  *   Türkiye  → geoBoundaries gbOpen TUR ADM0 (OpenStreetMap türevi, CC BY 4.0)
+ *   İller    → geoBoundaries gbOpen TUR ADM1 (aynı kaynak, 81 il sınırı)
  *   İstanbul → sahircansurmeli/istanbul-geojson, ilce_geojson.json (OSM / Nominatim)
  *
- * Kaynak dosyalar repoya girmiyor (7 MB + 2,8 MB); yalnızca sadeleştirilmiş
+ * Kaynak dosyalar repoya girmiyor (7 + 9,7 + 2,8 MB); yalnızca sadeleştirilmiş
  * çıktı giriyor. Yeniden üretmek için:
- *   node scripts/build-maps.mjs <TUR-ADM0.geojson> <istanbul-ilce.json>
+ *   node scripts/build-maps.mjs <TUR-ADM0.geojson> <istanbul-ilce.json> <TUR-ADM1.geojson>
+ *
+ * Yalnızca il sınırlarını tazelemek için (diğer iki kaynak gerekmeden):
+ *   node scripts/build-maps.mjs --provinces-only <TUR-ADM1.geojson>
+ *
+ * Bu kipte oturtma, geo-data.ts'e yazılmış TURKEY_PROJECTION'dan okunuyor. Böylece
+ * iller aynı uzaya düşüyor ve dosyanın geri kalanına — rotaya, araca, şehir
+ * noktalarına — hiç dokunulmuyor. Sadeleştirme kodu tek: iki kip de aynı
+ * fonksiyonları kullanıyor.
  *
  * İki harita AYNI en-boy oranlı kutuya oturtuluyor. Aracın konumu kutu içindeki
  * yüzdeyle veriliyor; oranlar farklı olsaydı `preserveAspectRatio` her haritada
@@ -35,10 +44,18 @@ const TARGET = {
   turkeyCompact: 240,
   istanbulPerDistrict: 30,
   istanbulPerDistrictCompact: 16,
+  /**
+   * İl başına nokta. 81 il × 26 ≈ 2.100 nokta — tek dış hattın üç katı, ama
+   * sınırlar ancak bu kadarıyla il gibi görünüyor; daha azında Karadeniz kıyısı
+   * testereye dönüyor.
+   *
+   * Mobilde il sınırı HİÇ çizilmiyor (aşağıya bak), o yüzden kompakt bütçe yok.
+   */
+  provincePerShape: 26,
 };
 
 
-const [, , turkeyPath, istanbulPath] = process.argv;
+const [, , turkeyPath, istanbulPath, provincePath] = process.argv;
 if (!turkeyPath || !istanbulPath) {
   console.error('kullanım: node scripts/build-maps.mjs <TUR-ADM0.geojson> <istanbul-ilce.json>');
   process.exit(1);
@@ -145,6 +162,63 @@ const toPath = (rings, project) =>
     .map((r) => 'M' + r.map(project).map(([x, y]) => `${x} ${y}`).join('L') + 'Z')
     .join('');
 
+/** ADM1 dosyasından sadeleştirilmiş, sıralı il listesi. */
+function readProvinces(file) {
+  const geo = JSON.parse(readFileSync(file, 'utf8'));
+  const out = geo.features
+    .map((f) => ({ name: f.properties.shapeName ?? '', rings: ringsOf(f.geometry) }))
+    .map((p) => {
+      // İl içindeki adacıklar sınır çiziminde nokta kalabalığından başka bir şey
+      // üretmiyor; ana gövde kalıyor
+      const largest = Math.max(...p.rings.map(area));
+      const rings = p.rings.filter((r) => area(r) > largest / 120);
+      return { name: p.name, rings: simplifyToBudget(rings, TARGET.provincePerShape) };
+    })
+    .sort((a, b) => a.name.localeCompare(b.name, 'tr'));
+
+  if (out.length !== 81) throw new Error(`İl sayısı 81 olmalı, ${out.length} bulundu.`);
+  return out;
+}
+
+const provinceBlock = (list, project) => `export const TURKEY_PROVINCES: { name: string; d: string }[] = [
+${list.map((p) => `  { name: '${p.name.replace(/'/g, "\\'")}', d: '${toPath(p.rings, project)}' },`).join('\n')}
+];`;
+
+// ── Yalnızca iller ────────────────────────────────────────────────────────
+if (process.argv[2] === '--provinces-only') {
+  const file = process.argv[3];
+  if (!file) throw new Error('kullanım: node scripts/build-maps.mjs --provinces-only <TUR-ADM1.geojson>');
+
+  const target = new URL('../src/components/hero/geo-data.ts', import.meta.url);
+  const current = readFileSync(target, 'utf8');
+
+  // Oturtma dosyanın kendisinden okunuyor: elle kopyalanan bir sabit, kaynak
+  // güncellendiğinde sessizce eskir ve iller haritadan kayar
+  const params = Object.fromEntries(
+    ['minX', 'maxY', 'scale', 'offsetX', 'offsetY'].map((key) => {
+      const m = current.match(new RegExp(`${key}:\\s*(-?[\\d.]+)`));
+      if (!m) throw new Error(`TURKEY_PROJECTION.${key} geo-data.ts içinde bulunamadı.`);
+      return [key, Number(m[1])];
+    }),
+  );
+  const project = ([x, y]) => [
+    +((x - params.minX) * params.scale + params.offsetX).toFixed(1),
+    +((params.maxY - y) * params.scale + params.offsetY).toFixed(1),
+  ];
+
+  // ringsOf mercator'ı zaten uyguluyor; burada ikinci kez uygulamak noktaları
+  // kutunun bin piksel dışına atıyordu
+  const block = provinceBlock(readProvinces(file), project);
+  const replaced = current.replace(
+    /export const TURKEY_PROVINCES: \{ name: string; d: string \}\[\] = \[[\s\S]*?\n\];/,
+    block,
+  );
+  if (replaced === current) throw new Error('TURKEY_PROVINCES bloğu geo-data.ts içinde bulunamadı.');
+  writeFileSync(target, replaced);
+  console.log(`TURKEY_PROVINCES güncellendi (81 il).`);
+  process.exit(0);
+}
+
 // ── Türkiye ───────────────────────────────────────────────────────────────
 const turkeyGeo = JSON.parse(readFileSync(turkeyPath, 'utf8'));
 let turkeyRings = ringsOf(turkeyGeo.features[0].geometry);
@@ -156,6 +230,13 @@ turkeyRings = simplifyToBudget(turkeyRings, TARGET.turkey);
 // Ölçekleme her iki sürüm için de aynı olmalı: mobil ve masaüstü aynı kutuya
 // oturmazsa araç sahne değişince kayar
 const fitTurkey = fitter(turkeyRings);
+
+// ── İller ─────────────────────────────────────────────────────────────────
+// Oturtma (fitTurkey) BİLEREK dış hattan hesaplanıyor, illerden değil: iller
+// birleşimi ülkeyle aynı sınırı verse de sadeleştirme sonrası birkaç ondalık
+// farkla çıkar ve projeksiyon kayar. Kayınca rota, araç ve şehir noktaları
+// yerinden oynar — geo-data.test.ts tam bunu koruyor.
+const provinces = provincePath ? readProvinces(provincePath) : [];
 
 // ── İstanbul ──────────────────────────────────────────────────────────────
 const istanbulGeo = JSON.parse(readFileSync(istanbulPath, 'utf8'));
@@ -333,6 +414,15 @@ export const TURKEY_PATH =
 /** Mobil sürüm — aynı kutuya oturur, yalnızca daha az nokta. */
 export const TURKEY_PATH_COMPACT =
   '${toPath(turkeyRingsCompact, fitTurkey)}';
+
+/**
+ * İl sınırları — 81 il.
+ *
+ * Yalnızca geniş ekranda çiziliyor. Telefonda harita 375 piksel geniş; il başına
+ * ~10 piksel düşüyor ve sınırlar okunmuyor, yalnızca maliyet çıkarıyor. Orada
+ * TURKEY_PATH_COMPACT'in tek silüeti kalıyor.
+ */
+${provinceBlock(provinces, fitTurkey)}
 
 /** İstanbul ilçeleri. Kıyı çizgisi ilçelerin dış sınırından, Boğaz aradaki boşluk. */
 export const ISTANBUL_PATHS: string[] = [

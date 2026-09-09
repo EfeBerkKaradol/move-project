@@ -1,6 +1,6 @@
 'use client';
 
-import type { RefObject } from 'react';
+import { useId, type RefObject } from 'react';
 import {
   CITIES,
   ISTANBUL_NODES,
@@ -14,6 +14,7 @@ import {
   ROUTE_OUT,
   TURKEY_PATH,
   TURKEY_PATH_COMPACT,
+  TURKEY_PROVINCES,
 } from './geo-data';
 
 /**
@@ -54,6 +55,10 @@ export function SceneMap({
    * raster ediyor; katmanla iş GPU'da bileşimden ibaret kalıyor.
    */
   const layer = { willChange: 'opacity, transform' } as const;
+
+  // Kırpma kimliği bileşene özel: sahne iki kez çizildiğinde (mobil + masaüstü
+  // sürümleri aynı ağaçta) sabit bir id ikinci kopyayı ilkine bağlar
+  const provinceClipId = useId();
 
   return (
     <>
@@ -119,6 +124,37 @@ export function SceneMap({
           strokeWidth={1.4}
           strokeLinejoin="round"
         />
+
+        {/* İl sınırları.
+            Dolgu ülke silüetinden geliyor, buradan yalnızca çizgi: iller ayrı ayrı
+            doldurulsaydı kıyı çizgisi 81 poligonun birleşiminden çıkar ve
+            sadeleştirme farkları yüzünden dikişler görünürdü.
+
+            Kırpma şart — iller ve dış hat ayrı bütçelerle sadeleştiriliyor, kıyı
+            illerinin kenarı silüetin bir iki piksel dışına taşabiliyor.
+
+            Telefonda hiç çizilmiyor: harita 375 piksel geniş, il başına ~10 piksel
+            düşüyor. Sınırlar okunmuyor, yalnızca maliyet çıkarıyor. */}
+        {!compact && (
+          <>
+            <defs>
+              <clipPath id={provinceClipId}>
+                <path d={turkeyPath} />
+              </clipPath>
+            </defs>
+            <g
+              clipPath={`url(#${provinceClipId})`}
+              fill="none"
+              stroke="rgb(255 255 255 / 0.16)"
+              strokeWidth={0.8}
+              strokeLinejoin="round"
+            >
+              {TURKEY_PROVINCES.map((province) => (
+                <path key={province.name} d={province.d} />
+              ))}
+            </g>
+          </>
+        )}
 
         <path
           ref={outRef}

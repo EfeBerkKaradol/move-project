@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { CITIES, MAP_BOX, NETWORK_CITIES, projectLonLat } from './geo-data';
+import { CITIES, MAP_BOX, NETWORK_CITIES, TURKEY_PROVINCES, projectLonLat } from './geo-data';
 
 /**
  * Sabit şehirler derleme anında (build-maps.mjs), ilan haritasındaki noktalar
@@ -61,5 +61,56 @@ describe('ağ şehirleri', () => {
     // Aynı il iki kez çizilmesin: üst üste binen noktalar tek bir parlak leke yapar
     const labels = NETWORK_CITIES.map((c) => c.label);
     expect(new Set(labels).size).toBe(labels.length);
+  });
+});
+
+/**
+ * İl sınırları dış hattan AYRI bir bütçeyle sadeleştiriliyor ama AYNI oturtmayı
+ * kullanıyor. Oturtma kaçarsa iller haritanın yanına düşer ve bunu ancak gözle
+ * fark ederiz — testin işi o kaçışı yakalamak.
+ */
+describe('il sınırları', () => {
+  it('81 il var ve adlar tekrarlamıyor', () => {
+    expect(TURKEY_PROVINCES).toHaveLength(81);
+    const adlar = TURKEY_PROVINCES.map((p) => p.name);
+    expect(new Set(adlar).size).toBe(81);
+  });
+
+  it('her ilin çizilebilir bir yolu var', () => {
+    for (const province of TURKEY_PROVINCES) {
+      expect(province.d.startsWith('M')).toBe(true);
+      expect(province.d.endsWith('Z')).toBe(true);
+    }
+  });
+
+  it('bütün noktalar harita kutusunun içinde', () => {
+    for (const province of TURKEY_PROVINCES) {
+      for (const [, x, y] of province.d.matchAll(/(-?[\d.]+) (-?[\d.]+)/g)) {
+        expect(Number(x)).toBeGreaterThanOrEqual(0);
+        expect(Number(x)).toBeLessThanOrEqual(MAP_BOX.w);
+        expect(Number(y)).toBeGreaterThanOrEqual(0);
+        expect(Number(y)).toBeLessThanOrEqual(MAP_BOX.h);
+      }
+    }
+  });
+
+  /** Şehir noktaları illerin üstüne düşmeli; ikisi aynı uzayda değilse ayrışırlar. */
+  it('İstanbul noktası İstanbul ilinin sınırları içinde kalıyor', () => {
+    const istanbul = TURKEY_PROVINCES.find((p) => p.name === 'İstanbul');
+    expect(istanbul).toBeDefined();
+
+    const noktalar = [...istanbul!.d.matchAll(/(-?[\d.]+) (-?[\d.]+)/g)].map(
+      ([, x, y]) => [Number(x), Number(y)] as const,
+    );
+    const minX = Math.min(...noktalar.map(([x]) => x));
+    const maxX = Math.max(...noktalar.map(([x]) => x));
+    const minY = Math.min(...noktalar.map(([, y]) => y));
+    const maxY = Math.max(...noktalar.map(([, y]) => y));
+
+    const sehir = CITIES.find((c) => c.id === 'istanbul')!;
+    expect(sehir.x).toBeGreaterThanOrEqual(minX);
+    expect(sehir.x).toBeLessThanOrEqual(maxX);
+    expect(sehir.y).toBeGreaterThanOrEqual(minY);
+    expect(sehir.y).toBeLessThanOrEqual(maxY);
   });
 });
