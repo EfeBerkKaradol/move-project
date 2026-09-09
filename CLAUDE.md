@@ -86,6 +86,14 @@ docs/               Gereksinimler, mimari, ADR'ler
 
 ## Bilinen ortam sorunları
 
+**`java` PATH'te olmayabilir.** Homebrew ile kurulan openjdk,
+`/Library/Java/JavaVirtualMachines` altına bağlanmadıkça `java_home` tarafından
+görülmüyor ve `java` PATH'e girmiyor; `pnpm api` "Unable to locate a Java Runtime"
+ile açılmıyordu. `scripts/java-home.sh` JDK'yı bilinen konumlardan buluyor ve
+`pnpm api` / `pnpm api:test` onun üzerinden çalışıyor. Doğrulama dosyanın varlığına
+değil `java -version`'ın başarısına bakıyor: macOS'taki `/usr/bin/java` bir köprü,
+var ama çalışmıyor.
+
 **macOS + Docker Desktop 29:** Testcontainers'ın kullandığı docker-java varsayılan olarak
 API 1.32 gönderiyor, Docker Engine 29 ise minimum 1.44 istiyor ve 400 dönüyor.
 `services/api/build.gradle.kts` içindeki test task'ı `api.version` sistem özelliğini ve
