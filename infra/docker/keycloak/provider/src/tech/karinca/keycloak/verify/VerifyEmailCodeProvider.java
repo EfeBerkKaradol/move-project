@@ -61,7 +61,12 @@ public class VerifyEmailCodeProvider implements RequiredActionProvider {
             context.ignore();
             return;
         }
-        kodUretVeGonder(context);
+        if (!kodUretVeGonder(context)) {
+            context.challenge(form(context)
+                    .setError("karincaVerifyCodeSendFailed")
+                    .createForm("login-verify-email-code.ftl"));
+            return;
+        }
         context.challenge(form(context).createForm("login-verify-email-code.ftl"));
     }
 
@@ -71,9 +76,10 @@ public class VerifyEmailCodeProvider implements RequiredActionProvider {
         var oturum = context.getAuthenticationSession();
 
         if (alanlar.containsKey("resend")) {
-            kodUretVeGonder(context);
-            context.challenge(form(context)
-                    .setInfo("karincaVerifyCodeResent")
+            var gitti = kodUretVeGonder(context);
+            var form = form(context);
+            context.challenge((gitti ? form.setInfo("karincaVerifyCodeResent")
+                                     : form.setError("karincaVerifyCodeSendFailed"))
                     .createForm("login-verify-email-code.ftl"));
             return;
         }
@@ -121,7 +127,14 @@ public class VerifyEmailCodeProvider implements RequiredActionProvider {
         return context.form().setAttribute("karincaEmail", maskele(context.getUser().getEmail()));
     }
 
-    private void kodUretVeGonder(RequiredActionContext context) {
+    /**
+     * Kodu üretir, kaydeder ve gönderir; gönderilebildiyse true.
+     *
+     * <p>Hata fırlatılmıyor: fırlatılınca Keycloak jenerik "Üzgünüz..." sunucu hatası
+     * gösteriyor ve kullanıcı ne olduğunu anlamıyor. Sebep kayda yazılıyor, ekranda
+     * anlaşılır bir mesaj çıkıyor ve "yeniden gönder" düğmesi kullanılabilir kalıyor.
+     */
+    private boolean kodUretVeGonder(RequiredActionContext context) {
         var kod = String.format("%06d", RANDOM.nextInt(1_000_000));
         var oturum = context.getAuthenticationSession();
         oturum.setAuthNote(NOTE_CODE, kod);
@@ -142,10 +155,13 @@ public class VerifyEmailCodeProvider implements RequiredActionProvider {
         try {
             context.getSession().getProvider(EmailSenderProvider.class)
                     .send(context.getRealm().getSmtpConfig(), context.getUser().getEmail(), konu, metin, html);
-        } catch (EmailException e) {
-            // Yutulmuyor: kullanıcı gelmeyecek bir kodu beklemesin.
+            return true;
+        } catch (EmailException | RuntimeException e) {
             log.error("Doğrulama kodu gönderilemedi", e);
-            throw new RuntimeException("E-posta gönderilemedi", e);
+            // Kod düşürülüyor: gönderilemeyen bir kodu geçerli tutmak, kullanıcının
+            // asla göremeyeceği bir sırla kapıyı açık bırakmak olurdu.
+            temizle(oturum);
+            return false;
         }
     }
 

@@ -10,9 +10,17 @@ adrese çıkmamalı:
   Clients → Credentials ekranından alınıyor.
 * Test kullanıcıları ve parolaları repoda. Herkese açık bir sunucuda, parolası
   bilinen bir ADMIN hesabı bırakmak olmaz.
-* SMTP ayarı yerel Mailhog'u gösteriyor. Üretimde çözülemeyen bir sunucu +
-  ``verifyEmail: true`` demek, kimsenin kaydını tamamlayamaması demek. SMTP
-  ayarlanana kadar doğrulama kapatılıyor (ANAHTARLAR Adım 3).
+* SMTP ayarı yerel Mailhog'u gösteriyor; üretimin kendi sunucusu var.
+
+E-posta doğrulama AÇIK bırakılıyor. Bir dönem kapatılmıştı: SMTP yokken açık
+olması kimsenin kaydını tamamlayamaması demekti. Artık posta sağlayıcının HTTP
+API'si üzerinden gidiyor ve tek gereken ``TASIYORUZ_MAIL_API_KEY``. Kapalı
+bırakmak, doğrulamayı varsayılan olarak devre dışı bırakmak olurdu — sıfırdan
+kurulan ortamlarda kimse fark etmeden doğrulanmamış hesaplar birikirdi.
+
+Anahtar verilmezse kayıt sırasında kod gönderilemez ve kullanıcı açık bir hata
+görür. Sessizce doğrulamayı atlamak yerine bu tercih edildi: gürültülü bir arıza
+fark edilip düzeltilir, sessiz bir atlama fark edilmez.
 
 Kalan her şey (roller, istemci tanımları, tema, e-posta doğrulama, akışlar) aynen
 kalıyor; dağıtımda elle yeniden kurmak gerekmiyor.
@@ -35,10 +43,10 @@ kullanici_sayisi = len(realm.get("users", []))
 realm["users"] = []
 
 realm.pop("smtpServer", None)
-realm["verifyEmail"] = False
+realm["verifyEmail"] = True
 
 json.dump(realm, open(dst, "w", encoding="utf-8"), ensure_ascii=False, indent=2)
 print(f"realm hazırlandı: sslRequired=external, "
       f"{len(kaldirilan_sir)} istemci sırrı kaldırıldı ({', '.join(kaldirilan_sir)}), "
       f"{kullanici_sayisi} test kullanıcısı çıkarıldı, "
-      f"e-posta doğrulama SMTP gelene kadar kapatıldı")
+      f"e-posta doğrulama açık")

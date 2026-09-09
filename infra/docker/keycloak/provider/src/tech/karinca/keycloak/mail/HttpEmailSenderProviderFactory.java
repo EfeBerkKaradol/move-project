@@ -26,10 +26,12 @@ public class HttpEmailSenderProviderFactory implements EmailSenderProviderFactor
 
     private String apiKey;
     private String baseUrl;
+    private String varsayilanGonderen;
+    private String varsayilanGonderenAdi;
 
     @Override
     public EmailSenderProvider create(KeycloakSession session) {
-        return new HttpEmailSenderProvider(session, apiKey, baseUrl);
+        return new HttpEmailSenderProvider(session, apiKey, baseUrl, varsayilanGonderen, varsayilanGonderenAdi);
     }
 
     @Override
@@ -37,6 +39,12 @@ public class HttpEmailSenderProviderFactory implements EmailSenderProviderFactor
         // Ortam değişkeni API servisiyle aynı adı taşıyor; iki serviste tek anahtar.
         apiKey = ilkDolu(scope.get("apiKey"), System.getenv("TASIYORUZ_MAIL_API_KEY"));
         baseUrl = ilkDolu(scope.get("baseUrl"), System.getenv("TASIYORUZ_MAIL_BASE_URL"), "https://api.brevo.com");
+        // Realm'in Email sekmesi doldurulmamışsa gönderen buradan geliyor. Dağıtım
+        // realm'inde SMTP bloğu bilerek silindiği için o alan boş başlıyor; adres
+        // ortam değişkeninden gelmeseydi doğrulama ilk kayıtta hata verirdi ve
+        // yöneticinin panelde ek bir adım yapması gerekirdi.
+        varsayilanGonderen = ilkDolu(scope.get("from"), System.getenv("NOTIFICATION_FROM"));
+        varsayilanGonderenAdi = ilkDolu(scope.get("fromName"), System.getenv("NOTIFICATION_FROM_NAME"), "KARINCA");
     }
 
     private static String ilkDolu(String... adaylar) {

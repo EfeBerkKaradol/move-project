@@ -28,11 +28,16 @@ class HttpEmailSenderProvider implements EmailSenderProvider {
     private final KeycloakSession session;
     private final String apiKey;
     private final String baseUrl;
+    private final String varsayilanGonderen;
+    private final String varsayilanGonderenAdi;
 
-    HttpEmailSenderProvider(KeycloakSession session, String apiKey, String baseUrl) {
+    HttpEmailSenderProvider(KeycloakSession session, String apiKey, String baseUrl,
+                            String varsayilanGonderen, String varsayilanGonderenAdi) {
         this.session = session;
         this.apiKey = apiKey;
         this.baseUrl = baseUrl;
+        this.varsayilanGonderen = varsayilanGonderen;
+        this.varsayilanGonderenAdi = varsayilanGonderenAdi;
     }
 
     @Override
@@ -47,16 +52,19 @@ class HttpEmailSenderProvider implements EmailSenderProvider {
             return;
         }
 
-        var from = config.get("from");
-        if (from == null || from.isBlank()) {
-            throw new EmailException("Gönderen adresi tanımsız — Realm settings → Email → From");
+        // Realm ayarı önce gelir; boşsa ortam değişkeni. İkisi de yoksa gönderim
+        // yapılamaz ve sebebi açıkça söylenir.
+        var from = dolu(config.get("from")) ? config.get("from") : varsayilanGonderen;
+        if (!dolu(from)) {
+            throw new EmailException("Gönderen adresi tanımsız — NOTIFICATION_FROM ortam "
+                    + "değişkenini ver ya da Realm settings → Email → From alanını doldur");
         }
 
         ObjectNode govde = JSON.createObjectNode();
         ObjectNode gonderen = govde.putObject("sender");
         gonderen.put("email", from);
-        var gorunenAd = config.get("fromDisplayName");
-        if (gorunenAd != null && !gorunenAd.isBlank()) gonderen.put("name", gorunenAd);
+        var gorunenAd = dolu(config.get("fromDisplayName")) ? config.get("fromDisplayName") : varsayilanGonderenAdi;
+        if (dolu(gorunenAd)) gonderen.put("name", gorunenAd);
         govde.putArray("to").addObject().put("email", address);
         govde.put("subject", subject);
         if (textBody != null) govde.put("textContent", textBody);
@@ -85,6 +93,10 @@ class HttpEmailSenderProvider implements EmailSenderProvider {
         } catch (Exception e) {
             throw new EmailException("Posta API'sine ulaşılamadı: " + e.getMessage(), e);
         }
+    }
+
+    private static boolean dolu(String s) {
+        return s != null && !s.isBlank();
     }
 
     @Override

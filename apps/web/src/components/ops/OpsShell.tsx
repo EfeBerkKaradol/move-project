@@ -1,6 +1,8 @@
 import Link from 'next/link';
 import { redirect } from 'next/navigation';
 import { signOutEverywhere } from '@/auth';
+import { BRAND } from '@/lib/brand';
+import { Logo } from '@/components/site/Logo';
 
 export const OPS_NAV: { href: string; label: string; icon: React.ReactNode; badgeKey?: string }[] = [
   { href: '/yonetim', label: 'Pano', icon: <path d="M3 12h7V3H3zM14 21h7v-9h-7zM14 3h7v6h-7zM3 21h7v-6H3z" /> },
@@ -135,13 +137,8 @@ export function OpsShell({
 function Brand() {
   return (
     <Link href="/yonetim" title="Pano" className="flex min-h-11 items-center gap-2.5 text-base font-extrabold text-ink md:justify-center xl:justify-start">
-      <span className="grid size-9 shrink-0 place-items-center rounded-lg bg-route" aria-hidden>
-        <svg viewBox="0 0 24 24" className="size-5" fill="none" stroke="var(--route-ink)"
-          strokeWidth="2.4" strokeLinecap="round" strokeLinejoin="round">
-          <path d="M3 16 L9 8 L15 16 L21 8" />
-        </svg>
-      </span>
-      <span className="md:sr-only xl:not-sr-only">Taşıyoruz <span className="label-mono ml-1 text-route">ops</span></span>
+      <Logo className="size-7 shrink-0" />
+      <span className="md:sr-only xl:not-sr-only">{BRAND.name} <span className="label-mono ml-1 text-route">ops</span></span>
     </Link>
   );
 }
