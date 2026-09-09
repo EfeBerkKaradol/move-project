@@ -5,7 +5,7 @@ import { redirect } from 'next/navigation';
 import { auth, canCallApi, homeFor, isCustomer } from '@/auth';
 import { Shell } from '@/components/app/Shell';
 import { getCargoCategories, getCargoItems, getDistricts, getExtraServices, getVehicleTypes } from '@/lib/api';
-import { categoriesFor } from '@/lib/cargo';
+import { categoriesFor, decodeItems } from '@/lib/cargo';
 import { matchDistrict } from '@/lib/places';
 import { PublishForm } from './PublishForm';
 
@@ -47,6 +47,10 @@ export default async function NewListingPage({ searchParams }: { searchParams: P
     );
   }
 
+  // Bu araçla taşınabilecek kalemler; fiyat adımından gelen beyan da bununla
+  // süzülüyor: araç değiştirilmişse eski kategorinin kalemleri düşüyor
+  const secilebilir = itemsFor(vehicle.code, (items ?? []) as CargoItem[]);
+
   return (
     <Shell eyebrow="Yük veren" title="İlanı yayınla">
       <PublishForm
@@ -54,7 +58,7 @@ export default async function NewListingPage({ searchParams }: { searchParams: P
         dropoff={dropoff as District}
         vehicle={vehicle as VehicleType}
         extras={(extras ?? []) as ExtraService[]}
-        cargoItems={itemsFor(vehicle.code, (items ?? []) as CargoItem[])}
+        cargoItems={secilebilir}
         cargoCategories={(categories ?? []) as CargoCategory[]}
         initial={{
           serviceModel: first(p.model) === 'SCHEDULED' ? 'SCHEDULED' : 'INSTANT',
@@ -68,6 +72,8 @@ export default async function NewListingPage({ searchParams }: { searchParams: P
           pickupWindow: first(p.bas) && first(p.bit)
             ? { start: first(p.bas), end: first(p.bit) }
             : null,
+          // Yük fiyat adımında tarif edildi; aynı soru burada tekrar sorulmuyor
+          cargoItems: decodeItems(first(p.yuk), new Set(secilebilir.map((i) => i.code))),
         }}
       />
     </Shell>

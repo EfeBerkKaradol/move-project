@@ -14,12 +14,21 @@ import { CategoryGrid } from '@/components/booking/CategoryGrid';
 import { RecommendationPanel } from '@/components/booking/RecommendationPanel';
 import { fetchRecommendation } from '@/lib/api';
 
-const EMPTY_SELECTION: CargoSelection = { itemQuantities: {}, presetCode: null, packageCount: 0 };
+export const BOS_SECIM: CargoSelection = { itemQuantities: {}, presetCode: null, packageCount: 0 };
 
 /**
- * "Hangi araç lazım bilmiyorum" yolu. Kullanıcı yükünü tarif eder, öneri motoru aracı
- * seçer ve seçim üst bileşene bildirilir (docs/08). Tasarımdaki "fotoğraf çekin, sistem
- * araç tipini önersin" bu motora dayanıyor; fotoğraf girişi ileride buraya eklenecek.
+ * Yükün tarifi ve ona dayanan araç önerisi (docs/08).
+ *
+ * <p>Seçim dışarıda tutuluyor. Eskiden burada duruyordu ve yalnızca seçilen araç
+ * dışarı bildiriliyordu; beyanın kendisi bileşenin içinde kalıyordu. Beyan artık
+ * zorunlu ve ilan adımına taşınıyor, yani onu bilmesi gereken yer üst bileşen.
+ *
+ * <p>Tasarımdaki "fotoğraf çekin, sistem araç tipini önersin" fikri bu motora
+ * dayanıyor: öneri kullanıcının <em>beyanından</em> çıkıyor. Fotoğraf beyanı
+ * doğrulamak için var — teklif veren araç sahibi görüyor — makineye
+ * çözdürülmüyor. Görüntüden eşya çıkaran bir servis bağlanmadı ve bağlanacaksa
+ * ADR-0005 gereği yurt dışına veri göndermeyen bir çözüm olması gerekiyor:
+ * bunlar birinin evinin içi.
  */
 export function CargoAdvisor({
   categories,
@@ -27,6 +36,10 @@ export function CargoAdvisor({
   presets,
   vehicleTypes,
   floors,
+  categoryCode,
+  onCategory,
+  selection,
+  onSelection,
   onVehicle,
   forcedCategory,
 }: {
@@ -35,26 +48,18 @@ export function CargoAdvisor({
   presets: CargoPreset[];
   vehicleTypes: VehicleType[];
   floors: { floor: number; hasElevator: boolean }[];
+  categoryCode: string | null;
+  onCategory: (code: string | null) => void;
+  selection: CargoSelection;
+  onSelection: (next: CargoSelection | ((prev: CargoSelection) => CargoSelection)) => void;
   onVehicle: (code: string) => void;
   /** Araç seçimi bir kategoriyi zorunlu kılıyorsa (tam araç işleri) o kategori. */
   forcedCategory?: string | null;
 }) {
-  const [categoryCode, setCategoryCode] = useState<string | null>(forcedCategory ?? null);
-  const [selection, setSelection] = useState<CargoSelection>(EMPTY_SELECTION);
   const [overrideCode, setOverrideCode] = useState<string | null>(null);
   const [recommendation, setRecommendation] = useState<VehicleRecommendation | null>(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
-
-  // Kullanıcı kamyon ya da tır seçtiğinde soru "kaç koli?" değil "ne yükleniyor?"
-  // olur; kategori dışarıdan geldiğinde ızgarayı gösterip seçim beklemek yerine
-  // doğrudan o kategorinin formuna geçiliyor.
-  useEffect(() => {
-    if (!forcedCategory) return;
-    setCategoryCode(forcedCategory);
-    setSelection(EMPTY_SELECTION);
-    setOverrideCode(null);
-  }, [forcedCategory]);
 
   const category = categories.find((c) => c.code === categoryCode) ?? null;
   const categoryItems = useMemo(
@@ -124,8 +129,8 @@ export function CargoAdvisor({
           categories={categories}
           selected={categoryCode}
           onSelect={(code) => {
-            setCategoryCode(code);
-            setSelection(EMPTY_SELECTION);
+            onCategory(code);
+            onSelection(BOS_SECIM);
             setOverrideCode(null);
           }}
         />
@@ -141,7 +146,7 @@ export function CargoAdvisor({
               items={categoryItems}
               presets={categoryPresets}
               selection={selection}
-              onChange={setSelection}
+              onChange={onSelection}
             />
           </div>
           <RecommendationPanel

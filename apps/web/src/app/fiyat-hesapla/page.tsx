@@ -1,5 +1,6 @@
 import type { Metadata } from 'next';
 import Link from 'next/link';
+import { auth, canCallApi } from '@/auth';
 import { EstimateFlow } from '@/components/estimate/EstimateFlow';
 import { Footer } from '@/components/site/Footer';
 import { Header } from '@/components/site/Header';
@@ -26,16 +27,17 @@ export const dynamic = 'force-dynamic';
 export const metadata: Metadata = {
   title: 'Fiyat hesapla',
   description:
-    'Rotanı ve aracını seç, tarife tabanlı tahmini aralığı gör. Kayıt gerekmez; kesin fiyatı araç sahipleri teklifle verir.',
+    'Rotanı, zamanını ve yükünü gir; tarife tabanlı tahmini aralığı gör. Kayıt gerekmez; kesin fiyatı araç sahipleri teklifle verir.',
 };
 
 type SearchParams = Promise<Record<string, string | string[] | undefined>>;
 const first = (v: string | string[] | undefined) => (Array.isArray(v) ? v[0] : v) ?? '';
 
 export default async function EstimatePage({ searchParams }: { searchParams: SearchParams }) {
-  const [params, vehicleTypes, districts, extraServices, categories, items, presets] =
+  const [params, session, vehicleTypes, districts, extraServices, categories, items, presets] =
     await Promise.all([
       searchParams,
+      auth(),
       getVehicleTypes(),
       getDistricts(),
       getExtraServices(),
@@ -59,11 +61,12 @@ export default async function EstimatePage({ searchParams }: { searchParams: Sea
         <div className="mx-auto max-w-6xl px-6 py-12 lg:py-16">
           <p className="label-mono text-[var(--route-deep)]">Kayıt gerekmez · Tahmini aralık · Komisyon dahil</p>
           <h1 className="mt-3 text-[clamp(1.9rem,4vw,3rem)] leading-[1.06]">
-            Rotanı ve aracını seç, tahmini fiyatı gör.
+            Yükünü tarif et, tahmini fiyatı gör.
           </h1>
           <p className="mt-4 max-w-xl text-muted">
-            Aralık sözleşmeli tarifeden hesaplanır. Sonra ilanını yayınlarsın; doğrulanmış araç
-            sahipleri kesin teklif verir, sen seçersin.
+            Rota, zaman ve yük — hepsi burada, üye olmadan. Aralık sözleşmeli tarifeden
+            hesaplanır; hesap yalnızca ilanı yayınlarken isteniyor. Kesin fiyatı doğrulanmış
+            araç sahipleri teklifle verir, sen seçersin.
           </p>
 
           <div className="mt-10">
@@ -73,6 +76,7 @@ export default async function EstimatePage({ searchParams }: { searchParams: Sea
                 districts={districts}
                 extraServices={extraServices ?? []}
                 catalog={catalog}
+                signedIn={canCallApi(session)}
                 initial={{ from: first(params.nereden), to: first(params.nereye), vehicleCode }}
               />
             ) : (

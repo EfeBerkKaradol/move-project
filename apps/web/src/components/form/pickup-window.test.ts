@@ -1,81 +1,108 @@
 import { describe, expect, it } from 'vitest';
-import { anaCevir, cozumle, pencereAraligi } from './PickupWindow';
+import { anaCevir, araligiCoz, cozumle } from './PickupWindow';
 
 /**
- * Alış penceresi üretimi. Sunucu geçmiş pencereyi reddediyor; bu testin işi o
- * reddin kullanıcıya hiç ulaşmaması — seçim anında yakalanması.
+ * Alış penceresinin kırılgan yeri saat dilimi ve gün sınırı: kullanıcı kendi
+ * saatini yazıyor, sunucu mutlak zaman bekliyor. Aradaki çeviri sessizce
+ * kayarsa ilan yanlış saate açılır ve bunu kimse fark etmez.
  */
-describe('alış penceresi', () => {
-  const gun = '2026-09-12';
 
-  it('gün ve aralık seçiliyse ISO başlangıç ve bitiş üretir', () => {
-    const simdi = anaCevir('2026-09-10', '10:00');
-    const aralik = pencereAraligi(gun, 'sabah', simdi);
-    expect(aralik).not.toBeNull();
-    expect(new Date(aralik!.start).getTime()).toBeLessThan(new Date(aralik!.end).getTime());
+const gun = '2026-09-12';
+/** Testler "şimdi"yi kendi veriyor; yoksa sonuç makinenin saatine bağlı kalırdı. */
+const simdi = anaCevir('2026-09-10', '10:00');
+
+describe('araligiCoz', () => {
+  it('gün ve saatleri mutlak aralığa çevirir', () => {
+    const sonuc = araligiCoz(gun, '08:00', '12:00', simdi);
+    expect(sonuc.durum).toBe('tamam');
+    if (sonuc.durum !== 'tamam') return;
+    expect(sonuc.start).toBe(anaCevir(gun, '08:00').toISOString());
+    expect(sonuc.end).toBe(anaCevir(gun, '12:00').toISOString());
   });
 
-  it('yerel saati koruyor', () => {
-    const aralik = pencereAraligi(gun, 'ogleden-sonra', anaCevir('2026-09-10', '10:00'))!;
-    // 12:00–17:00 yerel: ISO'ya çevrilip geri okununca aynı yerel saatler çıkmalı
-    expect(new Date(aralik.start).getHours()).toBe(12);
-    expect(new Date(aralik.end).getHours()).toBe(17);
+  it('hazır aralıkların dışındaki saatleri de kabul ediyor', () => {
+    // "Tüm saatler" isteğinin karşılığı: 05:30–07:00 hiçbir hazır aralığa denk
+    // gelmiyor ama geçerli bir taleptir.
+    const sonuc = araligiCoz(gun, '05:30', '07:00', simdi);
+    expect(sonuc.durum).toBe('tamam');
   });
 
-  it('gün seçilmemişse null', () => {
-    expect(pencereAraligi('', 'sabah')).toBeNull();
+  it('gece yarısına kadar süren aralığı kabul ediyor', () => {
+    expect(araligiCoz(gun, '22:00', '23:59', simdi).durum).toBe('tamam');
   });
 
-  it('aralık seçilmemişse null', () => {
-    expect(pencereAraligi(gun, '')).toBeNull();
+  it('eksik alanlarda hata değil "eksik" diyor', () => {
+    // Kullanıcı henüz doldurmadıysa kırmızı yazı çıkmamalı
+    expect(araligiCoz('', '08:00', '12:00', simdi).durum).toBe('eksik');
+    expect(araligiCoz(gun, '', '12:00', simdi).durum).toBe('eksik');
+    expect(araligiCoz(gun, '08:00', '', simdi).durum).toBe('eksik');
   });
 
-  /** Bugünün bitmiş aralığı: sunucuya gitmeden burada eleniyor. */
-  it('bitişi geçmiş aralık null', () => {
-    const simdi = anaCevir(gun, '13:00');
-    expect(pencereAraligi(gun, 'sabah', simdi)).toBeNull();
-    // aynı gün, henüz bitmemiş aralık geçerli kalıyor
-    expect(pencereAraligi(gun, 'aksam', simdi)).not.toBeNull();
+  it('bitiş başlangıçtan önceyse reddediyor', () => {
+    const sonuc = araligiCoz(gun, '14:00', '09:00', simdi);
+    expect(sonuc.durum).toBe('gecersiz');
+    if (sonuc.durum === 'gecersiz') expect(sonuc.mesaj).toMatch(/sonra olmalı/);
   });
 
-  it('tanınmayan aralık kimliği null', () => {
-    expect(pencereAraligi(gun, 'gece-yarisi')).toBeNull();
+  it('başlangıçla bitiş aynıysa reddediyor', () => {
+    expect(araligiCoz(gun, '09:00', '09:00', simdi).durum).toBe('gecersiz');
   });
 
-  it('geçersiz gün null', () => {
-    expect(pencereAraligi('abc', 'sabah')).toBeNull();
+  it('bir saatten kısa aralığı reddediyor', () => {
+    // Kimsenin teklif veremeyeceği pencere, ilan açılmadan durduruluyor
+    const sonuc = araligiCoz(gun, '09:00', '09:30', simdi);
+    expect(sonuc.durum).toBe('gecersiz');
+    if (sonuc.durum === 'gecersiz') expect(sonuc.mesaj).toMatch(/en az/);
+    expect(araligiCoz(gun, '09:00', '10:00', simdi).durum).toBe('tamam');
+  });
+
+  it('geçmiş aralığı reddediyor', () => {
+    const bugun = '2026-09-10';
+    expect(araligiCoz(bugun, '08:00', '09:30', simdi).durum).toBe('gecersiz');
+    // Aynı gün, henüz gelmemiş aralık geçerli
+    expect(araligiCoz(bugun, '17:00', '20:00', simdi).durum).toBe('tamam');
+  });
+
+  it('okunamayan tarihte çökmüyor', () => {
+    const sonuc = araligiCoz('abc', '08:00', '12:00', simdi);
+    expect(sonuc.durum).toBe('gecersiz');
+    if (sonuc.durum === 'gecersiz') expect(sonuc.mesaj).toMatch(/okunamadı/);
   });
 });
 
-/**
- * Fiyat adımında seçilen aralık, ilan adımına URL ile taşınıyor ve orada geri
- * çözülüyor. Çözüm bozulursa kullanıcı aynı soruyu iki kez cevaplar — ve bunu
- * ancak giriş yapıp deneyerek fark ederiz.
- */
-describe('önceki adımdan devralma', () => {
+describe('cozumle', () => {
+  /*
+   * Fiyat adımında seçilen aralık ilan adımına URL ile taşınıyor. Bu çözüm
+   * bozulursa kullanıcı aynı soruyu iki kez cevaplar — ve bunu ancak giriş
+   * yapıp deneyerek fark ederiz.
+   */
   it('kendi ürettiği aralığı geri çözüyor', () => {
-    const aralik = pencereAraligi('2026-09-12', 'sabah', anaCevir('2026-09-10', '10:00'))!;
-    expect(cozumle(aralik)).toEqual({ gun: '2026-09-12', pencere: 'sabah' });
+    const sonuc = araligiCoz(gun, '08:00', '12:00', simdi);
+    if (sonuc.durum !== 'tamam') throw new Error('aralık üretilemedi');
+    expect(cozumle({ start: sonuc.start, end: sonuc.end })).toEqual({
+      gun,
+      bas: '08:00',
+      bit: '12:00',
+    });
   });
 
-  it('üç aralığın hepsi için geçerli', () => {
-    for (const id of ['sabah', 'ogleden-sonra', 'aksam']) {
-      const aralik = pencereAraligi('2026-10-01', id, anaCevir('2026-09-10', '10:00'))!;
-      expect(cozumle(aralik).pencere).toBe(id);
-    }
+  it('hazır aralık olmayan saatleri de geri çözüyor', () => {
+    const sonuc = araligiCoz(gun, '05:30', '07:15', simdi);
+    if (sonuc.durum !== 'tamam') throw new Error('aralık üretilemedi');
+    expect(cozumle({ start: sonuc.start, end: sonuc.end })).toEqual({
+      gun,
+      bas: '05:30',
+      bit: '07:15',
+    });
   });
 
-  it('değer yoksa boş', () => {
-    expect(cozumle(null)).toEqual({ gun: '', pencere: '' });
-    expect(cozumle(undefined)).toEqual({ gun: '', pencere: '' });
+  it('seçim yoksa boş dönüyor', () => {
+    expect(cozumle(null)).toEqual({ gun: '', bas: '', bit: '' });
+    expect(cozumle(undefined)).toEqual({ gun: '', bas: '', bit: '' });
   });
 
-  /** Elle kurcalanmış URL formu kilitlemesin: tanınmayan saat boş seçim demek. */
-  it('hazır aralığa denk gelmeyen saat boş pencere', () => {
-    expect(cozumle({ start: '2026-09-12T06:30:00.000Z', end: '2026-09-12T09:00:00.000Z' }).pencere).toBe('');
-  });
-
-  it('bozuk tarih boş', () => {
-    expect(cozumle({ start: 'abc', end: 'def' })).toEqual({ gun: '', pencere: '' });
+  it('bozuk tarihte çökmüyor', () => {
+    // URL elle kurcalanabiliyor; form kilitlenmemeli
+    expect(cozumle({ start: 'abc', end: 'def' })).toEqual({ gun: '', bas: '', bit: '' });
   });
 });

@@ -67,10 +67,12 @@ export function PublishForm({
     dropoffFloor: number; dropoffHasElevator: boolean;
     extraServices: string[];
     pickupWindow: { start: string; end: string } | null;
+    /** Fiyat adımında tarif edilen yük; kullanıcı burada değiştirebiliyor. */
+    cargoItems: Record<string, number>;
   };
 }) {
   const [state, action, pending] = useActionState<ActionState, FormData>(publishListing, {});
-  const [selected, setSelected] = useState<Record<string, number>>({});
+  const [selected, setSelected] = useState<Record<string, number>>(initial.cargoItems);
   const [photoIds, setPhotoIds] = useState<string[]>([]);
   const [declared, setDeclared] = useState(false);
   const [alisPenceresi, setAlisPenceresi] = useState(initial.pickupWindow);
@@ -84,7 +86,7 @@ export function PublishForm({
     totals.pieces === 0 ? { short: 'yük', long: 'yükünü seç' } : null,
     photoIds.length === 0 ? { short: 'fotoğraf', long: 'en az bir fotoğraf ekle' } : null,
     declared ? null : { short: 'beyan', long: 'hukuka uygunluk beyanını onayla' },
-    planli && !alisPenceresi ? { short: 'tarih', long: 'alış gününü ve saat aralığını seç' } : null,
+    alisPenceresi ? null : { short: 'tarih', long: 'alış gününü ve saat aralığını seç' },
   ].filter((m) => m !== null);
 
   return (
@@ -126,7 +128,7 @@ export function PublishForm({
             <div>
               <dt className="label-mono text-muted">Ne zaman</dt>
               <dd className="font-semibold">
-                {planli ? (alisPenceresi ? pencereMetni(alisPenceresi) : 'Planlı') : 'Anlık'}
+                {alisPenceresi ? pencereMetni(alisPenceresi) : planli ? 'Planlı' : 'Anlık'}
               </dd>
             </div>
             <div><dt className="label-mono text-muted">Alış</dt><dd>{initial.pickupFloor}. kat · {initial.pickupHasElevator ? 'asansör var' : 'asansör yok'}</dd></div>
@@ -136,13 +138,16 @@ export function PublishForm({
             <p className="mt-4 text-sm"><span className="label-mono text-muted">Ek hizmet </span>{chosenExtras.map((e) => e.displayName).join(' · ')}</p>
           )}
 
-          {/* Yalnızca planlı taşımada: anlık ilanda alış zaten "şimdi" ve teklif
-              penceresi altı saat. Tarih sormak kullanıcıyı olmayan bir karara sokardı. */}
-          {planli && (
-            <div className="mt-6 border-t border-line pt-6">
-              <PickupWindow onChange={setAlisPenceresi} defaultValue={initial.pickupWindow} />
-            </div>
-          )}
+          {/* Her iki biçimde de: anlık taşımada bile araç sahibinin günün hangi
+              diliminde geleceğini bilmesi gerekiyor. Seçim fiyat adımından
+              geliyor; burası onu göstermek ve değiştirmek için. */}
+          <div className="mt-6 border-t border-line pt-6">
+            <PickupWindow
+              serviceModel={initial.serviceModel}
+              onChange={setAlisPenceresi}
+              defaultValue={initial.pickupWindow}
+            />
+          </div>
         </div>
 
         <div className="rounded-card border border-line bg-surface p-6">

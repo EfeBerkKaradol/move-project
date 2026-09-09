@@ -20,7 +20,8 @@ Ortak olan sadece tasarım token'ları ve temel bileşenler.
 ```
 /                              Ana sayfa — güven panosu ana sayfada, katlamanın hemen altında
 /pano                          Güven panosu (tam sayfa, filtreli)
-/fiyat-hesapla                 Kategori paneli + araç önerisi + fiyat  ← ana dönüşüm noktası
+/fiyat-hesapla                 Rota + zaman + yük (beyan ve fotoğraf) + araç → fiyat  ← ana dönüşüm noktası
+                               İlanın tamamı burada, üye olmadan kuruluyor; kayıt yayınlama anında
 /nasil-calisir                 4 adım: ne taşıyorsun → araç önerisi → pazarlık → takip
 /pazarlik                      Pazarlık nasıl çalışır (özellik sayfası)
 /araclar                       Araç filosu ve kapasiteleri

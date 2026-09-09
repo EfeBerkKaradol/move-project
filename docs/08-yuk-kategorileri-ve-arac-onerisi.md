@@ -270,6 +270,14 @@ görülmemiş bir yüke veriliyordu ve iş kapıda bozuluyordu.
 
 İlan artık **beyansız ve fotoğrafsız yayınlanamıyor**.
 
+Beyan ve fotoğraf **fiyat adımında**, üye olmadan isteniyor; ilan adımı ikisini de
+devralıyor. Tarif eskiden araç seçiminin yanında bir bağlantıydı ve ziyaretçi aracı
+yükünü anlatmadan seçiyordu — öneri motoru çoğu kullanıcıya hiç çalışmıyordu. Sıra
+artık akışın kendisi: rota → zaman → **yük** → araç. Tahmin de ancak bunlar
+tamamlanınca gösteriliyor; yarım beyanla verilen rakam kullanıcının aklında "fiyat"
+diye kalıyor ve teklifler geldiğinde aradaki fark pazarlık değil güven sorunu
+yaratıyor.
+
 ### Beyan
 
 Kalemler aynı katalogdan seçiliyor (`cargo_items`), adetleriyle. Araç tipi hangi
@@ -304,6 +312,20 @@ Kareler **ilandan önce** yükleniyor (`POST /listing-photos`) ve yayın anında
 iliştiriliyor. Alternatifi yayın isteğine dosyaları da koymaktı; o zaman kullanıcı
 yayınlamadan önce ne yüklediğini göremez, yanlış kareyi tek tek silemezdi. Bedeli,
 iliştirilmeden kalan yüklemeler — saatlik bir iş 24 saatten eskileri siliyor.
+
+Fiyat adımında seçilen kareler **sunucuya gitmiyor**: kimlik daha belli değil.
+Tarayıcıda (IndexedDB) bekliyorlar ve ilan adımında, giriş yapılmış hâlde
+yükleniyorlar. Anonim bir yükleme ucu açılmadı — iki gerekçe de kalıcı: hiç üye
+olmayacak bir ziyaretçinin evinin fotoğrafını depoya almak, sonra silmek zorunda
+kalacağımız kişisel veri biriktirmektir; ve kimlik istemeyen bir dosya ucu, depoyu
+doldurmanın ve barındırmak istemediğimiz içeriği bize koydurmanın hazır yoludur.
+Bedeli: kullanıcı fiyatı telefonda alıp ilanı bilgisayardan yayınlarsa kareleri
+yeniden seçiyor.
+
+Öneri **beyandan** çıkıyor, fotoğraftan değil. Tasarımdaki "fotoğraf çekin, sistem
+aracı önersin" fikri bu motora dayanıyor; görüntüden eşya çıkaran bir servis
+bağlanmadı. Bağlanacaksa ADR-0005 geçerli: bu kareler birinin evinin içi, yurt
+dışına gönderilemez.
 
 **Kim görüyor:**
 

@@ -11,12 +11,14 @@ import type {
   VehicleType,
 } from '@tasiyoruz/contracts';
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
-import { FULL_LOAD_CATEGORY, isFullLoad } from '@/lib/cargo';
+import type { CargoSelection } from '@/components/booking/CargoDetail';
+import { FULL_LOAD_CATEGORY, declaredItems, encodeItems, isFullLoad } from '@/lib/cargo';
 import { PlaceSearch } from '@/components/site/PlaceSearch';
 import { fetchQuote } from '@/lib/api';
 import { cityOf, matchDistrict, sameCity } from '@/lib/places';
-import { PickupWindow } from '@/components/form/PickupWindow';
-import { CargoAdvisor } from './CargoAdvisor';
+import { type Aralik, PickupWindow } from '@/components/form/PickupWindow';
+import { BOS_SECIM, CargoAdvisor } from './CargoAdvisor';
+import { CargoPhotoPicker } from './CargoPhotoPicker';
 import { EstimatePanel } from './EstimatePanel';
 import { VehiclePicker } from './VehiclePicker';
 
@@ -29,24 +31,36 @@ const GROUND: StopDetail = { floor: 0, hasElevator: true };
 const AUTO_EXTRAS = ['NO_ELEVATOR', 'WAITING', 'EXTRA_STOP'];
 
 /**
- * Taşıyoruz fiyat akışı (docs/11 §2): rota + araç tipi → tahmini aralık → ilan.
+ * KARINCA fiyat akışı (docs/11 §2): rota → zaman → yük → araç → tahmini aralık.
  *
- * <p>Sayfa geçişi yok; her seçim değişikliğinde tahmin sağda canlı güncellenir.
- * Aracını bilmeyen kullanıcı için docs/08 öneri motoru "yükümü tarif edeceğim"
- * bölümünde duruyor ve seçtiği aracı buradaki seçime yazıyor.
+ * <p>Kullanıcı ilanının tamamını burada, <strong>üye olmadan</strong> kuruyor.
+ * Kayıt yalnızca yayınlama anında isteniyor: kimliğini vermeden önce ne
+ * ödeyeceğini görmek, kaydın karşılığını bilerek üye olmak demek.
+ *
+ * <p>Bölümlerin sırası akışın kendisi: "ne zaman"dan sonra "ne taşınıyor"
+ * geliyor, araç ondan sonra — çünkü araç, yükün sonucu. Tarif bölümü eskiden
+ * araç seçiminin yanında bir bağlantıydı ve kullanıcı aracı yükünü anlatmadan
+ * seçiyordu; öneri motoru da o yüzden çoğu ziyaretçiye hiç çalışmıyordu.
+ *
+ * <p>Tahmin, alanların tamamı dolmadan gösterilmiyor. Yarım beyanla verilen bir
+ * rakam yanlış olur ve kullanıcı onu "fiyat" diye hatırlar; teklifler geldiğinde
+ * aradaki fark pazarlık değil güven sorunu yaratır.
  */
 export function EstimateFlow({
   vehicleTypes,
   districts,
   extraServices,
   catalog,
+  signedIn,
   initial,
 }: {
   vehicleTypes: VehicleType[];
   districts: District[];
   extraServices: ExtraService[];
-  /** Kategori kataloğu yoksa (API kısmi) danışman bölümü gizlenir. */
+  /** Kategori kataloğu yoksa (API kısmi) yük tarifi istenemez; bölüm sebebini yazar. */
   catalog: { categories: CargoCategory[]; items: CargoItem[]; presets: CargoPreset[] } | null;
+  /** Oturum açıksa yayınla düğmesi doğrudan ilan adımına gider. */
+  signedIn: boolean;
   initial: { from: string; to: string; vehicleCode: string | null };
 }) {
   const [from, setFrom] = useState(initial.from);
@@ -56,8 +70,10 @@ export function EstimateFlow({
   const [pickup, setPickup] = useState<StopDetail>(GROUND);
   const [dropoff, setDropoff] = useState<StopDetail>(GROUND);
   const [extras, setExtras] = useState<string[]>([]);
-  const [advisorOpen, setAdvisorOpen] = useState(false);
-  const [alisPenceresi, setAlisPenceresi] = useState<{ start: string; end: string } | null>(null);
+  const [alisPenceresi, setAlisPenceresi] = useState<Aralik | null>(null);
+  const [categoryCode, setCategoryCode] = useState<string | null>(null);
+  const [selection, setSelection] = useState<CargoSelection>(BOS_SECIM);
+  const [fotografAdedi, setFotografAdedi] = useState(0);
   /** Araç seçiminin dayattığı kategori; kullanıcı kendi seçtiyse null. */
   const [forcedCategory, setForcedCategory] = useState<string | null>(null);
 
@@ -68,9 +84,35 @@ export function EstimateFlow({
   const pickupDistrict = useMemo(() => matchDistrict(districts, from), [districts, from]);
   const dropoffDistrict = useMemo(() => matchDistrict(districts, to), [districts, to]);
   const vehicle = vehicleTypes.find((v) => v.code === vehicleCode) ?? null;
+  const category = catalog?.categories.find((c) => c.code === categoryCode) ?? null;
+
+  const kalemler = useMemo(() => declaredItems(category, selection), [category, selection]);
+  // Hazır paket (oda/ev dolusu) kalem listesi üretmiyor ama yükün tarifidir;
+  // kalemleri ilan adımı ayrıca soruyor, burada tarif sayılıyor.
+  const tarifEdildi = Object.keys(kalemler).length > 0 || selection.presetCode !== null;
+
+  /**
+   * Yayınlanabilir bir ilan için eksik olanlar. Tek listede duruyor çünkü üç yer
+   * birden okuyor: tahmin kapısı, yayınla düğmesi ve yan paneldeki özet. Ayrı
+   * ayrı hesaplansalardı biri güncellenip diğeri unutulurdu.
+   */
+  const eksikler = [
+    !pickupDistrict ? 'alış noktası' : null,
+    !dropoffDistrict ? 'teslim noktası' : null,
+    !alisPenceresi ? 'alış tarihi ve saati' : null,
+    // Katalog gelmediğinde tarif formu gösterilemiyor; isteyemediğimiz bir alanı
+    // zorunlu tutmak, kendi arızamızı kullanıcıya kesmek olurdu
+    catalog && !tarifEdildi ? 'yük tarifi' : null,
+    fotografAdedi === 0 ? 'yük fotoğrafı' : null,
+    !vehicleCode ? 'araç tipi' : null,
+  ].filter((e) => e !== null);
+
+  const tamam = eksikler.length === 0;
 
   const request = useMemo<QuoteRequest | null>(() => {
-    if (!vehicleCode || !pickupDistrict || !dropoffDistrict) return null;
+    // Tahmin ancak beyan tamamlandığında isteniyor: yarım veriyle hesaplanan
+    // aralık, kullanıcının aklında kalan ama tutmayan bir rakam oluyor
+    if (!tamam || !vehicleCode || !pickupDistrict || !dropoffDistrict) return null;
     return {
       serviceModel,
       vehicleTypeCode: vehicleCode,
@@ -80,7 +122,7 @@ export function EstimateFlow({
       ],
       extraServices: extras,
     };
-  }, [vehicleCode, pickupDistrict, dropoffDistrict, serviceModel, pickup, dropoff, extras]);
+  }, [tamam, vehicleCode, pickupDistrict, dropoffDistrict, serviceModel, pickup, dropoff, extras]);
 
   const abortRef = useRef<AbortController | null>(null);
   useEffect(() => {
@@ -120,11 +162,13 @@ export function EstimateFlow({
       df: String(dropoff.floor), de: dropoff.hasElevator ? '1' : '0',
       ek: extras.join(','),
     });
-    // Planlı taşımada tarih burada seçildi; ilan adımı aynı soruyu tekrar sormasın
     if (alisPenceresi) {
       q.set('bas', alisPenceresi.start);
       q.set('bit', alisPenceresi.end);
     }
+    // Beyan da taşınıyor; ilan adımı aynı soruyu tekrar sormasın
+    const yuk = encodeItems(kalemler);
+    if (yuk) q.set('yuk', yuk);
     return `/panel/ilan/yeni?${q.toString()}`;
   })();
 
@@ -152,7 +196,7 @@ export function EstimateFlow({
   return (
     <div className="grid gap-8 lg:grid-cols-[minmax(0,1.5fr)_minmax(0,1fr)] lg:items-start">
       <div className="space-y-8">
-        {/* Rota */}
+        {/* 1 — Rota */}
         <section className="rounded-card border border-line bg-surface p-5 sm:p-6">
           <div className="relative space-y-4">
             <PlaceSearch
@@ -208,7 +252,7 @@ export function EstimateFlow({
           </div>
         </section>
 
-        {/* Ne zaman */}
+        {/* 2 — Ne zaman */}
         <section>
           <h2 className="label-mono text-muted">Ne zaman</h2>
           <div role="radiogroup" className="mt-2.5 grid grid-cols-2 gap-2.5 sm:max-w-md">
@@ -225,7 +269,12 @@ export function EstimateFlow({
                   type="button"
                   role="radio"
                   aria-checked={on}
-                  onClick={() => setServiceModel(value)}
+                  onClick={() => {
+                    setServiceModel(value);
+                    // Biçim değişince pencere sıfırlanıyor: planlıda seçilmiş ileri
+                    // bir tarihin anlık taşımada karşılığı yok
+                    setAlisPenceresi(null);
+                  }}
                   className={`rounded-field border p-3 text-left transition ${
                     on ? 'border-route bg-[var(--route-soft)]' : 'border-line bg-surface hover:border-muted'
                   }`}
@@ -237,77 +286,93 @@ export function EstimateFlow({
             })}
           </div>
 
-          {/* Tarih, "planlı" denen yerde soruluyor. Yalnızca ilan adımında
-              sorulduğunda kullanıcı seçimi yapıp hiçbir şey görmüyor ve tarihin
-              nerede istendiğini bulamıyordu. */}
-          {serviceModel === 'SCHEDULED' && (
-            <div className="mt-5 rounded-card border border-line bg-surface p-5">
-              <PickupWindow onChange={setAlisPenceresi} defaultValue={alisPenceresi} />
-            </div>
-          )}
+          {/* Saat iki biçimde de soruluyor. Anlık taşımada gün bugüne sabit:
+              "en kısa sürede" bile bir aralığa denk geliyor ve araç sahibinin
+              bunu bilmesi gerekiyor. */}
+          <div className="mt-5 rounded-card border border-line bg-surface p-5">
+            <PickupWindow
+              // Biçim değişince bileşen sıfırdan kuruluyor; aksi hâlde planlıda
+              // yazılmış saatler anlık moda taşınırdı
+              key={serviceModel}
+              serviceModel={serviceModel}
+              onChange={setAlisPenceresi}
+              defaultValue={alisPenceresi}
+            />
+          </div>
         </section>
 
-        {/* Araç */}
+        {/* 3 — Yük: araçtan önce, çünkü araç yükün sonucu */}
         <section>
-          <div className="flex flex-wrap items-baseline justify-between gap-2">
-            <h2 className="label-mono text-muted">Araç tipi</h2>
+          <h2 className="label-mono text-muted">Ne taşınacak</h2>
+          <div className="mt-2.5 rounded-card border border-line bg-surface p-5 sm:p-6">
             {catalog ? (
-              <button
-                type="button"
-                onClick={() => setAdvisorOpen((o) => !o)}
-                aria-expanded={advisorOpen}
-                className="-my-2.5 rounded-md py-2.5 text-sm font-semibold text-[var(--route-deep)] underline-offset-4 transition hover:text-[#6d4708] hover:underline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-route pointer-coarse:min-h-11"
-              >
-                {advisorOpen ? 'Danışmanı kapat' : 'Yükümü tarif edeyim →'}
-              </button>
+              <>
+                <h3 className="text-lg font-bold">
+                  {forcedCategory ? 'Ne yükleniyor?' : 'Yükünü tarif et, aracı biz seçelim'}
+                </h3>
+                <p className="mb-5 mt-1 text-sm text-muted">
+                  {forcedCategory
+                    ? 'Palet, tomruk, big-bag, konteyner — cinsini ve adedini gir; araç ve fiyat buna göre netleşir.'
+                    : 'Kategori seç, adetleri gir; öneri gerekçesiyle gelir ve araç seçimine yazılır.'}
+                </p>
+                <CargoAdvisor
+                  categories={catalog.categories}
+                  items={catalog.items}
+                  presets={catalog.presets}
+                  vehicleTypes={vehicleTypes}
+                  floors={floors}
+                  categoryCode={categoryCode}
+                  onCategory={setCategoryCode}
+                  selection={selection}
+                  onSelection={setSelection}
+                  onVehicle={onAdvisorVehicle}
+                  forcedCategory={forcedCategory}
+                />
+              </>
             ) : (
               /* Katalog gelmediğinde bölüm SESSİZCE kaybolmuyor. Eskiden öyleydi ve
                  kısa bir API kesintisi, "yük seçme ekranı nereye gitti?" sorusunu
                  cevapsız bırakıyordu. Eksik olanı söylemek, hiçbir şey dememekten iyi. */
-              <span className="text-sm text-muted">Yük tarif etme şu an yüklenemedi</span>
+              <p className="text-sm text-muted">
+                Yük tarif etme şu an yüklenemedi. Birazdan tekrar deneyin.
+              </p>
             )}
+
+            <div className="mt-6 border-t border-line pt-6">
+              <CargoPhotoPicker onChange={setFotografAdedi} />
+            </div>
           </div>
+        </section>
+
+        {/* 4 — Araç: öneri buraya yazıyor, kullanıcı ezebiliyor */}
+        <section>
+          <h2 className="label-mono text-muted">Araç tipi</h2>
           <div className="mt-2.5">
             <VehiclePicker
               vehicles={vehicleTypes}
               value={vehicleCode}
               onChange={(code) => {
                 setVehicleCode(code);
-                // Kamyon/tır seçildiğinde tarif formu komple yüke geçiyor ve
-                // danışman kendiliğinden açılıyor: bu araçlarda "kaç koli?"
-                // sorusunun karşılığı yok.
+                // Kamyon/tır seçildiğinde tarif formu komple yüke geçiyor: bu
+                // araçlarda "kaç koli?" sorusunun karşılığı yok. Kategori
+                // değiştiği için önceki seçim de bırakılıyor.
                 const fullLoad = isFullLoad(code);
-                setForcedCategory(fullLoad ? FULL_LOAD_CATEGORY : null);
-                if (fullLoad) setAdvisorOpen(true);
+                const yeniKategori = fullLoad ? FULL_LOAD_CATEGORY : null;
+                const kategoriDegisti = fullLoad
+                  ? categoryCode !== FULL_LOAD_CATEGORY
+                  : forcedCategory !== null;
+                setForcedCategory(yeniKategori);
+                if (kategoriDegisti) {
+                  setCategoryCode(yeniKategori);
+                  setSelection(BOS_SECIM);
+                }
               }}
               className="grid-cols-2 sm:grid-cols-3"
             />
           </div>
-
-          {catalog && advisorOpen && (
-            <div className="mt-5 rounded-card border border-line bg-surface p-5 sm:p-6">
-              <h3 className="text-lg font-bold">
-                {forcedCategory ? 'Ne yükleniyor?' : 'Yükünü tarif et, aracı biz seçelim'}
-              </h3>
-              <p className="mb-5 mt-1 text-sm text-muted">
-                {forcedCategory
-                  ? 'Palet, tomruk, big-bag, konteyner — cinsini ve adedini gir; araç ve fiyat buna göre netleşir.'
-                  : 'Kategori seç, adetleri gir; öneri gerekçesiyle gelir ve yukarıdaki seçime yazılır.'}
-              </p>
-              <CargoAdvisor
-                categories={catalog.categories}
-                items={catalog.items}
-                presets={catalog.presets}
-                vehicleTypes={vehicleTypes}
-                floors={floors}
-                onVehicle={onAdvisorVehicle}
-                forcedCategory={forcedCategory}
-              />
-            </div>
-          )}
         </section>
 
-        {/* Ek hizmetler */}
+        {/* 5 — Ek hizmetler */}
         {selectableExtras.length > 0 && (
           <section>
             <h2 className="label-mono text-muted">Ek hizmetler</h2>
@@ -346,9 +411,10 @@ export function EstimateFlow({
           quote={quote}
           loading={loading}
           error={error}
-          ready={request !== null}
+          missing={eksikler}
           vehicleName={vehicle?.displayName ?? null}
           publishHref={publishHref}
+          signedIn={signedIn}
         />
       </div>
     </div>

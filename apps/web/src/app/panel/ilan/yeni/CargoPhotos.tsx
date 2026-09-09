@@ -1,13 +1,11 @@
 'use client';
 
-import { useRef, useState, useTransition } from 'react';
+import { useEffect, useRef, useState, useTransition } from 'react';
+import { fotograflariOku, fotograflariTemizle } from '@/lib/photo-store';
+import { EN_FAZLA_FOTOGRAF, fotografSorunu } from '@/lib/uploads';
 import { removeListingPhoto, uploadListingPhoto } from '../../actions';
 
 type Frame = { id: string; previewUrl: string; name: string };
-
-/** Sunucu tarafındaki sınırla aynı; ikisi ayrışırsa kullanıcı reddedilen bir dosyayı yükler. */
-const MAX_PHOTOS = 10;
-const MAX_BYTES = 8 * 1024 * 1024;
 
 /**
  * Yük fotoğrafları.
@@ -19,6 +17,11 @@ const MAX_BYTES = 8 * 1024 * 1024;
  * <p>Kareler ilandan önce yükleniyor — kullanıcı ne gönderdiğini görsün ve yanlışını
  * silebilsin diye. Önizleme yerel dosyadan üretiliyor: yayınlanmamış fotoğrafın
  * sunucudan okunabileceği bir adresi yok ve olmamalı.
+ *
+ * <p>Fiyat adımında seçilenler tarayıcıda bekliyordu (bkz. photo-store); kimlik
+ * ancak burada belli olduğu için sunucuya <em>burada</em> gidiyorlar. Devralma
+ * bittiğinde yerel kopya siliniyor: tampon olarak duruyor, ikinci bir depo
+ * olarak değil.
  */
 export function CargoPhotos({
   photoIds,
@@ -29,15 +32,65 @@ export function CargoPhotos({
 }) {
   const [frames, setFrames] = useState<Frame[]>([]);
   const [error, setError] = useState<string | null>(null);
+  const [devralma, setDevralma] = useState(true);
   const [pending, startTransition] = useTransition();
   const inputRef = useRef<HTMLInputElement>(null);
+
+  /*
+   * Fiyat adımından gelen kareler. Kullanıcı bunları zaten seçti; yeniden
+   * seçtirmek, girişten önce yaptığı işi çöpe atmak olurdu.
+   */
+  useEffect(() => {
+    let iptal = false;
+    (async () => {
+      const bekleyenler = await fotograflariOku();
+      if (iptal || bekleyenler.length === 0) {
+        if (!iptal) setDevralma(false);
+        return;
+      }
+
+      const alinanlar: Frame[] = [];
+      const kalanlar: string[] = [];
+      for (const kayit of bekleyenler.slice(0, EN_FAZLA_FOTOGRAF)) {
+        const form = new FormData();
+        form.append('file', new File([kayit.blob], kayit.name, { type: kayit.type }));
+        const sonuc = await uploadListingPhoto(form);
+        if (sonuc.error || !sonuc.id) {
+          kalanlar.push(kayit.name);
+          continue;
+        }
+        alinanlar.push({
+          id: sonuc.id,
+          previewUrl: URL.createObjectURL(kayit.blob),
+          name: kayit.name,
+        });
+      }
+      if (iptal) return;
+
+      if (alinanlar.length > 0) {
+        setFrames(alinanlar);
+        onChange(alinanlar.map((f) => f.id));
+      }
+      if (kalanlar.length > 0) {
+        setError(`Şu fotoğraflar yüklenemedi, tekrar ekleyebilirsin: ${kalanlar.join(', ')}`);
+      }
+      // Tampon boşaltılıyor: aynı kareler bir sonraki ilanda tekrar yüklenmesin
+      await fotograflariTemizle();
+      setDevralma(false);
+    })();
+    return () => {
+      iptal = true;
+    };
+    // Yalnızca ilk açılışta; sonrasını ekleme ve silme yönetiyor
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   const add = (files: FileList | null) => {
     if (!files || files.length === 0) return;
     setError(null);
-    const room = MAX_PHOTOS - photoIds.length;
+    const room = EN_FAZLA_FOTOGRAF - photoIds.length;
     if (room <= 0) {
-      setError(`En fazla ${MAX_PHOTOS} fotoğraf yükleyebilirsin.`);
+      setError(`En fazla ${EN_FAZLA_FOTOGRAF} fotoğraf yükleyebilirsin.`);
       return;
     }
 
@@ -45,8 +98,9 @@ export function CargoPhotos({
     startTransition(async () => {
       const accepted: Frame[] = [];
       for (const file of chosen) {
-        if (file.size > MAX_BYTES) {
-          setError(`${file.name} 8 MB'tan büyük.`);
+        const sorun = fotografSorunu(file);
+        if (sorun) {
+          setError(sorun);
           continue;
         }
         const form = new FormData();
@@ -84,13 +138,17 @@ export function CargoPhotos({
       <div className="flex flex-wrap items-baseline justify-between gap-x-4 gap-y-1">
         <span className="label-mono text-muted">Yükün fotoğrafı</span>
         <span className="label-mono text-muted">
-          {photoIds.length}/{MAX_PHOTOS}
+          {photoIds.length}/{EN_FAZLA_FOTOGRAF}
         </span>
       </div>
       <p className="mt-1 text-xs text-muted">
         En az bir kare gerekiyor. Eşyanın kendisini çek — kimlik, adres ya da yüz
         görünmesin; bu kareleri teklif veren araç sahipleri görüyor.
       </p>
+
+      {devralma && photoIds.length === 0 && (
+        <p className="mt-3 text-sm text-muted">Fiyat adımındaki fotoğrafların yükleniyor…</p>
+      )}
 
       {frames.length > 0 && (
         <ul className="mt-3 grid grid-cols-2 gap-2 sm:grid-cols-3 lg:grid-cols-4">
@@ -127,7 +185,7 @@ export function CargoPhotos({
       <button
         type="button"
         onClick={() => inputRef.current?.click()}
-        disabled={pending || photoIds.length >= MAX_PHOTOS}
+        disabled={pending || devralma || photoIds.length >= EN_FAZLA_FOTOGRAF}
         className="mt-3 min-h-11 rounded-field border border-line px-4 py-2.5 text-sm font-semibold transition hover:border-route hover:bg-surface-2 disabled:opacity-60"
       >
         {pending ? 'Yükleniyor…' : photoIds.length === 0 ? 'Fotoğraf ekle' : 'Bir kare daha ekle'}

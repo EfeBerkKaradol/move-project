@@ -37,6 +37,8 @@ export type CargoCategory = {
   typicalVolumeMinM3: number | null;
   typicalVolumeMaxM3: number | null;
   defaultVehicleTypeCode: string | null;
+  /** PACKAGE_COUNT formunda "kaç paket" sayısının karşılığı olan kalem kodu. */
+  defaultPackageItemCode: string | null;
   detailFormType: string;
   sortOrder: number;
 };
