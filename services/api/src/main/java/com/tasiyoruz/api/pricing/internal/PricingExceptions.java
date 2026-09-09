@@ -14,3 +14,13 @@ class OutOfServiceAreaException extends RuntimeException {
     }
 }
 
+
+/**
+ * Rota katmanı mesafe üretemedi. Fiyat uydurmak yerine açıkça başarısız oluyoruz:
+ * yanlış bir rakam, kullanıcının hatırlayıp bize tutacağı bir rakam olur.
+ */
+class DistanceUnavailableException extends RuntimeException {
+    DistanceUnavailableException() {
+        super("Mesafe hesaplanamadı. Adresleri kontrol edip tekrar deneyin.");
+    }
+}

@@ -41,6 +41,7 @@ class DefaultPricingService implements PricingService {
     private final GeoService geoService;
     private final RouteProvider routeProvider;
     private final QuoteSigner signer;
+    private final ZonePricing zonePricing;
 
     DefaultPricingService(
             RateCardRepository rateCards,
@@ -48,13 +49,15 @@ class DefaultPricingService implements PricingService {
             PlatformCommissionRepository commissions,
             GeoService geoService,
             RouteProvider routeProvider,
-            QuoteSigner signer) {
+            QuoteSigner signer,
+            ZonePricing zonePricing) {
         this.rateCards = rateCards;
         this.extraServices = extraServices;
         this.commissions = commissions;
         this.geoService = geoService;
         this.routeProvider = routeProvider;
         this.signer = signer;
+        this.zonePricing = zonePricing;
     }
 
     @Override
@@ -64,49 +67,68 @@ class DefaultPricingService implements PricingService {
 
         var route = routeProvider.estimate(
                 stops.stream().map(d -> new GeoPoint(d.lat(), d.lng())).toList());
+        // Rota katmanı mesafe üretemediyse fiyat uydurmuyoruz: yanlış bir rakam,
+        // kullanıcının hatırlayıp bize tutacağı bir rakam olur
+        if (route == null || route.distanceMeters() < 0) throw new DistanceUnavailableException();
 
-        // Önce ilin kendi tarifesi; yoksa ulusal varsayılan ('00'). İl çarpanı
-        // yalnızca büyükşehirlerde tanımlı, diğer 78 il varsayılanı kullanıyor.
-        var card = rateCards
-                .findFirstByCityCodeAndVehicleTypeCodeAndServiceModelAndCarrierIdIsNullAndActiveTrueOrderByVersionDesc(
-                        cityCode, request.vehicleTypeCode(), request.serviceModel())
-                .or(() -> rateCards
-                        .findFirstByCityCodeAndVehicleTypeCodeAndServiceModelAndCarrierIdIsNullAndActiveTrueOrderByVersionDesc(
-                                NATIONAL_CITY_CODE, request.vehicleTypeCode(), request.serviceModel()))
-                .orElseThrow(() -> new NoRateCardException(cityCode, request.vehicleTypeCode()));
+        var km = BigDecimal.valueOf(route.distanceMeters()).divide(BigDecimal.valueOf(1000), 2, RoundingMode.HALF_UP);
+        var distanceNote = route.approximate()
+                ? "Takribî mesafe — harita servisi devreye girince kesinleşecek"
+                : null;
 
         var lines = new ArrayList<Quote.BreakdownLine>();
+        BigDecimal subtotal;
 
-        // 1) Taban ücret
-        lines.add(line("BASE_FARE", "Taban ücret", card.getBaseFare(), null));
+        // Şehir içi yaka tarifesi (V22) varsa taşıma ücretini o veriyor. Yalnızca
+        // tüm durakları aynı ildeyse: yaka çifti şehirlerarası bir rotada anlamsız.
+        var zoneFare = sameCity(stops)
+                ? zonePricing.transportFare(cityCode, request.vehicleTypeCode(),
+                        stops.getFirst().slug(), stops.getLast().slug(), km, distanceNote)
+                : java.util.Optional.<ZonePricing.Fare>empty();
 
-        // 2) Mesafe — dahil km düşülür, kalan kademeli ücretlendirilir
-        var km = BigDecimal.valueOf(route.distanceMeters()).divide(BigDecimal.valueOf(1000), 2, RoundingMode.HALF_UP);
-        var chargeableKm = km.subtract(card.getIncludedKm()).max(BigDecimal.ZERO);
-        if (chargeableKm.signum() > 0) {
-            var distanceCost = tieredDistanceCost(card, chargeableKm);
-            lines.add(line("DISTANCE", "Mesafe (%s km)".formatted(tr(km)), distanceCost,
-                    route.approximate() ? "Takribî mesafe — harita servisi devreye girince kesinleşecek" : null));
-        }
+        if (zoneFare.isPresent()) {
+            lines.addAll(zoneFare.get().lines());
+            subtotal = zoneFare.get().total();
+        } else {
+            // Önce ilin kendi tarifesi; yoksa ulusal varsayılan ('00'). İl çarpanı
+            // yalnızca büyükşehirlerde tanımlı, diğer 78 il varsayılanı kullanıyor.
+            var card = rateCards
+                    .findFirstByCityCodeAndVehicleTypeCodeAndServiceModelAndCarrierIdIsNullAndActiveTrueOrderByVersionDesc(
+                            cityCode, request.vehicleTypeCode(), request.serviceModel())
+                    .or(() -> rateCards
+                            .findFirstByCityCodeAndVehicleTypeCodeAndServiceModelAndCarrierIdIsNullAndActiveTrueOrderByVersionDesc(
+                                    NATIONAL_CITY_CODE, request.vehicleTypeCode(), request.serviceModel()))
+                    .orElseThrow(() -> new NoRateCardException(cityCode, request.vehicleTypeCode()));
 
-        // 3) Süre
-        var minutes = BigDecimal.valueOf(route.durationSeconds()).divide(BigDecimal.valueOf(60), 0, RoundingMode.HALF_UP);
-        var durationCost = card.getPerMinuteRate().multiply(minutes);
-        if (durationCost.signum() > 0) {
-            lines.add(line("DURATION", "Süre (%s dk)".formatted(minutes.toPlainString()), durationCost, null));
-        }
+            // 1) Taban ücret
+            lines.add(line("BASE_FARE", "Taban ücret", card.getBaseFare(), null));
 
-        var subtotal = sum(lines);
+            // 2) Mesafe — dahil km düşülür, kalan kademeli ücretlendirilir
+            var chargeableKm = km.subtract(card.getIncludedKm()).max(BigDecimal.ZERO);
+            if (chargeableKm.signum() > 0) {
+                var distanceCost = tieredDistanceCost(card, chargeableKm);
+                lines.add(line("DISTANCE", "Mesafe (%s km)".formatted(tr(km)), distanceCost, distanceNote));
+            }
 
-        // 4) Minimum ücret — taşımanın kendisine (taban + mesafe + süre) uygulanır.
-        //
-        // Ek hizmetlerden ÖNCE gelmesi şart: kısa bir taşımada asansörsüz 4 katın ücreti
-        // minimum farkının içinde eriyip sıfıra iniyordu — müşteri gerçek bir emek için
-        // ödemiyor, nakliyeci karşılığını almıyordu.
-        if (subtotal.compareTo(card.getMinimumFare()) < 0) {
-            lines.add(line("MINIMUM_FARE_ADJUSTMENT", "Minimum ücret farkı",
-                    card.getMinimumFare().subtract(subtotal), null));
-            subtotal = card.getMinimumFare();
+            // 3) Süre
+            var minutes = BigDecimal.valueOf(route.durationSeconds()).divide(BigDecimal.valueOf(60), 0, RoundingMode.HALF_UP);
+            var durationCost = card.getPerMinuteRate().multiply(minutes);
+            if (durationCost.signum() > 0) {
+                lines.add(line("DURATION", "Süre (%s dk)".formatted(minutes.toPlainString()), durationCost, null));
+            }
+
+            subtotal = sum(lines);
+
+            // 4) Minimum ücret — taşımanın kendisine (taban + mesafe + süre) uygulanır.
+            //
+            // Ek hizmetlerden ÖNCE gelmesi şart: kısa bir taşımada asansörsüz 4 katın ücreti
+            // minimum farkının içinde eriyip sıfıra iniyordu — müşteri gerçek bir emek için
+            // ödemiyor, nakliyeci karşılığını almıyordu.
+            if (subtotal.compareTo(card.getMinimumFare()) < 0) {
+                lines.add(line("MINIMUM_FARE_ADJUSTMENT", "Minimum ücret farkı",
+                        card.getMinimumFare().subtract(subtotal), null));
+                subtotal = card.getMinimumFare();
+            }
         }
 
         // 5) Ek hizmetler
@@ -177,6 +199,12 @@ class DefaultPricingService implements PricingService {
         // Şehirlerarası taşıma ürünün ana kullanımı (docs/11 §4); tarife alış
         // noktasının iline göre seçilir, mesafe kademeleri uzun yolu ucuzlatır.
         return resolved;
+    }
+
+    /** Tüm duraklar aynı ilde mi — yaka tarifesi yalnızca şehir içinde geçerli. */
+    private static boolean sameCity(List<District> stops) {
+        var city = stops.getFirst().cityCode();
+        return stops.stream().allMatch(d -> city.equals(d.cityCode()));
     }
 
     /**

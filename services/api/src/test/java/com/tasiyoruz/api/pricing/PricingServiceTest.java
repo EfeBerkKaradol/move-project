@@ -280,4 +280,67 @@ class PricingServiceTest extends IntegrationTestBase {
                 .reduce(BigDecimal.ZERO, BigDecimal::add);
         assertThat(sum).isEqualByComparingTo(quote.totalAmount().amount());
     }
+
+    // ─────────────────────────────────────────────────────────────
+    // Yaka bazlı şehir içi tarife (V22)
+
+    @Test
+    void istanbulIciPanelvanYakaTarifesindenFiyatlanir() {
+        // Kadıköy (Anadolu) → Beşiktaş (Avrupa): yaka değişiyor, köprü ücreti
+        // ayrı bir satır olarak görünmeli
+        var quote = pricing.quote(request("34", "kadikoy", "besiktas", "PANELVAN"));
+
+        var gecis = quote.breakdown().stream().filter(l -> l.code().equals("CROSSING")).findFirst();
+        assertThat(gecis).as("yaka geçişi satırı").isPresent();
+        assertThat(gecis.get().amount().amount()).isEqualByComparingTo("400");
+        assertThat(gecis.get().note()).isEqualTo("Anadolu → Avrupa");
+    }
+
+    @Test
+    void yakaTarifesiSureUcretiIcermez() {
+        // Şehir içi model taban + km; dakika ücreti yalnızca eski tarifede var.
+        // İkisi birden uygulansaydı İstanbul iki kez ücretlendirilirdi.
+        var quote = pricing.quote(request("34", "kadikoy", "besiktas", "PANELVAN"));
+
+        assertThat(quote.breakdown()).noneMatch(l -> l.code().equals("DURATION"));
+    }
+
+    @Test
+    void ayniYakadakiRotaGecisUcretiOdemez() {
+        var quote = pricing.quote(request("34", "kadikoy", "atasehir", "PANELVAN"));
+
+        assertThat(quote.breakdown()).noneMatch(l -> l.code().equals("CROSSING"));
+    }
+
+    @Test
+    void yakaTarifesiOlmayanAracEskiYoldanFiyatlanir() {
+        // MOTOR'un yaka tarifesi yok; eski rate_cards yolu bozulmamalı
+        var quote = pricing.quote(request("34", "kadikoy", "besiktas", "MOTOR"));
+
+        assertThat(quote.breakdown()).anyMatch(l -> l.code().equals("DURATION"));
+        assertThat(quote.totalAmount().amount()).isPositive();
+    }
+
+    @Test
+    void yakaTarifesiOlmayanSehirEskiYoldanFiyatlanir() {
+        var quote = pricing.quote(request("06", "cankaya", "kecioren", "PANELVAN"));
+
+        assertThat(quote.breakdown()).anyMatch(l -> l.code().equals("DURATION"));
+        assertThat(quote.breakdown()).noneMatch(l -> l.code().equals("CROSSING"));
+    }
+
+    @Test
+    void yakaTarifesiEskisindenPahali() {
+        /*
+         * Değişikliğin sebebi buydu: İstanbul içi panelvan işi piyasanın altında
+         * kalıyordu (docs/12). Aynı rotada Kamyonet eski tarifeden, Panelvan yeni
+         * tarifeden fiyatlanıyor — panelvan daha küçük araç olduğu hâlde şehir
+         * içi km ücreti onu öne çıkarmalı.
+         */
+        var yeni = pricing.quote(request("34", "kadikoy", "besiktas", "PANELVAN"));
+
+        assertThat(yeni.totalAmount().amount())
+                .as("İstanbul içi panelvan minimumun altına düşmemeli")
+                .isGreaterThanOrEqualTo(new BigDecimal("1500"));
+    }
 }

@@ -135,3 +135,61 @@ Hepsi spot ile firma arasında; TIR spot bandının içinde.
 4. **Sezon ve gün etkisi** tarifede yok; teklif pazarı bunu doğal yansıtır. İleride talep
    katsayısı düşünülebilir (docs/03 dinamik fiyat notu).
 5. **Boş dönüş indirimi** (docs/11 §3) tarifede değil, koridor eşleşmesinde uygulanır.
+
+---
+
+## 6. İstanbul içi yaka tarifesi (10 Eylül 2026, V22)
+
+V6 tarifesi şehirlerarası taşımaya göre kalibre edilmişti ve **İstanbul içinde
+piyasanın altında kalıyordu**. Sebep km ücretinin uzun yola göre seçilmesi: 20 km
+şehirlerarası yarım saat, İstanbul'da iki saat.
+
+### Emsal kontrolü
+
+| Kaynak | Ne diyor | Karşılaştırma |
+|---|---|---|
+| [Armut — panelvan nakliye](https://armut.com/fiyatlari/panelvan-nakliye_1713) | İstanbul şehir içi **1.500–2.000 ₺** (hafif yük); genel bant 2.200–9.500 ₺ | V6 aynı işe ~1.400 ₺ diyordu — bandın altında |
+| [Hizmetgo — İstanbul kamyonet/nakliye aracı](https://www.hizmetgo.app/fiyatlari/kamyonet-nakliye-araci-kiralama/istanbul) | Günlük **1.250–10.000 ₺** | Yeni kamyon değerleri (3.500–5.500 ₺) bandın içinde |
+| [Yük Yükle — Ankara–İstanbul navlun](https://yukyukle.tr/bloglar/ankara-istanbul-arasi-yuk-tasima-navlun-fiyatlari-2026) | Panelvan/kamyonet **4.500–7.000 ₺** (≈450 km) | Şehirlerarası; eski model orada doğru çalışıyor, o yüzden korundu |
+| [MS Moto Kurye](https://msmotokurye.com/fiyatlar), [Martı TAG km ücreti](https://www.trafiksitesi.com/blog/marti-tag-km-ucreti-nasil-hesaplanir/419) | Motokurye/TAG km başı bandı | Motor tarifesi bandın içinde; değiştirilmedi |
+
+Martı TAG bir **yolcu** hizmeti; km ücreti eşya taşımaya doğrudan emsal değil,
+yalnızca İstanbul içi km maliyetinin büyüklük mertebesi için okundu.
+
+### Model
+
+Fiyat dört şeyden çıkıyor: alış yakası, teslim yakası, gerçek yol mesafesi, araç.
+
+- Eşik **25 km** (`zone_pricing_settings`); eşiğin kendisi uzun sayılıyor.
+- Yaka çifti ayrı bir boyut: köprü geçişi mesafeden bağımsız bir maliyet — 8 km'lik
+  bir Boğaz geçişi, 20 km'lik yaka içi işten pahalı.
+- Kıta geçişi şimdilik sabit **400 ₺**. Rota servisi gerçek köprü/otoyol ücretini
+  döndürdüğünde (ANAHTARLAR.md #1) bu sabit onun yerini bırakacak.
+- Sıra: taban + km × ücret → kıta geçişi → minimum. Geçiş minimumdan önce, çünkü
+  köprü ücreti taşımanın parçası; minimumun eritebileceği bir ek hizmet değil.
+
+| Araç | Senaryo | Taban | ₺/km | Minimum |
+|---|---|---|---|---|
+| Panelvan | Yaka içi · kısa | 900 | 55 | 1.500 |
+| Panelvan | Yaka içi · uzun | 1.200 | 50 | 1.500 |
+| Panelvan | Yaka geçişli · kısa | 1.300 | 55 | 1.500 |
+| Panelvan | Yaka geçişli · uzun | 1.600 | 50 | 1.500 |
+| Kamyon | Yaka içi · kısa | 1.800 | 85 | 3.000 |
+| Kamyon | Yaka içi · uzun | 2.500 | 75 | 3.000 |
+| Kamyon | Yaka geçişli · kısa | 2.300 | 85 | 3.000 |
+| Kamyon | Yaka geçişli · uzun | 3.000 | 75 | 3.000 |
+
+Yaka geçişli satırlar iki yön için de yazılı (Avrupa→Anadolu ve Anadolu→Avrupa);
+bugün simetrikler ama yarın biri ayrı fiyatlanmak istendiğinde tek satır değişsin.
+
+### Kapsam ve bilinen boşluk
+
+Tarife yalnızca **İstanbul + panelvan/kamyon** için var. Diğer şehirler, diğer
+araçlar ve şehirlerarası rotalar eski `rate_cards` yolundan devam ediyor — yeni
+model eskiyi kaldırmıyor, eşleşme bulduğunda önüne geçiyor.
+
+> **Açık sorun — araç sınıfları arasında ters fiyat.** Kadıköy→Beşiktaş (8,3 km):
+> kamyon **3.404 ₺** (yeni), kamyonet **3.564 ₺** (eski, minimum ücreti belirliyor).
+> Küçük araç büyüğünden pahalı görünüyor. Sebep kısmi geçiş: kamyonet, mini
+> panelvan, otomobil ve TIR için yaka tarifesi verilmedi. Bu araçların İstanbul
+> değerleri girilene kadar sürecek; ürün tarafından rakam gelmeden uydurulmadı.
