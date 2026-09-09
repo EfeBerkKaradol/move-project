@@ -7,6 +7,7 @@ import { HowItWorks } from '@/components/site/HowItWorks';
 import { QuoteWidget } from '@/components/site/QuoteWidget';
 import { SceneTransition } from '@/components/site/SceneTransition';
 import { SearchSection } from '@/components/site/SearchSection';
+import { Faq } from '@/components/site/Faq';
 import { TrustSection } from '@/components/site/TrustSection';
 import { TwoSidedMarket } from '@/components/site/TwoSidedMarket';
 import { VehicleRange } from '@/components/site/VehicleRange';
@@ -50,6 +51,8 @@ export default async function HomePage() {
         <TwoSidedMarket shipperHref={shipperHref} carrierHref={carrierJoinHref} />
         <VehicleRange vehicles={vehicles ?? []} />
         <TrustSection />
+        {/* En sonda: ürünü anlatan bölümleri okuduktan sonra kalan sorular */}
+        <Faq />
       </main>
       <Footer />
     </>

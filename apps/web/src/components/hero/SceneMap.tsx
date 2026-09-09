@@ -14,7 +14,7 @@ import {
   ROUTE_OUT,
   TURKEY_PATH,
   TURKEY_PATH_COMPACT,
-  TURKEY_PROVINCES,
+  TURKEY_BORDERS,
 } from './geo-data';
 
 /**
@@ -125,13 +125,14 @@ export function SceneMap({
           strokeLinejoin="round"
         />
 
-        {/* İl sınırları.
-            Dolgu ülke silüetinden geliyor, buradan yalnızca çizgi: iller ayrı ayrı
-            doldurulsaydı kıyı çizgisi 81 poligonun birleşiminden çıkar ve
-            sadeleştirme farkları yüzünden dikişler görünürdü.
+        {/* İl sınırları — yalnızca İÇ sınırlar, her biri bir kez.
+            Kapalı il çokgenleri çizilseydi komşuların paylaştığı sınır iki kez
+            basılır, yarı saydam çizgi kendi üstüne binip koyulaşırdı. Kıyı burada
+            yok: o yukarıdaki silüetten geliyor.
 
-            Kırpma şart — iller ve dış hat ayrı bütçelerle sadeleştiriliyor, kıyı
-            illerinin kenarı silüetin bir iki piksel dışına taşabiliyor.
+            Kırpma, sınırların silüet dışına taşmasına karşı: iki katman ayrı
+            sadeleştiriliyor ve kıyıya değen yayların ucu bir piksel dışarı
+            çıkabiliyor.
 
             Telefonda hiç çizilmiyor: harita 375 piksel geniş, il başına ~10 piksel
             düşüyor. Sınırlar okunmuyor, yalnızca maliyet çıkarıyor. */}
@@ -142,17 +143,15 @@ export function SceneMap({
                 <path d={turkeyPath} />
               </clipPath>
             </defs>
-            <g
+            <path
+              d={TURKEY_BORDERS}
               clipPath={`url(#${provinceClipId})`}
               fill="none"
-              stroke="rgb(255 255 255 / 0.16)"
-              strokeWidth={0.8}
+              stroke="rgb(255 255 255 / 0.22)"
+              strokeWidth={0.7}
               strokeLinejoin="round"
-            >
-              {TURKEY_PROVINCES.map((province) => (
-                <path key={province.name} d={province.d} />
-              ))}
-            </g>
+              strokeLinecap="round"
+            />
           </>
         )}
 

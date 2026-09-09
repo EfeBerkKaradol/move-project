@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { CITIES, MAP_BOX, NETWORK_CITIES, TURKEY_PROVINCES, projectLonLat } from './geo-data';
+import { CITIES, MAP_BOX, NETWORK_CITIES, TURKEY_BORDERS, projectLonLat } from './geo-data';
 
 /**
  * Sabit şehirler derleme anında (build-maps.mjs), ilan haritasındaki noktalar
@@ -65,52 +65,51 @@ describe('ağ şehirleri', () => {
 });
 
 /**
- * İl sınırları dış hattan AYRI bir bütçeyle sadeleştiriliyor ama AYNI oturtmayı
- * kullanıyor. Oturtma kaçarsa iller haritanın yanına düşer ve bunu ancak gözle
+ * İl sınırları dış hattan AYRI bir toleransla sadeleştiriliyor ama AYNI oturtmayı
+ * kullanıyor. Oturtma kaçarsa sınırlar haritanın yanına düşer ve bunu ancak gözle
  * fark ederiz — testin işi o kaçışı yakalamak.
  */
 describe('il sınırları', () => {
-  it('81 il var ve adlar tekrarlamıyor', () => {
-    expect(TURKEY_PROVINCES).toHaveLength(81);
-    const adlar = TURKEY_PROVINCES.map((p) => p.name);
-    expect(new Set(adlar).size).toBe(81);
-  });
+  const noktalar = [...TURKEY_BORDERS.matchAll(/(-?[\d.]+) (-?[\d.]+)/g)].map(
+    (m) => [Number(m[1]), Number(m[2])] as const,
+  );
 
-  it('her ilin çizilebilir bir yolu var', () => {
-    for (const province of TURKEY_PROVINCES) {
-      expect(province.d.startsWith('M')).toBe(true);
-      expect(province.d.endsWith('Z')).toBe(true);
-    }
+  it('çizilebilir ve boş değil', () => {
+    expect(TURKEY_BORDERS.startsWith('M')).toBe(true);
+    expect(noktalar.length).toBeGreaterThan(1000);
   });
 
   it('bütün noktalar harita kutusunun içinde', () => {
-    for (const province of TURKEY_PROVINCES) {
-      for (const [, x, y] of province.d.matchAll(/(-?[\d.]+) (-?[\d.]+)/g)) {
-        expect(Number(x)).toBeGreaterThanOrEqual(0);
-        expect(Number(x)).toBeLessThanOrEqual(MAP_BOX.w);
-        expect(Number(y)).toBeGreaterThanOrEqual(0);
-        expect(Number(y)).toBeLessThanOrEqual(MAP_BOX.h);
-      }
+    for (const [x, y] of noktalar) {
+      expect(x).toBeGreaterThanOrEqual(0);
+      expect(x).toBeLessThanOrEqual(MAP_BOX.w);
+      expect(y).toBeGreaterThanOrEqual(0);
+      expect(y).toBeLessThanOrEqual(MAP_BOX.h);
     }
   });
 
-  /** Şehir noktaları illerin üstüne düşmeli; ikisi aynı uzayda değilse ayrışırlar. */
-  it('İstanbul noktası İstanbul ilinin sınırları içinde kalıyor', () => {
-    const istanbul = TURKEY_PROVINCES.find((p) => p.name === 'İstanbul');
-    expect(istanbul).toBeDefined();
+  /**
+   * İç sınırlar kıyıyı İÇERMEMELİ: kıyı ülke silüetinden çiziliyor ve ikisi üst
+   * üste binerse ayrı sadeleştirilmiş iki çizgi bulanıklık üretir. Ölçülebilir
+   * izi, sınırların kutunun kenarlarına dayanmaması.
+   */
+  it('kıyı çizgisini içermiyor', () => {
+    const xs = noktalar.map(([x]) => x);
+    const ys = noktalar.map(([, y]) => y);
+    expect(Math.min(...xs)).toBeGreaterThan(20);
+    expect(Math.max(...xs)).toBeLessThan(MAP_BOX.w - 20);
+    expect(Math.min(...ys)).toBeGreaterThan(20);
+    expect(Math.max(...ys)).toBeLessThan(MAP_BOX.h - 20);
+  });
 
-    const noktalar = [...istanbul!.d.matchAll(/(-?[\d.]+) (-?[\d.]+)/g)].map(
-      ([, x, y]) => [Number(x), Number(y)] as const,
+  /** Sınırlar ile şehir noktaları aynı uzayda mı: İstanbul ile Ankara arasında sınır olmalı. */
+  it('şehir noktalarıyla aynı uzayda', () => {
+    const istanbul = CITIES.find((c) => c.id === 'istanbul')!;
+    const ankara = CITIES.find((c) => c.id === 'ankara')!;
+    const arada = noktalar.filter(
+      ([x, y]) => x > istanbul.x && x < ankara.x && y > Math.min(istanbul.y, ankara.y) - 40
+        && y < Math.max(istanbul.y, ankara.y) + 40,
     );
-    const minX = Math.min(...noktalar.map(([x]) => x));
-    const maxX = Math.max(...noktalar.map(([x]) => x));
-    const minY = Math.min(...noktalar.map(([, y]) => y));
-    const maxY = Math.max(...noktalar.map(([, y]) => y));
-
-    const sehir = CITIES.find((c) => c.id === 'istanbul')!;
-    expect(sehir.x).toBeGreaterThanOrEqual(minX);
-    expect(sehir.x).toBeLessThanOrEqual(maxX);
-    expect(sehir.y).toBeGreaterThanOrEqual(minY);
-    expect(sehir.y).toBeLessThanOrEqual(maxY);
+    expect(arada.length).toBeGreaterThan(20);
   });
 });

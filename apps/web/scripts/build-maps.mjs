@@ -45,13 +45,16 @@ const TARGET = {
   istanbulPerDistrict: 30,
   istanbulPerDistrictCompact: 16,
   /**
-   * İl başına nokta. 81 il × 26 ≈ 2.100 nokta — tek dış hattın üç katı, ama
-   * sınırlar ancak bu kadarıyla il gibi görünüyor; daha azında Karadeniz kıyısı
-   * testereye dönüyor.
+   * İl sınırlarının sadeleştirme toleransı (mercator birimi).
    *
-   * Mobilde il sınırı HİÇ çizilmiyor (aşağıya bak), o yüzden kompakt bütçe yok.
+   * <p>İl başına nokta bütçesi DEĞİL, ortak tolerans: sınırlar yay yay ve tek
+   * kez sadeleştiriliyor, bir ilin bütçesi komşusunun sınırını da belirliyor.
+   * Ortak bir tolerans, her yayın uzunluğuna göre hak ettiği kadar nokta almasını
+   * sağlıyor.
+   *
+   * Mobilde il sınırı HİÇ çizilmiyor, o yüzden kompakt sürüm yok.
    */
-  provincePerShape: 26,
+  provinceTolerance: 1.2e-3,
 };
 
 
@@ -162,27 +165,130 @@ const toPath = (rings, project) =>
     .map((r) => 'M' + r.map(project).map(([x, y]) => `${x} ${y}`).join('L') + 'Z')
     .join('');
 
-/** ADM1 dosyasından sadeleştirilmiş, sıralı il listesi. */
+const nokta = (p) => `${p[0].toFixed(9)},${p[1].toFixed(9)}`;
+
+/**
+ * ADM1 dosyasından sadeleştirilmiş il listesi.
+ *
+ * <p><strong>Ortak sınır bir kez sadeleştiriliyor.</strong> Her il ayrı ayrı
+ * sadeleştirildiğinde komşu iki ilin paylaştığı sınır iki farklı nokta kümesine
+ * düşüyor: çizgiler birbirinden bir iki piksel kayıyor, üst üste binen iki yarı
+ * saydam çizgi koyulaşıyor ve sınırlar bulanıklaşıyor. Kaynakta komşular birebir
+ * aynı noktaları paylaşıyor (~%19'u), bu yüzden sınırı yaylara ayırıp her yayı
+ * TEK kez sadeleştirmek mümkün: iki il de aynı çizgiyi alıyor, üst üste binen
+ * çizgiler tam örtüşüyor.
+ *
+ * <p>Bu, TopoJSON'un yaptığı işin küçük bir hâli. Kütüphane eklemek yerine
+ * yazıldı çünkü ihtiyaç tek bir dosyaya özel ve otuz satır tutuyor.
+ */
 function readProvinces(file) {
   const geo = JSON.parse(readFileSync(file, 'utf8'));
-  const out = geo.features
+  const iller = geo.features
     .map((f) => ({ name: f.properties.shapeName ?? '', rings: ringsOf(f.geometry) }))
     .map((p) => {
       // İl içindeki adacıklar sınır çiziminde nokta kalabalığından başka bir şey
       // üretmiyor; ana gövde kalıyor
       const largest = Math.max(...p.rings.map(area));
-      const rings = p.rings.filter((r) => area(r) > largest / 120);
-      return { name: p.name, rings: simplifyToBudget(rings, TARGET.provincePerShape) };
+      return { name: p.name, rings: p.rings.filter((r) => area(r) > largest / 120) };
     })
     .sort((a, b) => a.name.localeCompare(b.name, 'tr'));
 
-  if (out.length !== 81) throw new Error(`İl sayısı 81 olmalı, ${out.length} bulundu.`);
-  return out;
+  if (iller.length !== 81) throw new Error(`İl sayısı 81 olmalı, ${iller.length} bulundu.`);
+
+  // 1) Her nokta kaç ilde geçiyor? Birden çoksa o nokta bir ortak sınırın üstünde.
+  const sahip = new Map();
+  iller.forEach((il, i) => {
+    const gorulen = new Set();
+    for (const ring of il.rings) for (const p of ring) {
+      const k = nokta(p);
+      if (gorulen.has(k)) continue;
+      gorulen.add(k);
+      (sahip.get(k) ?? sahip.set(k, new Set()).get(k)).add(i);
+    }
+  });
+  const sahipAnahtari = (p) => [...(sahip.get(nokta(p)) ?? [])].sort((a, b) => a - b).join('-');
+
+  // 2) Halkaları yaylara böl: sahip kümesi değiştiği her yerde kesiliyor.
+  //    Aynı ortak sınır iki ilde de aynı yay olarak çıkıyor (biri ters yönde).
+  const yaylar = new Map();
+  const kanonik = (yay) => {
+    const ileri = yay.map(nokta).join('|');
+    const geri = [...yay].reverse().map(nokta).join('|');
+    return ileri < geri ? ileri : geri;
+  };
+
+  const halkaYaylari = iller.map((il) =>
+    il.rings.map((ring) => {
+      // Kapalı halka: son nokta ilkin tekrarı, bölerken bir kez sayılıyor
+      const pts = ring.slice(0, -1);
+      const anahtarlar = pts.map(sahipAnahtari);
+      const kesim = [];
+      for (let i = 0; i < pts.length; i++) {
+        if (anahtarlar[i] !== anahtarlar[(i - 1 + pts.length) % pts.length]) kesim.push(i);
+      }
+      // Hiç değişmiyorsa (ada ya da tamamen ortak sınır) halkanın kendisi tek yay
+      if (kesim.length === 0) kesim.push(0);
+
+      const parcalar = [];
+      for (let c = 0; c < kesim.length; c++) {
+        const bas = kesim[c];
+        const son = kesim[(c + 1) % kesim.length];
+        const yay = [];
+        for (let i = bas; ; i = (i + 1) % pts.length) {
+          yay.push(pts[i]);
+          if (i === son) break;
+        }
+        if (yay.length >= 2) parcalar.push(yay);
+      }
+      return parcalar;
+    }),
+  );
+
+  // 3) Her benzersiz yayı BİR kez sadeleştir
+  for (const il of halkaYaylari) for (const ring of il) for (const yay of ring) {
+    const k = kanonik(yay);
+    if (!yaylar.has(k)) yaylar.set(k, simplify(yay, TARGET.provinceTolerance));
+  }
+
+  // 4) İÇ sınırlar: ≥2 ilin paylaştığı yaylar, her biri BİR kez.
+  //    Kıyı buraya girmiyor — o zaten ülke silüetinden çiziliyor; iki katmanın
+  //    ayrı sadeleştirilmiş kıyıyı üst üste basması bulanıklık üretirdi.
+  const icSinirlar = [];
+  const yazilan = new Set();
+  for (const il of halkaYaylari) for (const ring of il) for (const yay of ring) {
+    const k = kanonik(yay);
+    if (yazilan.has(k)) continue;
+    yazilan.add(k);
+    // Yayın her noktası ≥2 ilde geçiyorsa bu bir iç sınır
+    const ortak = yay.every((pt) => (sahip.get(nokta(pt))?.size ?? 0) > 1);
+    if (ortak) icSinirlar.push(yaylar.get(k));
+  }
+
+  const provinces = iller.map((il, i) => ({
+    name: il.name,
+    rings: halkaYaylari[i].map((ring) => {
+      const pts = [];
+      for (const yay of ring) {
+        const sade = yaylar.get(kanonik(yay));
+        // Kanonik anahtar yönü kaybediyor; yay ters saklanmışsa geri çevriliyor
+        const duz = nokta(sade[0]) === nokta(yay[0]) ? sade : [...sade].reverse();
+        for (const p of duz) {
+          if (pts.length === 0 || nokta(pts[pts.length - 1]) !== nokta(p)) pts.push(p);
+        }
+      }
+      if (pts.length) pts.push(pts[0]);
+      return pts;
+    }).filter((r) => r.length >= 4),
+  }));
+
+  return { provinces, icSinirlar };
 }
 
-const provinceBlock = (list, project) => `export const TURKEY_PROVINCES: { name: string; d: string }[] = [
-${list.map((p) => `  { name: '${p.name.replace(/'/g, "\\'")}', d: '${toPath(p.rings, project)}' },`).join('\n')}
-];`;
+/** İç sınırlar tek bir yol katarında; her yay kapalı değil, açık çizgi. */
+const bordersBlock = (arcs, project) =>
+  `export const TURKEY_BORDERS =\n  '${arcs
+    .map((a) => 'M' + a.map(project).map(([x, y]) => `${x} ${y}`).join('L'))
+    .join('')}';`;
 
 // ── Yalnızca iller ────────────────────────────────────────────────────────
 if (process.argv[2] === '--provinces-only') {
@@ -208,14 +314,12 @@ if (process.argv[2] === '--provinces-only') {
 
   // ringsOf mercator'ı zaten uyguluyor; burada ikinci kez uygulamak noktaları
   // kutunun bin piksel dışına atıyordu
-  const block = provinceBlock(readProvinces(file), project);
-  const replaced = current.replace(
-    /export const TURKEY_PROVINCES: \{ name: string; d: string \}\[\] = \[[\s\S]*?\n\];/,
-    block,
-  );
-  if (replaced === current) throw new Error('TURKEY_PROVINCES bloğu geo-data.ts içinde bulunamadı.');
+  const { icSinirlar } = readProvinces(file);
+  const block = bordersBlock(icSinirlar, project);
+  const replaced = current.replace(/export const TURKEY_BORDERS =\n  '[^']*';/, block);
+  if (replaced === current) throw new Error('TURKEY_BORDERS bloğu geo-data.ts içinde bulunamadı.');
   writeFileSync(target, replaced);
-  console.log(`TURKEY_PROVINCES güncellendi (81 il).`);
+  console.log(`TURKEY_BORDERS güncellendi (${icSinirlar.length} iç sınır yayı).`);
   process.exit(0);
 }
 
@@ -236,7 +340,7 @@ const fitTurkey = fitter(turkeyRings);
 // birleşimi ülkeyle aynı sınırı verse de sadeleştirme sonrası birkaç ondalık
 // farkla çıkar ve projeksiyon kayar. Kayınca rota, araç ve şehir noktaları
 // yerinden oynar — geo-data.test.ts tam bunu koruyor.
-const provinces = provincePath ? readProvinces(provincePath) : [];
+const provinceData = provincePath ? readProvinces(provincePath) : { icSinirlar: [] };
 
 // ── İstanbul ──────────────────────────────────────────────────────────────
 const istanbulGeo = JSON.parse(readFileSync(istanbulPath, 'utf8'));
@@ -422,7 +526,7 @@ export const TURKEY_PATH_COMPACT =
  * ~10 piksel düşüyor ve sınırlar okunmuyor, yalnızca maliyet çıkarıyor. Orada
  * TURKEY_PATH_COMPACT'in tek silüeti kalıyor.
  */
-${provinceBlock(provinces, fitTurkey)}
+${bordersBlock(provinceData.icSinirlar, fitTurkey)}
 
 /** İstanbul ilçeleri. Kıyı çizgisi ilçelerin dış sınırından, Boğaz aradaki boşluk. */
 export const ISTANBUL_PATHS: string[] = [

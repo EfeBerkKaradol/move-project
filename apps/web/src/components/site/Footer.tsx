@@ -47,6 +47,7 @@ const COLUMNS = [
       { href: '/legal/hukuka-aykiri-kullanim', label: 'Hukuka aykırı kullanım' },
       { href: '/legal/iptal-iade', label: 'İptal ve iade' },
       { href: '/legal/ihlaller-ve-sikayetler', label: 'İhlal bildirimi' },
+      { href: '/#sss', label: 'Sıkça sorulanlar' },
       { href: '/legal', label: 'Tüm yasal belgeler' },
     ],
   },
