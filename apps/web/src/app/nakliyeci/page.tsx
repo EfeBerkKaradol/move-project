@@ -4,12 +4,13 @@ import type { Metadata } from 'next';
 import Link from 'next/link';
 import { redirect } from 'next/navigation';
 import { auth, canCallApi, homeFor, isDriver } from '@/auth';
-import { ListingsMap, type MapListing } from '@/components/app/ListingsMap';
+import { ProvinceList, ProvinceMap, type ProvinceStat } from '@/components/map/ProvinceMap';
 import { RouteLine } from '@/components/app/RouteLine';
 import { Shell } from '@/components/app/Shell';
 import { SubNav } from '@/components/app/SubNav';
 import { apiFetch } from '@/lib/api-server';
 import { getDistricts } from '@/lib/api';
+import { normalize } from '@/lib/places';
 import { StatusPill } from '@/components/app/StatusPill';
 import { withdrawOffer } from './actions';
 import { OfferForm } from './OfferForm';
@@ -35,13 +36,17 @@ function shortDateTime(iso: string): string {
   return new Date(iso).toLocaleString('tr-TR', { dateStyle: 'short', timeStyle: 'short' });
 }
 
-export default async function DriverPage() {
+type Params = Promise<Record<string, string | string[] | undefined>>;
+const first = (v: string | string[] | undefined) => (Array.isArray(v) ? v[0] : v) ?? '';
+
+export default async function DriverPage({ searchParams }: { searchParams: Params }) {
   const session = await auth();
   if (!canCallApi(session)) redirect('/giris');
   if (!isDriver(session.roles)) redirect(homeFor(session.roles));
   // Taşıyıcının kendi teklifleri kartta gösterilir; aksi hâlde form yeniden çıkar ve
   // ikinci gönderim "zaten teklif verdiniz" ile döner.
-  const [listings, myOffers, districts] = await Promise.all([
+  const [p, tumIlanlar, myOffers, districts] = await Promise.all([
+    searchParams,
     apiFetch<ListingView[]>('/driver/listings/open'),
     apiFetch<OfferView[]>('/driver/offers'),
     // Harita için ilçe koordinatları. İlan görünümü yalnızca ilçe kimliği
@@ -51,24 +56,31 @@ export default async function DriverPage() {
   const mine = new Map(myOffers.filter((o) => o.status === 'SUBMITTED').map((o) => [o.listingId, o]));
 
   const byId = new Map((districts ?? []).map((d: District) => [d.id, d]));
-  const place = (id: string) => byId.get(id);
-  // Koordinatı bulunamayan ilan haritada çizilmiyor ama listede duruyor:
-  // eksik bir katalog kaydı yüzünden iş gizlenmemeli.
-  const mapListings: MapListing[] = listings.flatMap((l) => {
-    const from = place(l.pickup.districtId);
-    const to = place(l.dropoff.districtId);
-    if (!from || !to) return [];
-    return [{
-      id: l.id,
-      listingNumber: l.listingNumber,
-      vehicleTypeCode: l.vehicleTypeCode,
-      fromLabel: `${from.cityName}, ${from.name}`,
-      toLabel: `${to.cityName}, ${to.name}`,
-      from: { lat: from.lat, lng: from.lng },
-      to: { lat: to.lat, lng: to.lng },
-      km: Math.round(l.estimate.distanceMeters / 1000),
-    }];
-  });
+
+  /*
+   * Haritanın sayaçları SÜZÜLMEMİŞ listeden: seçili ilin dışındaki illerin de
+   * kaç işi olduğu görünmeli, yoksa araç sahibi bir ile girdiğinde haritanın
+   * geri kalanı boşalır ve başka nereye gideceğini göremez.
+   */
+  const cityFilter = first(p.il);
+  const ilanSayisi = new Map<string, number>();
+  for (const l of tumIlanlar) {
+    const ad = byId.get(l.pickup.districtId)?.cityName ?? l.pickup.cityName;
+    if (ad) ilanSayisi.set(normalize(ad), (ilanSayisi.get(normalize(ad)) ?? 0) + 1);
+  }
+  const iller = new Map<string, string>();
+  for (const d of districts ?? []) iller.set(d.cityCode, d.cityName);
+  const provinceStats: ProvinceStat[] = [...iller].map(([cityCode, name]) => ({
+    name,
+    cityCode,
+    count: ilanSayisi.get(normalize(name)) ?? 0,
+  }));
+
+  // Süzgeç burada uygulanıyor, uçta değil: aynı istek hem haritayı hem listeyi
+  // besliyor ve il değiştirmek yeni bir çağrı gerektirmiyor
+  const listings = cityFilter
+    ? tumIlanlar.filter((l) => byId.get(l.pickup.districtId)?.cityCode === cityFilter)
+    : tumIlanlar;
 
   return (
     <Shell eyebrow="Araç sahibi" title="Açık ilanlar">
@@ -84,18 +96,32 @@ export default async function DriverPage() {
         />
       </div>
 
+      {/* Harita boş durumun üstünde: seçilen ilde iş yoksa araç sahibi buradan
+          başka bir ile geçebilmeli. Süzülmemiş sayaçlar da o yüzden. */}
+      {tumIlanlar.length > 0 && (
+        <div className="mt-6">
+          <ProvinceMap
+            provinces={provinceStats}
+            selectedCityCode={cityFilter || null}
+            basePath="/nakliyeci"
+          />
+          <ProvinceList
+            provinces={provinceStats}
+            selectedCityCode={cityFilter || null}
+            basePath="/nakliyeci"
+          />
+        </div>
+      )}
+
       {listings.length === 0 ? (
         <div className="mt-6 rounded-card border border-dashed border-line p-8 text-center">
-          <p className="font-semibold">Şu an açık ilan yok.</p>
+          <p className="font-semibold">
+            {cityFilter ? 'Bu ilde açık ilan yok.' : 'Şu an açık ilan yok.'}
+          </p>
           <p className="mt-1 text-sm text-muted">Dönüş rotanı <a href="/nakliyeci/koridor" className="font-semibold underline underline-offset-4 transition hover:text-ink">boş dönüş</a> sayfasında kaydet; o rotaya düşen yükler sana getirilsin.</p>
         </div>
       ) : (
         <>
-          {mapListings.length > 0 && (
-            <div className="mt-6">
-              <ListingsMap listings={mapListings} />
-            </div>
-          )}
         <ul className="mt-6 space-y-4">
           {listings.map((l) => (
             <li

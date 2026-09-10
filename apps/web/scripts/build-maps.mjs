@@ -15,6 +15,9 @@
  * Yalnızca il sınırlarını tazelemek için (diğer iki kaynak gerekmeden):
  *   node scripts/build-maps.mjs --provinces-only <TUR-ADM1.geojson>
  *
+ * İl il tıklanabilir harita için kapalı poligonlar (src/components/map/province-shapes.ts):
+ *   node scripts/build-maps.mjs --province-shapes <TUR-ADM1.geojson>
+ *
  * Bu kipte oturtma, geo-data.ts'e yazılmış TURKEY_PROJECTION'dan okunuyor. Böylece
  * iller aynı uzaya düşüyor ve dosyanın geri kalanına — rotaya, araca, şehir
  * noktalarına — hiç dokunulmuyor. Sadeleştirme kodu tek: iki kip de aynı
@@ -320,6 +323,109 @@ if (process.argv[2] === '--provinces-only') {
   if (replaced === current) throw new Error('TURKEY_BORDERS bloğu geo-data.ts içinde bulunamadı.');
   writeFileSync(target, replaced);
   console.log(`TURKEY_BORDERS güncellendi (${icSinirlar.length} iç sınır yayı).`);
+  process.exit(0);
+}
+
+// ── İl şekilleri ──────────────────────────────────────────────────────────
+//
+// TURKEY_BORDERS yalnızca sınır ÇİZGİLERİ; tıklanabilir bir harita için ilin
+// kapalı poligonu gerekiyor. Aynı yay topolojisinden üretiliyor: komşuların
+// paylaştığı sınır tek kez sadeleştirildiği için iki ilin çizgisi birebir
+// örtüşüyor, aralarında ne boşluk ne de çift çizgi kalıyor.
+if (process.argv[2] === '--province-shapes') {
+  const file = process.argv[3];
+  if (!file) throw new Error('kullanım: node scripts/build-maps.mjs --province-shapes <TUR-ADM1.geojson>');
+
+  const geoData = readFileSync(new URL('../src/components/hero/geo-data.ts', import.meta.url), 'utf8');
+  // Oturtma hero haritasından okunuyor: iki harita aynı uzaya düşsün diye.
+  // Elle kopyalanan bir sabit, kaynak tazelendiğinde sessizce eskirdi.
+  const params = Object.fromEntries(
+    ['minX', 'maxY', 'scale', 'offsetX', 'offsetY'].map((key) => {
+      const m = geoData.match(new RegExp(`${key}:\\s*(-?[\\d.]+)`));
+      if (!m) throw new Error(`TURKEY_PROJECTION.${key} geo-data.ts içinde bulunamadı.`);
+      return [key, Number(m[1])];
+    }),
+  );
+  const project = ([x, y]) => [
+    +((x - params.minX) * params.scale + params.offsetX).toFixed(1),
+    +((params.maxY - y) * params.scale + params.offsetY).toFixed(1),
+  ];
+
+  const { provinces } = readProvinces(file);
+
+  /** Halkanın alan ağırlıklı ağırlık merkezi — etiket ve yakınlaştırma noktası. */
+  const centroid = (ring) => {
+    let a = 0, cx = 0, cy = 0;
+    for (let i = 0; i < ring.length - 1; i++) {
+      const [x0, y0] = ring[i];
+      const [x1, y1] = ring[i + 1];
+      const f = x0 * y1 - x1 * y0;
+      a += f; cx += (x0 + x1) * f; cy += (y0 + y1) * f;
+    }
+    if (a === 0) return ring[0];
+    return [cx / (3 * a), cy / (3 * a)];
+  };
+
+  const kayitlar = provinces.map((il) => {
+    const halkalar = il.rings.map((r) => r.map(project));
+    const d = halkalar
+      .map((r) => 'M' + r.map(([x, y]) => `${x} ${y}`).join('L') + 'Z')
+      .join('');
+
+    const hepsi = halkalar.flat();
+    const xs = hepsi.map(([x]) => x);
+    const ys = hepsi.map(([, y]) => y);
+    const minX = Math.min(...xs), maxX = Math.max(...xs);
+    const minY = Math.min(...ys), maxY = Math.max(...ys);
+
+    // Ağırlık merkezi en büyük halkadan: adacıklar merkezi denize kaydırıyordu
+    const anaHalka = halkalar.reduce((a, b) => (Math.abs(area(b)) > Math.abs(area(a)) ? b : a));
+    const [cx, cy] = centroid(anaHalka);
+
+    return {
+      name: il.name,
+      d,
+      cx: +cx.toFixed(1),
+      cy: +cy.toFixed(1),
+      box: [minX, minY, +(maxX - minX).toFixed(1), +(maxY - minY).toFixed(1)],
+    };
+  });
+
+  const nokta = kayitlar.reduce((t, k) => t + (k.d.match(/[ML]/g) ?? []).length, 0);
+  const govde = kayitlar
+    .map((k) => `  { name: ${JSON.stringify(k.name)}, cx: ${k.cx}, cy: ${k.cy}, ` +
+      `box: [${k.box.join(', ')}], d: '${k.d}' },`)
+    .join('\n');
+
+  const out = `// ÜRETİLMİŞ DOSYA — elle düzenlenmiyor.
+// node scripts/build-maps.mjs --province-shapes <TUR-ADM1.geojson>
+//
+// Kaynak: geoBoundaries gbOpen TUR ADM1 (OpenStreetMap türevi).
+// Oturtma hero haritasıyla ortak (geo-data.ts · TURKEY_PROJECTION), bu yüzden
+// iki harita aynı kutuya ve aynı ölçeğe düşüyor.
+
+/** Bir ilin kapalı sınırı ve yakınlaştırma bilgileri. */
+export type ProvinceShape = {
+  /** geoBoundaries yazımı; API'deki il adıyla eşlemek için normalize edilmeli
+   *  (kaynak "Hakkâri" diyor, veritabanı "Hakkari"). */
+  name: string;
+  /** Etiket ve yakınlaştırma merkezi. */
+  cx: number;
+  cy: number;
+  /** Sığdırma kutusu: [x, y, genişlik, yükseklik]. */
+  box: [number, number, number, number];
+  /** Kapalı yol; komşuyla ortak sınır aynı noktalardan geçiyor. */
+  d: string;
+};
+
+export const PROVINCE_SHAPES: ProvinceShape[] = [
+${govde}
+];
+`;
+
+  const hedef = new URL('../src/components/map/province-shapes.ts', import.meta.url);
+  writeFileSync(hedef, out);
+  console.log(`province-shapes.ts yazıldı — ${kayitlar.length} il, ${nokta} nokta, ${(out.length / 1024).toFixed(1)} KB.`);
   process.exit(0);
 }
 

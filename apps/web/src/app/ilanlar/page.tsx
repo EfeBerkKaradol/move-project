@@ -3,11 +3,12 @@ import { formatPrice } from '@tasiyoruz/shared';
 import type { Metadata } from 'next';
 import Link from 'next/link';
 import { auth, isDriver } from '@/auth';
-import { ListingsMap, type MapListing } from '@/components/app/ListingsMap';
+import { ProvinceList, ProvinceMap, type ProvinceStat } from '@/components/map/ProvinceMap';
 import { Footer } from '@/components/site/Footer';
 import { Header } from '@/components/site/Header';
 import { Icon } from '@/components/ui/Icon';
 import { getDistricts, getPublicListings, getVehicleTypes } from '@/lib/api';
+import { normalize } from '@/lib/places';
 
 export const metadata: Metadata = {
   title: 'Açık ilanlar',
@@ -40,8 +41,36 @@ export default async function PublicListingsPage({ searchParams }: { searchParam
   // Araç süzgeci sunucuda değil burada uygulanıyor: çiplerin yanındaki sayılar için
   // zaten o ildeki bütün ilanlar gerekiyor ve iki istek atmanın anlamı yok. (Uç en
   // fazla 60 ilan dönüyor; sayılar o üst sınırın içinden.)
-  const all = await getPublicListings({ city: cityFilter || undefined });
+  // İki liste: haritanın sayaçları bütün illeri bilmek zorunda, liste ise
+  // seçilen ilin ilanlarını sunucudan süzülmüş hâlde istiyor. Süzgeç yokken
+  // ikisi aynı istek. (Uç en fazla 60 ilan dönüyor; sayılar o üst sınırın
+  // içinden — haritada gösterilen sayı, listede görülebilecek sayı.)
+  const [tumIller, secilenIl] = await Promise.all([
+    getPublicListings(),
+    cityFilter ? getPublicListings({ city: cityFilter }) : Promise.resolve(null),
+  ]);
+  const all = secilenIl ?? tumIller;
   const listings = vehicleFilter ? (all ?? []).filter((l) => l.vehicleTypeCode === vehicleFilter) : all;
+
+  /*
+   * Haritadaki sayılar araç süzgecini de yansıtıyor: yansıtmasaydı kullanıcı
+   * boyalı bir ile tıklayıp boş liste bulurdu.
+   */
+  const haritaIlanlari = vehicleFilter
+    ? (tumIller ?? []).filter((l) => l.vehicleTypeCode === vehicleFilter)
+    : (tumIller ?? []);
+  const ilanSayisi = new Map<string, number>();
+  for (const l of haritaIlanlari) {
+    const k = normalize(l.fromCity);
+    ilanSayisi.set(k, (ilanSayisi.get(k) ?? 0) + 1);
+  }
+  const iller = new Map<string, string>();
+  for (const d of districts ?? []) iller.set(d.cityCode, d.cityName);
+  const provinceStats: ProvinceStat[] = [...iller].map(([cityCode, name]) => ({
+    name,
+    cityCode,
+    count: ilanSayisi.get(normalize(name)) ?? 0,
+  }));
   const cityName = cityFilter
     ? (districts ?? []).find((d: District) => d.cityCode === cityFilter)?.cityName ?? null
     : null;
@@ -50,18 +79,6 @@ export default async function PublicListingsPage({ searchParams }: { searchParam
   // Araç sahibi olmayan ziyaretçi teklif veremiyor; onu yükü göremeyeceği bir
   // giriş ekranına değil, ne yapması gerektiğini anlatan sayfaya gönderiyoruz.
   const detailHref = (id: string) => (signedInDriver ? `/nakliyeci/ilan/${id}` : '/sofor-ol');
-
-  const byId = new Map((districts ?? []).map((d: District) => [d.id, d]));
-  const mapListings: MapListing[] = (listings ?? []).flatMap((l) => {
-    const from = byId.get(l.fromDistrictId);
-    const to = byId.get(l.toDistrictId);
-    if (!from || !to) return [];
-    return [{
-      id: l.id, listingNumber: '', vehicleTypeCode: l.vehicleTypeCode,
-      fromLabel: `${l.fromCity}, ${l.fromDistrict}`, toLabel: `${l.toCity}, ${l.toDistrict}`,
-      from: { lat: from.lat, lng: from.lng }, to: { lat: to.lat, lng: to.lng }, km: l.distanceKm,
-    }];
-  });
 
   const active = (vehicles ?? []).filter((v: VehicleType) => v.active);
   // Sayı, çipe basmadan önce sonucu söylüyor. Sıfırsa çip bağlantı değil: boş sayfaya
@@ -115,6 +132,25 @@ export default async function PublicListingsPage({ searchParams }: { searchParam
             </nav>
           )}
 
+          {/* Harita boş durumun üstünde: seçilen ilde ilan yoksa kullanıcı
+              haritadan başka bir ile geçebilmeli. Altında aynı seçimin klavye
+              karşılığı duruyor — seksen bir yolu sekmeye açmak klavye
+              kullanıcısını haritanın içinde kilitlerdi. */}
+          <div className="mt-8">
+            <ProvinceMap
+              provinces={provinceStats}
+              selectedCityCode={cityFilter || null}
+              vehicleFilter={vehicleFilter}
+              basePath="/ilanlar"
+            />
+            <ProvinceList
+              provinces={provinceStats}
+              selectedCityCode={cityFilter || null}
+              vehicleFilter={vehicleFilter}
+              basePath="/ilanlar"
+            />
+          </div>
+
           {!listings || listings.length === 0 ? (
             <div className="mt-10 rounded-card border border-dashed border-line p-8 text-center">
               <p className="font-semibold">
@@ -132,12 +168,6 @@ export default async function PublicListingsPage({ searchParams }: { searchParam
             </div>
           ) : (
             <>
-              {mapListings.length > 0 && (
-                <div className="mt-10">
-                  <ListingsMap listings={mapListings} />
-                </div>
-              )}
-
               <ul className="mt-6 grid gap-3 md:grid-cols-2 xl:grid-cols-3">
                 {listings.map((l) => (
                   <li
