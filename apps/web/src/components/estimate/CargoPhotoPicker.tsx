@@ -7,9 +7,19 @@ import {
   fotografSil,
   fotograflariOku,
 } from '@/lib/photo-store';
+import { beyanUyarisi, kareSorunu, tekrarEdenKare } from '@/lib/photo-check';
+import { kareyiOlc } from '@/lib/photo-measure';
 import { EN_FAZLA_FOTOGRAF, fotografSorunu } from '@/lib/uploads';
 
-type Kare = { id: string; name: string; url: string };
+type Kare = {
+  id: string;
+  name: string;
+  url: string;
+  /** Algı parmak izi; tekrar eden kareyi bulmak için. Ölçülemediyse boş. */
+  hash: string;
+  /** Bu karenin sorunu — karanlık, bulanık ya da tekrar. Yoksa null. */
+  sorun: string | null;
+};
 
 /**
  * Yük fotoğrafları — üye olmadan, fiyat adımında.
@@ -22,7 +32,14 @@ type Kare = { id: string; name: string; url: string };
  * ilan yayınlanırken yükleniyor — gerekçesi {@link photo-store} içinde.
  * Önizleme de o yerel kopyadan üretiliyor.
  */
-export function CargoPhotoPicker({ onChange }: { onChange: (adet: number) => void }) {
+export function CargoPhotoPicker({
+  onChange,
+  beyanHacmiM3,
+}: {
+  onChange: (adet: number) => void;
+  /** Beyan edilen toplam hacim; kare sayısının yetip yetmediği buna bakıyor. */
+  beyanHacmiM3: number;
+}) {
   const [kareler, setKareler] = useState<Kare[]>([]);
   const [hata, setHata] = useState<string | null>(null);
   const [yukleniyor, setYukleniyor] = useState(true);
@@ -33,11 +50,14 @@ export function CargoPhotoPicker({ onChange }: { onChange: (adet: number) => voi
   // temizlik etkisi her değişiklikte yeniden kurulur ve hâlâ ekranda olan
   // önizlemeleri iptal ederdi.
   const adresler = useRef<string[]>([]);
-  const kareyeCevir = useCallback((k: BekleyenFotograf): Kare => {
-    const url = URL.createObjectURL(k.blob);
-    adresler.current.push(url);
-    return { id: k.id, name: k.name, url };
-  }, []);
+  const kareyeCevir = useCallback(
+    (k: BekleyenFotograf, hash = '', sorun: string | null = null): Kare => {
+      const url = URL.createObjectURL(k.blob);
+      adresler.current.push(url);
+      return { id: k.id, name: k.name, url, hash, sorun };
+    },
+    [],
+  );
 
   /*
    * Girişten dönen kullanıcı fotoğraflarını yeniden seçmesin: Keycloak'a gidip
@@ -49,7 +69,9 @@ export function CargoPhotoPicker({ onChange }: { onChange: (adet: number) => voi
     fotograflariOku()
       .then((kayitlar) => {
         if (iptal) return;
-        setKareler(kayitlar.map(kareyeCevir));
+        // Doğrudan kareyeCevir verilemiyor: map ikinci argüman olarak indeksi
+        // geçiriyor ve o da hash parametresine düşüyor
+        setKareler(kayitlar.map((k) => kareyeCevir(k)));
       })
       .finally(() => {
         if (!iptal) setYukleniyor(false);
@@ -98,9 +120,22 @@ export function CargoPhotoPicker({ onChange }: { onChange: (adet: number) => voi
         setHata(sorun);
         continue;
       }
+      /*
+       * Kare okunuyor: karanlık mı, boş mu, aynısı zaten var mı. Tanıma değil —
+       * ne olduğunu söylemiyoruz, bakmaya değer olup olmadığını söylüyoruz.
+       * Ölçülemezse sessiz kalıyoruz; bilmediğimiz şey hakkında konuşmuyoruz.
+       */
+      const olcum = await kareyiOlc(file);
+      const oncekiHashler = [...kareler, ...yeni].map((k) => k.hash).filter(Boolean);
+      const kareUyarisi = olcum
+        ? tekrarEdenKare(olcum.hash, oncekiHashler)
+          ? 'Bu kare zaten yüklediklerinden biriyle aynı. Farklı bir açı daha faydalı olur.'
+          : kareSorunu(olcum)
+        : null;
+
       const { kayit, kalici: yazildi } = await fotografEkle(file);
       if (!yazildi) setKalici(false);
-      yeni.push(kareyeCevir(kayit));
+      yeni.push(kareyeCevir(kayit, olcum?.hash ?? '', kareUyarisi));
     }
 
     if (yeni.length > 0) setKareler((oncekiler) => [...oncekiler, ...yeni]);
@@ -142,7 +177,11 @@ export function CargoPhotoPicker({ onChange }: { onChange: (adet: number) => voi
             >
               {/* next/image yok: dosya yerel bir blob, optimizasyon katmanı okuyamaz */}
               {/* eslint-disable-next-line @next/next/no-img-element */}
-              <img src={kare.url} alt={kare.name} className="aspect-square w-full object-cover" />
+              <img
+                src={kare.url}
+                alt={kare.name}
+                className={`aspect-square w-full object-cover ${kare.sorun ? 'opacity-70' : ''}`}
+              />
               <button
                 type="button"
                 onClick={() => sil(kare.id)}
@@ -178,6 +217,27 @@ export function CargoPhotoPicker({ onChange }: { onChange: (adet: number) => voi
       </button>
 
       {hata && <p className="mt-2 text-sm text-[#8a2a1f]">{hata}</p>}
+
+      {/* Kare uyarıları engel değil: hangi karenin işe yaramadığını söyleyip
+          kararı kullanıcıya bırakıyoruz. Eşikler gerçek yüklemelerle kalibre
+          edilmedi, o yüzden temkinli — yanlış bir uyarı hepsini değersizleştirir. */}
+      {kareler.some((k) => k.sorun) && (
+        <ul className="mt-2 space-y-1">
+          {kareler
+            .filter((k) => k.sorun)
+            .map((k) => (
+              <li key={k.id} className="text-xs text-[#8a2a1f]">
+                <span className="font-semibold">{k.name}</span> — {k.sorun}
+              </li>
+            ))}
+        </ul>
+      )}
+
+      {beyanUyarisi(kareler.length, beyanHacmiM3) && (
+        <p className="mt-2 text-xs text-[var(--route-deep)]">
+          {beyanUyarisi(kareler.length, beyanHacmiM3)}
+        </p>
+      )}
 
       <p className="mt-2 text-xs text-muted">
         Fotoğraflar bu adımda yüklenmiyor; ilanı yayınlarken gönderiliyor.

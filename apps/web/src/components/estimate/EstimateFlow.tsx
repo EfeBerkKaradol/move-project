@@ -92,6 +92,24 @@ export function EstimateFlow({
   const tarifEdildi = Object.keys(kalemler).length > 0 || selection.presetCode !== null;
 
   /**
+   * Beyan edilen toplam hacim — kaç fotoğraf gerektiğini bu belirliyor.
+   * Hazır paket seçildiyse kalem yok ama tahmini hacmi var; ikisi de sayılıyor,
+   * yoksa "ev dolusu eşya" diyen kullanıcı hiç uyarı almadan tek kareyle geçerdi.
+   */
+  const beyanHacmi = useMemo(() => {
+    if (!catalog) return 0;
+    const kalemlerinHacmi = new Map(catalog.items.map((i) => [i.code, i.volumeM3]));
+    const kalemToplami = Object.entries(kalemler).reduce(
+      (toplam, [code, adet]) => toplam + (kalemlerinHacmi.get(code) ?? 0) * adet,
+      0,
+    );
+    const paket = selection.presetCode
+      ? (catalog.presets.find((p) => p.code === selection.presetCode)?.estimatedVolumeM3 ?? 0)
+      : 0;
+    return kalemToplami + paket;
+  }, [catalog, kalemler, selection.presetCode]);
+
+  /**
    * Yayınlanabilir bir ilan için eksik olanlar. Tek listede duruyor çünkü üç yer
    * birden okuyor: tahmin kapısı, yayınla düğmesi ve yan paneldeki özet. Ayrı
    * ayrı hesaplansalardı biri güncellenip diğeri unutulurdu.
@@ -339,7 +357,7 @@ export function EstimateFlow({
             )}
 
             <div className="mt-6 border-t border-line pt-6">
-              <CargoPhotoPicker onChange={setFotografAdedi} />
+              <CargoPhotoPicker onChange={setFotografAdedi} beyanHacmiM3={beyanHacmi} />
             </div>
           </div>
         </section>
