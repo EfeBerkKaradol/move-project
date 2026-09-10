@@ -2,6 +2,7 @@ import { CARRIER_STATUS_LABELS, type CarrierProfileView } from '@tasiyoruz/contr
 import { useCallback, useEffect, useState } from 'react';
 import { ActivityIndicator, Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
 import { ApiError, apiFetch } from '../api';
+import { Listings } from './Listings';
 import { useAuth } from '../auth/AuthContext';
 import { Logo } from '../components/Logo';
 import { colors, fonts, label, radius, touch } from '../theme';
@@ -13,11 +14,12 @@ type Durum =
   | { tip: 'hata'; mesaj: string };
 
 /**
- * Giriş yapmış sürücünün ilk ekranı.
+ * Giriş yapmış sürücünün ekranı.
  *
- * <p>Şimdilik başvuru durumunu gösteriyor. Bunun ilk ekran olmasının sebebi ürün
- * kuralı: teklif verebilmek onaylı taşıyıcı olmayı gerektiriyor, dolayısıyla
- * onaylanmamış bir sürücüye ilan listesi göstermek yanıltıcı olurdu.
+ * <p>Onaylı taşıyıcıya açık ilanlar, onaylanmamışa başvuru durumu gösteriliyor.
+ * Ayrım ürün kuralından: teklif verebilmek onaylı olmayı gerektiriyor, dolayısıyla
+ * onaylanmamış bir sürücüye ilan listesi göstermek yanıltıcı olurdu — göreceği ama
+ * teklif veremeyeceği yükler.
  */
 export function Home() {
   const { kullanici, cikisYap, erisimTokeni } = useAuth() as ReturnType<typeof useAuth> & {
@@ -45,8 +47,10 @@ export function Home() {
     void yukle();
   }, [yukle]);
 
-  return (
-    <ScrollView style={styles.zemin} contentContainerStyle={styles.icerik}>
+  const onayli = durum.tip === 'profil' && durum.profil.status === 'APPROVED';
+
+  const ustBar = (
+    <>
       <View style={styles.ustBar}>
         <View style={styles.marka}>
           <Logo size={26} />
@@ -57,6 +61,23 @@ export function Home() {
         </Pressable>
       </View>
 
+    </>
+  );
+
+  // Onaylıysa liste kendi kaydırmasını yönetiyor; ScrollView içine koymak iç içe
+  // kaydırma yaratır ve FlatList'in geri dönüşümü çalışmaz.
+  if (onayli) {
+    return (
+      <View style={[styles.zemin, styles.icerik]}>
+        {ustBar}
+        <Listings />
+      </View>
+    );
+  }
+
+  return (
+    <ScrollView style={styles.zemin} contentContainerStyle={styles.icerik}>
+      {ustBar}
       <Text style={styles.etiket}>Sürücü</Text>
       <Text style={styles.baslik}>{kullanici?.ad ?? kullanici?.eposta ?? 'Hoş geldin'}</Text>
 

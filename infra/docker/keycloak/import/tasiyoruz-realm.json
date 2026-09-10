@@ -109,12 +109,16 @@
       "standardFlowEnabled": true,
       "redirectUris": [
         "tasiyoruz://*",
-        "exp://*"
+        "exp://*",
+        "http://localhost:8090/*"
       ],
       "attributes": {
         "pkce.code.challenge.method": "S256"
       },
-      "directAccessGrantsEnabled": true
+      "directAccessGrantsEnabled": true,
+      "webOrigins": [
+        "http://localhost:8090"
+      ]
     },
     {
       "clientId": "tasiyoruz-driver-app",
@@ -123,12 +127,16 @@
       "standardFlowEnabled": true,
       "redirectUris": [
         "tasiyoruz-driver://*",
-        "exp://*"
+        "exp://*",
+        "http://localhost:8090/*"
       ],
       "attributes": {
         "pkce.code.challenge.method": "S256"
       },
-      "directAccessGrantsEnabled": true
+      "directAccessGrantsEnabled": true,
+      "webOrigins": [
+        "http://localhost:8090"
+      ]
     },
     {
       "clientId": "tasiyoruz-api",

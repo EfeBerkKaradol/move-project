@@ -11,9 +11,9 @@ adrese çıkmamalı:
 * Test kullanıcıları ve parolaları repoda. Herkese açık bir sunucuda, parolası
   bilinen bir ADMIN hesabı bırakmak olmaz.
 * SMTP ayarı yerel Mailhog'u gösteriyor; üretimin kendi sunucusu var.
-* Mobil istemcilerde ``exp://*`` yönlendirme adresi var — Expo Go bunu kullanıyor.
-  Üretimde kalması, yetkilendirme kodunun saldırganın açtığı bir exp:// adresine
-  gönderilebilmesi demek olurdu.
+* İstemcilerin yönlendirme adresleri yerel geliştirmeyi gösteriyor (localhost,
+  exp://). Üretimde kalmaları, yetkilendirme kodunun saldırganın eline geçmesine
+  yol açabilir; hepsi siliniyor ve gerçek adres panelden giriliyor.
 
 E-posta doğrulama AÇIK bırakılıyor. Bir dönem kapatılmıştı: SMTP yokken açık
 olması kimsenin kaydını tamamlayamaması demekti. Artık posta sağlayıcının HTTP
@@ -45,16 +45,28 @@ for client in realm.get("clients", []):
 kullanici_sayisi = len(realm.get("users", []))
 realm["users"] = []
 
-# Expo Go'nun yönlendirme adresi (exp://*) yalnızca yerel geliştirme için.
-# Üretimde kalsaydı, saldırganın kontrolündeki bir exp:// adresine yetkilendirme
-# kodu gönderilebilirdi — OAuth'ta yönlendirme adresi bir güvenlik sınırı.
+# Geliştirme yönlendirme adresleri (exp://, localhost) üretime çıkmamalı.
+#
+# Yönlendirme adresi OAuth'ta bir güvenlik sınırı: listede duran her adres,
+# yetkilendirme kodunun oraya gönderilebileceği anlamına geliyor. Üretim realm'inde
+# duran bir localhost girdisi, kurbanın kendi makinesinde bir şey dinleyen saldırgana
+# kod kaptırma yolu açar. exp:// için aynısı geçerli.
+#
+# Sonuç: yeni bir kurulumda istemcilerin yönlendirme adresi BOŞ başlıyor ve
+# yöneticinin gerçek adresi girmesi gerekiyor (docs/13 §5a).
+GELISTIRME_ONEKLERI = ("exp://", "http://localhost", "http://127.0.0.1")
+
+def gelistirme_adresi(u: str) -> bool:
+    return u.startswith(GELISTIRME_ONEKLERI)
+
 kaldirilan_exp = 0
 for client in realm.get("clients", []):
-    uris = client.get("redirectUris") or []
-    kalan = [u for u in uris if not u.startswith("exp://")]
-    kaldirilan_exp += len(uris) - len(kalan)
-    if uris:
-        client["redirectUris"] = kalan
+    for alan in ("redirectUris", "webOrigins"):
+        adresler = client.get(alan) or []
+        kalan = [u for u in adresler if not gelistirme_adresi(u)]
+        kaldirilan_exp += len(adresler) - len(kalan)
+        if adresler:
+            client[alan] = kalan
 
 realm.pop("smtpServer", None)
 realm["verifyEmail"] = True
@@ -63,5 +75,5 @@ json.dump(realm, open(dst, "w", encoding="utf-8"), ensure_ascii=False, indent=2)
 print(f"realm hazırlandı: sslRequired=external, "
       f"{len(kaldirilan_sir)} istemci sırrı kaldırıldı ({', '.join(kaldirilan_sir)}), "
       f"{kullanici_sayisi} test kullanıcısı çıkarıldı, "
-      f"{kaldirilan_exp} geliştirme yönlendirme adresi (exp://) kaldırıldı, "
+      f"{kaldirilan_exp} geliştirme adresi (exp://, localhost) kaldırıldı, "
       f"e-posta doğrulama açık")
