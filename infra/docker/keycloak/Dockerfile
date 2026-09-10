@@ -58,6 +58,19 @@ COPY --from=realm /w/tasiyoruz-realm.json /opt/keycloak/data/import/tasiyoruz-re
 # yüzden derleme katmanına değil buraya konuyor; --optimized ile birlikte okunuyor.
 ENV KC_CACHE=local
 
+# JVM bellek ve JIT ayarı imajda; Blueprint'teki ortam değişkenine bırakılmıyor.
+#
+# Değişken bir kez uygulanmadığında (Blueprint eşitlenmediğinde) imajın kendi
+# varsayılanı olan %70 yığın devreye giriyor ve 512 MB'lık örnek yük altında
+# sınıra tırmanıyor — Render "exceeded its memory limit" uyarısı bundan geldi.
+# 0.1 CPU / 512 MB ile ölçüldü, 50 istek sonunda:
+#   %70 yığın (varsayılan) → 425 MB ve yükseliyor
+#   %50 yığın (bu ayar)    → 336 MB ve sabit
+#
+# TieredStopAtLevel=1 yalnızca C1 derleyicisi: zayıf CPU'da açılışı yarıya
+# indiriyor, bedeli tepe verim. Render'da ortam değişkeni verilirse bu ezilir.
+ENV JAVA_OPTS_APPEND="-XX:TieredStopAtLevel=1 -XX:MaxRAMPercentage=50"
+
 # Realm yalnızca yoksa içe aktarılır; var olanın üzerine yazmaz. Panelden yaptığın
 # değişiklikler (istemci sırrı, yönlendirme adresleri, SMTP) yeniden dağıtımda korunur.
 ENTRYPOINT ["/opt/keycloak/bin/kc.sh", "start", "--optimized", "--import-realm"]
