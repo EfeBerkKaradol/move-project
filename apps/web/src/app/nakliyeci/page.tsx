@@ -4,13 +4,14 @@ import type { Metadata } from 'next';
 import Link from 'next/link';
 import { redirect } from 'next/navigation';
 import { auth, canCallApi, homeFor, isDriver } from '@/auth';
-import { ProvinceList, ProvinceMap, type ProvinceStat } from '@/components/map/ProvinceMap';
+import { ProvinceList, ProvinceMap, type MapRoute, type ProvinceStat } from '@/components/map/ProvinceMap';
 import { RouteLine } from '@/components/app/RouteLine';
 import { Shell } from '@/components/app/Shell';
 import { SubNav } from '@/components/app/SubNav';
 import { apiFetch } from '@/lib/api-server';
 import { getDistricts } from '@/lib/api';
 import { normalize } from '@/lib/places';
+import { projectLonLat } from '@/components/hero/geo-data';
 import { StatusPill } from '@/components/app/StatusPill';
 import { withdrawOffer } from './actions';
 import { OfferForm } from './OfferForm';
@@ -82,6 +83,21 @@ export default async function DriverPage({ searchParams }: { searchParams: Param
     ? tumIlanlar.filter((l) => byId.get(l.pickup.districtId)?.cityCode === cityFilter)
     : tumIlanlar;
 
+  // İl içi ilanların haritadaki izi; koordinatlar sunucuda projekte ediliyor
+  const ilIciRotalar: MapRoute[] = cityFilter
+    ? listings.flatMap((l) => {
+        const a = byId.get(l.pickup.districtId);
+        const b = byId.get(l.dropoff.districtId);
+        if (!a || !b || a.cityCode !== cityFilter || b.cityCode !== cityFilter) return [];
+        return [{
+          id: l.id,
+          label: `${a.name} → ${b.name} · ${l.vehicleTypeCode}`,
+          from: projectLonLat(a.lng, a.lat),
+          to: projectLonLat(b.lng, b.lat),
+        }];
+      })
+    : [];
+
   return (
     <Shell eyebrow="Araç sahibi" title="Açık ilanlar">
       <div className="flex flex-wrap items-center justify-between gap-x-4 gap-y-2">
@@ -104,6 +120,7 @@ export default async function DriverPage({ searchParams }: { searchParams: Param
             provinces={provinceStats}
             selectedCityCode={cityFilter || null}
             basePath="/nakliyeci"
+            routes={ilIciRotalar}
           />
           <ProvinceList
             provinces={provinceStats}

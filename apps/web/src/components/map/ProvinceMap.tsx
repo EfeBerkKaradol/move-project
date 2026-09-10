@@ -18,6 +18,17 @@ function suzgecHref(basePath: string, vehicleFilter: string, cityCode: string | 
   return s ? `${basePath}?${s}` : basePath;
 }
 
+/**
+ * İl içi bir ilanın haritadaki izi. Noktalar sunucuda projekte ediliyor
+ * (projectLonLat saf bir fonksiyon); istemciye ilçe koordinatı taşınmıyor.
+ */
+export type MapRoute = {
+  id: string;
+  label: string;
+  from: { x: number; y: number };
+  to: { x: number; y: number };
+};
+
 /** Haritada bir ilin durumu; sunucudan geliyor. */
 export type ProvinceStat = {
   /** API'deki yazım — "Hakkari". */
@@ -58,6 +69,7 @@ export function ProvinceMap({
   selectedCityCode,
   vehicleFilter = '',
   basePath,
+  routes = [],
 }: {
   provinces: ProvinceStat[];
   selectedCityCode: string | null;
@@ -65,6 +77,8 @@ export function ProvinceMap({
   vehicleFilter?: string;
   /** Süzgecin uygulanacağı sayfa — herkese açık pano ya da sürücü paneli. */
   basePath: string;
+  /** Seçili ilin içinde başlayıp biten ilanlar; yalnızca yakınlaşınca çiziliyor. */
+  routes?: MapRoute[];
 }) {
   // geoBoundaries "Hakkâri" diyor, veritabanı "Hakkari": ham eşitlik o ili
   // sessizce boş gösterirdi
@@ -79,10 +93,10 @@ export function ProvinceMap({
 
   const href = (cityCode: string | null) => suzgecHref(basePath, vehicleFilter, cityCode);
 
-  const donusum = useMemo(() => {
-    if (!selected) return undefined;
+  const gorunum = useMemo(() => {
+    if (!selected) return null;
     const sekil = PROVINCE_SHAPES.find((s) => normalize(s.name) === normalize(selected.name));
-    if (!sekil) return undefined;
+    if (!sekil) return null;
     const [bx, by, bw, bh] = sekil.box;
     const k = Math.min(
       MAP_BOX.w / (bw + KENAR_BOSLUGU * 2),
@@ -98,8 +112,15 @@ export function ProvinceMap({
      * CSS olmadığı için tarayıcı bildirimin tamamını atıyor ve dönüşüm sessizce
      * uygulanmıyordu. Birim px; SVG'de kullanıcı birimine karşılık geliyor.
      */
-    return `translate(${tx.toFixed(1)}px, ${ty.toFixed(1)}px) scale(${k.toFixed(3)})`;
+    return {
+      css: `translate(${tx.toFixed(1)}px, ${ty.toFixed(1)}px) scale(${k.toFixed(3)})`,
+      k,
+    };
   }, [selected]);
+
+  // Yakınlaştırma ölçeği: dönüşümün içinde çizilen noktalar onunla birlikte
+  // büyüyor, yarıçapı bölmezsek il seçilince baloncuklara dönüşüyorlar
+  const olcek = gorunum?.k ?? 1;
 
   const yuklu = provinces.filter((p) => p.count > 0).length;
 
@@ -117,7 +138,7 @@ export function ProvinceMap({
       >
         <g
           style={{
-            transform: donusum,
+            transform: gorunum?.css,
             // Hesap 0,0'ı başlangıç kabul ediyor; CSS'in %50 varsayılanı ile
             // birlikte il kutunun ortasına değil rastgele bir yere düşerdi
             transformBox: 'view-box',
@@ -176,6 +197,48 @@ export function ProvinceMap({
               </Link>
             );
           })}
+
+          {/*
+            İl içi ilanlar dönüşümün İÇİNDE: ilçe koordinatları ülke uzayında,
+            haritayla birlikte yakınlaşmaları gerekiyor. Çizgi kalınlığı ve
+            nokta yarıçapı ölçeğe bölünüyor, yoksa yakınlaşınca baloncuk
+            oluyorlar.
+
+            Yalnızca seçim varken çiziliyor: ülke görünümünde bir ilin içindeki
+            beş kilometrelik rota tek piksele iniyor, kalabalıktan başka bir şey
+            üretmiyordu.
+          */}
+          {selected &&
+            routes.map((r) => {
+              // Hafif yay: aynı iki ilçe arasındaki birden çok ilan üst üste
+              // binmesin diye
+              const bend = 0.18;
+              const mx = (r.from.x + r.to.x) / 2 + (r.to.y - r.from.y) * bend;
+              const my = (r.from.y + r.to.y) / 2 - (r.to.x - r.from.x) * bend;
+              return (
+                <g key={r.id}>
+                  <title>{r.label}</title>
+                  <path
+                    d={`M${r.from.x} ${r.from.y}Q${mx.toFixed(1)} ${my.toFixed(1)} ${r.to.x} ${r.to.y}`}
+                    fill="none"
+                    stroke="var(--route-deep)"
+                    strokeWidth={1.8}
+                    strokeLinecap="round"
+                    vectorEffect="non-scaling-stroke"
+                  />
+                  <circle cx={r.from.x} cy={r.from.y} r={4 / olcek} fill="var(--route-deep)" />
+                  <circle
+                    cx={r.to.x}
+                    cy={r.to.y}
+                    r={4 / olcek}
+                    fill="var(--surface)"
+                    stroke="var(--route-deep)"
+                    strokeWidth={1.6}
+                    vectorEffect="non-scaling-stroke"
+                  />
+                </g>
+              );
+            })}
         </g>
       </svg>
 
@@ -183,7 +246,9 @@ export function ProvinceMap({
           ölçeklenir, yakınlaştırmada devasa görünürdü. */}
       <figcaption className="pointer-events-none absolute inset-x-0 top-0 flex items-start justify-between gap-3 p-4">
         <span className="rounded-field bg-surface/90 px-3 py-1.5 text-sm font-semibold shadow-card backdrop-blur-sm">
-          {selected ? `${selected.name} · ${selected.count} ilan` : `${yuklu} ilde açık ilan var`}
+          {selected
+            ? `${selected.name} · ${selected.count} ilan${routes.length > 0 ? ` · ${routes.length}'i il içi` : ''}`
+            : `${yuklu} ilde açık ilan var`}
         </span>
         {selected && (
           <Link

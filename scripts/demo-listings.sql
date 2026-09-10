@@ -95,6 +95,62 @@ FROM (VALUES
      null)
 ) AS d(n, from_city, to_city, vehicle, floor, elevator, km, amount, items, note);
 
+-- ─────────────────────────────────────────────────────────────
+-- İstanbul içi: yaka tarifesinin üç senaryosu (V22)
+--
+-- Yukarıdaki ilanlar şehirlerarası; il seçilince açılan haritada gösterilecek
+-- bir şey bırakmıyorlardı. Bu üçü ilçeleri ADIYLA seçiyor — yukarıdaki blok
+-- "ilin ilk ilçesi" diyor ve yaka ayrımı için işe yaramaz.
+--
+-- Tutarlar V22 tarifesinden: Avrupa içi kısa 900 + km×55 (minimum 1.500),
+-- yaka geçişli kısa 1.300 + km×55 + 400.
+INSERT INTO load_listings (
+    listing_number, shipper_id, service_model, vehicle_type_code,
+    pickup_district_id, dropoff_district_id,
+    pickup_floor, pickup_has_elevator, dropoff_floor, dropoff_has_elevator,
+    extra_services, declared_items, cargo_description,
+    estimate_snapshot, estimated_amount, status, published_at, expires_at)
+SELECT
+    'DEMO-' || d.n,
+    'demo-shipper', 'SCHEDULED', d.vehicle,
+    (SELECT id FROM districts WHERE city_code = '34' AND slug = d.from_slug),
+    (SELECT id FROM districts WHERE city_code = '34' AND slug = d.to_slug),
+    d.floor, d.elevator, 0, true,
+    '[]'::jsonb,
+    d.items,
+    d.note,
+    jsonb_build_object(
+        'quoteId', gen_random_uuid()::text,
+        'serviceModel', 'SCHEDULED',
+        'vehicleTypeCode', d.vehicle,
+        'distanceMeters', d.km * 1000,
+        'durationSeconds', d.km * 150,
+        'approximateDistance', true,
+        'breakdown', '[]'::jsonb,
+        'totalAmount', jsonb_build_object('amount', d.amount, 'currency', 'TRY'),
+        'floorPrice', jsonb_build_object('amount', d.amount, 'currency', 'TRY'),
+        'expiresAt', to_char(now() + interval '2 days', 'YYYY-MM-DD"T"HH24:MI:SS"Z"'),
+        'signature', 'demo'),
+    d.amount, 'OPEN', now() - (d.n || ' hours')::interval, now() + interval '2 days'
+FROM (VALUES
+    -- Avrupa yakası içinde
+    (12, 'besiktas', 'sisli', 'PANELVAN', 2, true, 4, 1500,
+     '[{"itemCode":"KOLTUK_2LI","displayName":"İkili koltuk","quantity":1,"volumeM3":0.95,"weightKg":45},
+       {"itemCode":"KOLI_STANDART","displayName":"Standart koli","quantity":8,"volumeM3":0.12,"weightKg":12}]'::jsonb,
+     'Ev içi taşınma, Beşiktaş''tan Şişli''ye.'),
+    -- Yaka geçişli: köprü ücreti tarifeye giriyor
+    (13, 'besiktas', 'kadikoy', 'PANELVAN', 0, true, 8, 2140,
+     '[{"itemCode":"BUZDOLABI_NOFROST","displayName":"Buzdolabı (no-frost)","quantity":1,"volumeM3":0.60,"weightKg":75},
+       {"itemCode":"CAMASIR_MAKINESI","displayName":"Çamaşır makinesi","quantity":1,"volumeM3":0.35,"weightKg":70}]'::jsonb,
+     'Boğaz geçişli, beyaz eşya.'),
+    -- Anadolu yakası içinde
+    (14, 'kadikoy', 'atasehir', 'PANELVAN', 1, false, 7, 1500,
+     '[{"itemCode":"CALISMA_MASASI","displayName":"Çalışma masası","quantity":1,"volumeM3":0.50,"weightKg":30},
+       {"itemCode":"KITAPLIK","displayName":"Kitaplık","quantity":2,"volumeM3":0.70,"weightKg":45},
+       {"itemCode":"KOLI_BUYUK","displayName":"Büyük koli","quantity":5,"volumeM3":0.25,"weightKg":20}]'::jsonb,
+     'Ofis taşınması, asansör yok.')
+) AS d(n, from_slug, to_slug, vehicle, floor, elevator, km, amount, items, note);
+
 COMMIT;
 
 SELECT count(*) || ' demo ilan eklendi.' AS sonuc FROM load_listings WHERE shipper_id = 'demo-shipper';

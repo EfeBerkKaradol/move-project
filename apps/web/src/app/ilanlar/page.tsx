@@ -3,12 +3,13 @@ import { formatPrice } from '@tasiyoruz/shared';
 import type { Metadata } from 'next';
 import Link from 'next/link';
 import { auth, isDriver } from '@/auth';
-import { ProvinceList, ProvinceMap, type ProvinceStat } from '@/components/map/ProvinceMap';
+import { ProvinceList, ProvinceMap, type MapRoute, type ProvinceStat } from '@/components/map/ProvinceMap';
 import { Footer } from '@/components/site/Footer';
 import { Header } from '@/components/site/Header';
 import { Icon } from '@/components/ui/Icon';
 import { getDistricts, getPublicListings, getVehicleTypes } from '@/lib/api';
 import { normalize } from '@/lib/places';
+import { projectLonLat } from '@/components/hero/geo-data';
 
 export const metadata: Metadata = {
   title: 'Açık ilanlar',
@@ -80,6 +81,27 @@ export default async function PublicListingsPage({ searchParams }: { searchParam
   // giriş ekranına değil, ne yapması gerektiğini anlatan sayfaya gönderiyoruz.
   const detailHref = (id: string) => (signedInDriver ? `/nakliyeci/ilan/${id}` : '/sofor-ol');
 
+  /*
+   * İl içi ilanların haritadaki izi: alış ve teslim aynı ilde. Koordinatlar
+   * sunucuda projekte ediliyor, istemciye ilçe enlem/boylamı taşınmıyor.
+   * Koordinatı bulunamayan ilan çizilmiyor ama listede duruyor — eksik bir
+   * katalog kaydı yüzünden iş gizlenmemeli.
+   */
+  const konum = new Map((districts ?? []).map((d: District) => [d.id, d]));
+  const ilIciRotalar: MapRoute[] = cityFilter
+    ? (listings ?? []).flatMap((l) => {
+        const a = konum.get(l.fromDistrictId);
+        const b = konum.get(l.toDistrictId);
+        if (!a || !b || a.cityCode !== cityFilter || b.cityCode !== cityFilter) return [];
+        return [{
+          id: l.id,
+          label: `${a.name} → ${b.name} · ${l.vehicleTypeCode}`,
+          from: projectLonLat(a.lng, a.lat),
+          to: projectLonLat(b.lng, b.lat),
+        }];
+      })
+    : [];
+
   const active = (vehicles ?? []).filter((v: VehicleType) => v.active);
   // Sayı, çipe basmadan önce sonucu söylüyor. Sıfırsa çip bağlantı değil: boş sayfaya
   // götüren bir düğme, kullanıcıya ürünün çalışmadığını düşündürüyor.
@@ -142,6 +164,7 @@ export default async function PublicListingsPage({ searchParams }: { searchParam
               selectedCityCode={cityFilter || null}
               vehicleFilter={vehicleFilter}
               basePath="/ilanlar"
+              routes={ilIciRotalar}
             />
             <ProvinceList
               provinces={provinceStats}
