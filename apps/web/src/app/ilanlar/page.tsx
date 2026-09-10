@@ -4,6 +4,7 @@ import type { Metadata } from 'next';
 import Link from 'next/link';
 import { auth, isDriver } from '@/auth';
 import { ProvinceList, ProvinceMap, type MapRoute, type ProvinceStat } from '@/components/map/ProvinceMap';
+import { districtsOf } from '@/components/map/districts';
 import { Footer } from '@/components/site/Footer';
 import { Header } from '@/components/site/Header';
 import { Icon } from '@/components/ui/Icon';
@@ -165,6 +166,7 @@ export default async function PublicListingsPage({ searchParams }: { searchParam
               vehicleFilter={vehicleFilter}
               basePath="/ilanlar"
               routes={ilIciRotalar}
+              districts={districtsOf(cityName)}
             />
             <ProvinceList
               provinces={provinceStats}

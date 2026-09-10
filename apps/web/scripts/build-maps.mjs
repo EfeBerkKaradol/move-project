@@ -18,6 +18,11 @@
  * İl il tıklanabilir harita için kapalı poligonlar (src/components/map/province-shapes.ts):
  *   node scripts/build-maps.mjs --province-shapes <TUR-ADM1.geojson>
  *
+ * Seçilen ilin içindeki ilçe sınırları (src/components/map/district-shapes.ts):
+ *   node scripts/build-maps.mjs --district-shapes <TUR-ADM2.geojson> <TUR-ADM1.geojson>
+ *   (ADM2 dosyası ilin adını taşımıyor; ilçe hangi ilin içine düşüyorsa oraya
+ *    yazılıyor, adalar en yakın kıyıya.)
+ *
  * Bu kipte oturtma, geo-data.ts'e yazılmış TURKEY_PROJECTION'dan okunuyor. Böylece
  * iller aynı uzaya düşüyor ve dosyanın geri kalanına — rotaya, araca, şehir
  * noktalarına — hiç dokunulmuyor. Sadeleştirme kodu tek: iki kip de aynı
@@ -58,6 +63,11 @@ const TARGET = {
    * Mobilde il sınırı HİÇ çizilmiyor, o yüzden kompakt sürüm yok.
    */
   provinceTolerance: 1.2e-3,
+  /**
+   * İlçe sınırları. İllerden ince, çünkü yalnızca SEÇİLEN ilin ilçeleri
+   * gönderiliyor — bütçe seksen bir ile değil bir ile bölünüyor.
+   */
+  districtTolerance: 3.5e-4,
 };
 
 
@@ -185,6 +195,14 @@ const nokta = (p) => `${p[0].toFixed(9)},${p[1].toFixed(9)}`;
  * yazıldı çünkü ihtiyaç tek bir dosyaya özel ve otuz satır tutuyor.
  */
 function readProvinces(file) {
+  return readAreas(file, 81);
+}
+
+/**
+ * Aynı yay topolojisi il ve ilçe için. Tek fark beklenen sayı ve tolerans;
+ * ikisini de kopyalamak, birinde düzeltilen bir hatayı diğerinde bırakırdı.
+ */
+function readAreas(file, beklenen, tolerans = TARGET.provinceTolerance) {
   const geo = JSON.parse(readFileSync(file, 'utf8'));
   const iller = geo.features
     .map((f) => ({ name: f.properties.shapeName ?? '', rings: ringsOf(f.geometry) }))
@@ -196,7 +214,7 @@ function readProvinces(file) {
     })
     .sort((a, b) => a.name.localeCompare(b.name, 'tr'));
 
-  if (iller.length !== 81) throw new Error(`İl sayısı 81 olmalı, ${iller.length} bulundu.`);
+  if (iller.length !== beklenen) throw new Error(`Alan sayısı ${beklenen} olmalı, ${iller.length} bulundu.`);
 
   // 1) Her nokta kaç ilde geçiyor? Birden çoksa o nokta bir ortak sınırın üstünde.
   const sahip = new Map();
@@ -250,7 +268,7 @@ function readProvinces(file) {
   // 3) Her benzersiz yayı BİR kez sadeleştir
   for (const il of halkaYaylari) for (const ring of il) for (const yay of ring) {
     const k = kanonik(yay);
-    if (!yaylar.has(k)) yaylar.set(k, simplify(yay, TARGET.provinceTolerance));
+    if (!yaylar.has(k)) yaylar.set(k, simplify(yay, tolerans));
   }
 
   // 4) İÇ sınırlar: ≥2 ilin paylaştığı yaylar, her biri BİR kez.
@@ -269,7 +287,18 @@ function readProvinces(file) {
 
   const provinces = iller.map((il, i) => ({
     name: il.name,
-    rings: halkaYaylari[i].map((ring) => {
+    rings: kalanHalkalar(il, halkaYaylari[i]),
+  }));
+
+  /**
+   * Sadeleştirilmiş halkalar; hepsi eriyip gitmişse ham hâli.
+   *
+   * <p>Çok küçük bir alan (bir ilçe kadar) ortak toleransta dört noktanın
+   * altına inebiliyor ve elenip yok oluyordu. Sessizce düşürmek, haritada
+   * sebepsiz bir delik bırakır — küçük olan da bir yer.
+   */
+  function kalanHalkalar(alan, ringYaylari) {
+    const sade = ringYaylari.map((ring) => {
       const pts = [];
       for (const yay of ring) {
         const sade = yaylar.get(kanonik(yay));
@@ -281,8 +310,12 @@ function readProvinces(file) {
       }
       if (pts.length) pts.push(pts[0]);
       return pts;
-    }).filter((r) => r.length >= 4),
-  }));
+    }).filter((r) => r.length >= 4);
+
+    if (sade.length > 0) return sade;
+    const enBuyuk = alan.rings.reduce((a, b) => (Math.abs(area(b)) > Math.abs(area(a)) ? b : a));
+    return [enBuyuk];
+  }
 
   return { provinces, icSinirlar };
 }
@@ -326,6 +359,164 @@ if (process.argv[2] === '--provinces-only') {
   process.exit(0);
 }
 
+/** Halkanın alan ağırlıklı ağırlık merkezi — etiket ve yakınlaştırma noktası. */
+function centroid(ring) {
+  let a = 0, cx = 0, cy = 0;
+  for (let i = 0; i < ring.length - 1; i++) {
+    const [x0, y0] = ring[i];
+    const [x1, y1] = ring[i + 1];
+    const f = x0 * y1 - x1 * y0;
+    a += f; cx += (x0 + x1) * f; cy += (y0 + y1) * f;
+  }
+  if (a === 0) return ring[0];
+  return [cx / (3 * a), cy / (3 * a)];
+}
+
+/** Işın atma: nokta halkanın içinde mi. */
+function halkaIcinde(ring, [px, py]) {
+  let icinde = false;
+  for (let i = 0, j = ring.length - 1; i < ring.length; j = i++) {
+    const [xi, yi] = ring[i];
+    const [xj, yj] = ring[j];
+    if ((yi > py) !== (yj > py) && px < ((xj - xi) * (py - yi)) / (yj - yi) + xi) icinde = !icinde;
+  }
+  return icinde;
+}
+
+/** SVG yolu: kapalı halkalar. */
+const yolKatari = (halkalar) =>
+  halkalar.map((r) => 'M' + r.map(([x, y]) => `${x} ${y}`).join('L') + 'Z').join('');
+
+/**
+ * geo-data.ts'e yazılmış oturtmayı okur.
+ *
+ * <p>Elle kopyalanan bir sabit, kaynak tazelendiğinde sessizce eskir ve
+ * katmanlar birbirinden kayar.
+ */
+function projeksiyonuOku() {
+  const geoData = readFileSync(new URL('../src/components/hero/geo-data.ts', import.meta.url), 'utf8');
+  const params = Object.fromEntries(
+    ['minX', 'maxY', 'scale', 'offsetX', 'offsetY'].map((key) => {
+      const m = geoData.match(new RegExp(`${key}:\\s*(-?[\\d.]+)`));
+      if (!m) throw new Error(`TURKEY_PROJECTION.${key} geo-data.ts içinde bulunamadı.`);
+      return [key, Number(m[1])];
+    }),
+  );
+  return ([x, y]) => [
+    +((x - params.minX) * params.scale + params.offsetX).toFixed(1),
+    +((params.maxY - y) * params.scale + params.offsetY).toFixed(1),
+  ];
+}
+
+// ── İlçe şekilleri ────────────────────────────────────────────────────────
+//
+// Seçilen il yakınlaştığında içi boş kalıyordu. İlçe sınırları, ilanların
+// gerçek çözünürlüğü: adres toplanmıyor (ADR-0008), ilan "Beşiktaş" düzeyinde
+// duruyor. Sokak çizmek, bilmediğimiz bir hassasiyeti biliyormuş gibi
+// göstermek olurdu.
+if (process.argv[2] === '--district-shapes') {
+  const [, , , adm2, adm1] = process.argv;
+  if (!adm2 || !adm1) {
+    throw new Error('kullanım: node scripts/build-maps.mjs --district-shapes <TUR-ADM2.geojson> <TUR-ADM1.geojson>');
+  }
+
+  const project = projeksiyonuOku();
+  const { provinces } = readProvinces(adm1);
+  const { provinces: ilceler } = readAreas(adm2, 973, TARGET.districtTolerance);
+
+  /**
+   * Kaynaktaki İngilizce ve eksik yazımlar.
+   *
+   * <p>Veri seti Türkiye ilçelerinin üçünü yabancı adıyla veriyor. Kullanıcıya
+   * "Prince Islands" göstermek, ilanın "Adalar" yazan ilçesiyle eşleşmiyor.
+   */
+  const AD_DUZELTME = {
+    'Prince Islands': 'Adalar',
+    Imbros: 'Gökçeada',
+    Ulukisla: 'Ulukışla',
+  };
+
+  // ADM2 dosyası ilin adını taşımıyor; ilçe hangi ilin sınırının içine
+  // düşüyorsa oraya yazılıyor. Merkez içeride değilse (girintili ilçe ya da
+  // ada) halkanın diğer noktaları deneniyor, o da olmazsa EN YAKIN SINIR.
+  //
+  // En yakın il MERKEZİ denendi ve adaları yanlış ile yazdı: Adalar Yalova'ya,
+  // Marmara Adası Tekirdağ'a düştü. Ada karşı kıyıya değil, en yakın kıyıya
+  // aittir — ölçülmesi gereken sınıra olan uzaklık.
+  const ilinIlceleri = new Map(provinces.map((il) => [il.name, []]));
+  let tahminle = 0;
+
+  const sinirUzakligi = (il, [px, py]) => {
+    let enYakin = Infinity;
+    for (const ring of il.rings) {
+      for (const [x, y] of ring) {
+        const d = (x - px) ** 2 + (y - py) ** 2;
+        if (d < enYakin) enYakin = d;
+      }
+    }
+    return enYakin;
+  };
+
+  for (const ilce of ilceler) {
+    const anaHalka = ilce.rings.reduce((a, b) => (Math.abs(area(b)) > Math.abs(area(a)) ? b : a));
+    const adaylar = [centroid(anaHalka), ...anaHalka.filter((_, i) => i % 7 === 0)];
+
+    let sahip = null;
+    for (const nokta of adaylar) {
+      sahip = provinces.find((il) => il.rings.some((r) => halkaIcinde(r, nokta)));
+      if (sahip) break;
+    }
+    if (!sahip) {
+      tahminle++;
+      const m = centroid(anaHalka);
+      sahip = provinces.reduce((a, b) => (sinirUzakligi(b, m) < sinirUzakligi(a, m) ? b : a));
+    }
+
+    ilinIlceleri.get(sahip.name).push({
+      name: AD_DUZELTME[ilce.name] ?? ilce.name,
+      d: yolKatari(ilce.rings.map((r) => r.map(project))),
+    });
+  }
+
+  const bos = [...ilinIlceleri].filter(([, v]) => v.length === 0).map(([k]) => k);
+  if (bos.length) throw new Error(`İlçesi olmayan il: ${bos.join(', ')}`);
+
+  const govde = [...ilinIlceleri]
+    .map(([il, list]) => {
+      const satirlar = list
+        .sort((a, b) => a.name.localeCompare(b.name, 'tr'))
+        .map((d) => `    { name: ${JSON.stringify(d.name)}, d: '${d.d}' },`)
+        .join('\n');
+      return `  ${JSON.stringify(il)}: [\n${satirlar}\n  ],`;
+    })
+    .join('\n');
+
+  const out = `// ÜRETİLMİŞ DOSYA — elle düzenlenmiyor.
+// node scripts/build-maps.mjs --district-shapes <TUR-ADM2.geojson> <TUR-ADM1.geojson>
+//
+// Kaynak: geoBoundaries gbOpen TUR ADM2 (OpenStreetMap türevi).
+// Oturtma il haritasıyla ortak (geo-data.ts · TURKEY_PROJECTION).
+//
+// SUNUCUDA kalıyor: sayfa yalnızca SEÇİLİ ilin ilçelerini istemciye gönderiyor.
+// Tamamı gönderilseydi her ziyaretçi seksen bir ilin ilçesini indirirdi.
+
+export type DistrictShape = { name: string; d: string };
+
+export const DISTRICTS_BY_PROVINCE: Record<string, DistrictShape[]> = {
+${govde}
+};
+`;
+
+  const hedef = new URL('../src/components/map/district-shapes.ts', import.meta.url);
+  writeFileSync(hedef, out);
+  const nokta = [...ilinIlceleri.values()].flat().reduce((t, d) => t + (d.d.match(/[ML]/g) ?? []).length, 0);
+  console.log(
+    `district-shapes.ts yazıldı — ${ilceler.length} ilçe, ${nokta} nokta, ${(out.length / 1024).toFixed(0)} KB` +
+    (tahminle ? ` (${tahminle} ilçe en yakın ile atandı)` : ''),
+  );
+  process.exit(0);
+}
+
 // ── İl şekilleri ──────────────────────────────────────────────────────────
 //
 // TURKEY_BORDERS yalnızca sınır ÇİZGİLERİ; tıklanabilir bir harita için ilin
@@ -336,35 +527,8 @@ if (process.argv[2] === '--province-shapes') {
   const file = process.argv[3];
   if (!file) throw new Error('kullanım: node scripts/build-maps.mjs --province-shapes <TUR-ADM1.geojson>');
 
-  const geoData = readFileSync(new URL('../src/components/hero/geo-data.ts', import.meta.url), 'utf8');
-  // Oturtma hero haritasından okunuyor: iki harita aynı uzaya düşsün diye.
-  // Elle kopyalanan bir sabit, kaynak tazelendiğinde sessizce eskirdi.
-  const params = Object.fromEntries(
-    ['minX', 'maxY', 'scale', 'offsetX', 'offsetY'].map((key) => {
-      const m = geoData.match(new RegExp(`${key}:\\s*(-?[\\d.]+)`));
-      if (!m) throw new Error(`TURKEY_PROJECTION.${key} geo-data.ts içinde bulunamadı.`);
-      return [key, Number(m[1])];
-    }),
-  );
-  const project = ([x, y]) => [
-    +((x - params.minX) * params.scale + params.offsetX).toFixed(1),
-    +((params.maxY - y) * params.scale + params.offsetY).toFixed(1),
-  ];
-
+  const project = projeksiyonuOku();
   const { provinces } = readProvinces(file);
-
-  /** Halkanın alan ağırlıklı ağırlık merkezi — etiket ve yakınlaştırma noktası. */
-  const centroid = (ring) => {
-    let a = 0, cx = 0, cy = 0;
-    for (let i = 0; i < ring.length - 1; i++) {
-      const [x0, y0] = ring[i];
-      const [x1, y1] = ring[i + 1];
-      const f = x0 * y1 - x1 * y0;
-      a += f; cx += (x0 + x1) * f; cy += (y0 + y1) * f;
-    }
-    if (a === 0) return ring[0];
-    return [cx / (3 * a), cy / (3 * a)];
-  };
 
   const kayitlar = provinces.map((il) => {
     const halkalar = il.rings.map((r) => r.map(project));

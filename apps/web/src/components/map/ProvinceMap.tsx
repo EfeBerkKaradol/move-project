@@ -4,6 +4,7 @@ import Link from 'next/link';
 import { useMemo } from 'react';
 import { MAP_BOX, MAP_VIEWBOX } from '@/components/hero/geo-data';
 import { normalize } from '@/lib/places';
+import type { DistrictShape } from './district-shapes';
 import { PROVINCE_SHAPES } from './province-shapes';
 
 /**
@@ -70,6 +71,7 @@ export function ProvinceMap({
   vehicleFilter = '',
   basePath,
   routes = [],
+  districts = [],
 }: {
   provinces: ProvinceStat[];
   selectedCityCode: string | null;
@@ -79,6 +81,11 @@ export function ProvinceMap({
   basePath: string;
   /** Seçili ilin içinde başlayıp biten ilanlar; yalnızca yakınlaşınca çiziliyor. */
   routes?: MapRoute[];
+  /**
+   * Seçili ilin ilçe sınırları. Sunucu yalnızca o ilinkini yolluyor: tamamı
+   * 366 KB, en büyük il 40 KB'ın altında (bkz. districts.ts).
+   */
+  districts?: DistrictShape[];
 }) {
   // geoBoundaries "Hakkâri" diyor, veritabanı "Hakkari": ham eşitlik o ili
   // sessizce boş gösterirdi
@@ -197,6 +204,32 @@ export function ProvinceMap({
               </Link>
             );
           })}
+
+          {/*
+            İlçe sınırları yalnızca yakınlaşınca. Ülke görünümünde 973 ilçe hem
+            okunmuyor hem de ilin kendi sınırını yutuyordu; seçilen ilin içi
+            boş kalmasın diye burada, seçimle birlikte açılıyor.
+
+            İlanlar ilçe düzeyinde duruyor (ADR-0008: adres toplanmıyor), yani
+            haritanın çözünürlüğü verinin çözünürlüğüyle aynı. Sokak çizmek,
+            bilmediğimiz bir hassasiyeti biliyormuş gibi göstermek olurdu.
+          */}
+          {selected &&
+            districts.map((ilce) => (
+              <path
+                key={ilce.name}
+                d={ilce.d}
+                fill="none"
+                stroke="var(--surface)"
+                strokeWidth={0.8}
+                strokeOpacity={0.85}
+                strokeLinejoin="round"
+                vectorEffect="non-scaling-stroke"
+                pointerEvents="none"
+              >
+                <title>{ilce.name}</title>
+              </path>
+            ))}
 
           {/*
             İl içi ilanlar dönüşümün İÇİNDE: ilçe koordinatları ülke uzayında,

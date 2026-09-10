@@ -5,6 +5,7 @@ import Link from 'next/link';
 import { redirect } from 'next/navigation';
 import { auth, canCallApi, homeFor, isDriver } from '@/auth';
 import { ProvinceList, ProvinceMap, type MapRoute, type ProvinceStat } from '@/components/map/ProvinceMap';
+import { districtsOf } from '@/components/map/districts';
 import { RouteLine } from '@/components/app/RouteLine';
 import { Shell } from '@/components/app/Shell';
 import { SubNav } from '@/components/app/SubNav';
@@ -71,6 +72,7 @@ export default async function DriverPage({ searchParams }: { searchParams: Param
   }
   const iller = new Map<string, string>();
   for (const d of districts ?? []) iller.set(d.cityCode, d.cityName);
+  const cityName = cityFilter ? (iller.get(cityFilter) ?? null) : null;
   const provinceStats: ProvinceStat[] = [...iller].map(([cityCode, name]) => ({
     name,
     cityCode,
@@ -121,6 +123,7 @@ export default async function DriverPage({ searchParams }: { searchParams: Param
             selectedCityCode={cityFilter || null}
             basePath="/nakliyeci"
             routes={ilIciRotalar}
+            districts={districtsOf(cityName)}
           />
           <ProvinceList
             provinces={provinceStats}
