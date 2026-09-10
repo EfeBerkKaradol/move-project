@@ -108,7 +108,8 @@
       "publicClient": true,
       "standardFlowEnabled": true,
       "redirectUris": [
-        "tasiyoruz://*"
+        "tasiyoruz://*",
+        "exp://*"
       ],
       "attributes": {
         "pkce.code.challenge.method": "S256"
@@ -121,7 +122,8 @@
       "publicClient": true,
       "standardFlowEnabled": true,
       "redirectUris": [
-        "tasiyoruz-driver://*"
+        "tasiyoruz-driver://*",
+        "exp://*"
       ],
       "attributes": {
         "pkce.code.challenge.method": "S256"

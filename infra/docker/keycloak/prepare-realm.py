@@ -11,6 +11,9 @@ adrese çıkmamalı:
 * Test kullanıcıları ve parolaları repoda. Herkese açık bir sunucuda, parolası
   bilinen bir ADMIN hesabı bırakmak olmaz.
 * SMTP ayarı yerel Mailhog'u gösteriyor; üretimin kendi sunucusu var.
+* Mobil istemcilerde ``exp://*`` yönlendirme adresi var — Expo Go bunu kullanıyor.
+  Üretimde kalması, yetkilendirme kodunun saldırganın açtığı bir exp:// adresine
+  gönderilebilmesi demek olurdu.
 
 E-posta doğrulama AÇIK bırakılıyor. Bir dönem kapatılmıştı: SMTP yokken açık
 olması kimsenin kaydını tamamlayamaması demekti. Artık posta sağlayıcının HTTP
@@ -42,6 +45,17 @@ for client in realm.get("clients", []):
 kullanici_sayisi = len(realm.get("users", []))
 realm["users"] = []
 
+# Expo Go'nun yönlendirme adresi (exp://*) yalnızca yerel geliştirme için.
+# Üretimde kalsaydı, saldırganın kontrolündeki bir exp:// adresine yetkilendirme
+# kodu gönderilebilirdi — OAuth'ta yönlendirme adresi bir güvenlik sınırı.
+kaldirilan_exp = 0
+for client in realm.get("clients", []):
+    uris = client.get("redirectUris") or []
+    kalan = [u for u in uris if not u.startswith("exp://")]
+    kaldirilan_exp += len(uris) - len(kalan)
+    if uris:
+        client["redirectUris"] = kalan
+
 realm.pop("smtpServer", None)
 realm["verifyEmail"] = True
 
@@ -49,4 +63,5 @@ json.dump(realm, open(dst, "w", encoding="utf-8"), ensure_ascii=False, indent=2)
 print(f"realm hazırlandı: sslRequired=external, "
       f"{len(kaldirilan_sir)} istemci sırrı kaldırıldı ({', '.join(kaldirilan_sir)}), "
       f"{kullanici_sayisi} test kullanıcısı çıkarıldı, "
+      f"{kaldirilan_exp} geliştirme yönlendirme adresi (exp://) kaldırıldı, "
       f"e-posta doğrulama açık")
