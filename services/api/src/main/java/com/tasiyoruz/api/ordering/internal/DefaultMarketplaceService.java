@@ -58,6 +58,8 @@ class DefaultMarketplaceService implements MarketplaceService {
     private final LoadListingRepository listings;
     private final CarrierOfferRepository offers;
     private final CarrierDirectory carriers;
+    private final com.tasiyoruz.api.identity.api.UserDirectory users;
+    private final com.tasiyoruz.api.identity.api.PhoneDirectory phones;
     private final GeoService geo;
     private final PricingService pricing;
     private final CargoCatalog cargoCatalog;
@@ -71,7 +73,10 @@ class DefaultMarketplaceService implements MarketplaceService {
     private final Clock clock;
 
     DefaultMarketplaceService(LoadListingRepository listings, CarrierOfferRepository offers,
-                              CarrierDirectory carriers, GeoService geo,
+                              CarrierDirectory carriers,
+                              com.tasiyoruz.api.identity.api.UserDirectory users,
+                              com.tasiyoruz.api.identity.api.PhoneDirectory phones,
+                              GeoService geo,
                               PricingService pricing, CargoCatalog cargoCatalog, ListingPhotoService photos,
                               CarrierVisibility visibility, ComplianceGuard compliance, ConsentService consents,
                               CargoScreening screening, ApplicationEventPublisher events, ObjectMapper mapper,
@@ -79,6 +84,8 @@ class DefaultMarketplaceService implements MarketplaceService {
         this.listings = listings;
         this.offers = offers;
         this.carriers = carriers;
+        this.users = users;
+        this.phones = phones;
         this.geo = geo;
         this.pricing = pricing;
         this.cargoCatalog = cargoCatalog;
@@ -139,7 +146,8 @@ class DefaultMarketplaceService implements MarketplaceService {
                 r.pickup().floor(), r.pickup().hasElevator(), r.dropoff().floor(), r.dropoff().hasElevator(),
                 r.extraServicesOrEmpty(), declare(r.cargoItems()), r.cargoDescription(),
                 r.pickupWindowStart(), r.pickupWindowEnd(),
-                snapshot, quote.totalAmount().amount(), now, expiresAt));
+                snapshot, quote.totalAmount().amount(), now, expiresAt)
+                .withNeighborhoods(r.pickup().neighborhood(), r.dropoff().neighborhood()));
 
         var attached = photos.attach(shipperId, listing.getId(), r.photoIds(), now);
 
@@ -259,7 +267,9 @@ class DefaultMarketplaceService implements MarketplaceService {
     public Optional<ListingView> listingForCarrier(String carrierId, String listingId) {
         return parse(listingId).flatMap(listings::findById)
                 .filter(l -> visibility.maySee(l, carrierId))
-                .map(l -> view(l).forCarrier());
+                // İletişim yalnızca detayda: liste ekranında yüz ilanın adı ve
+                // numarası tek istekte dışarı çıkardı
+                .map(l -> view(l).forCarrier(shipperContact(l.getShipperId())));
     }
 
     @Override
@@ -442,21 +452,40 @@ class DefaultMarketplaceService implements MarketplaceService {
     private ListingView view(LoadListing l, java.util.List<ListingPhoto> listingPhotos) {
         return new ListingView(l.getId().toString(), l.getListingNumber(), l.getShipperId(),
                 l.getServiceModel(), l.getVehicleTypeCode(),
-                place(l.getPickupDistrictId(), l.getPickupFloor(), l.getPickupHasElevator()),
-                place(l.getDropoffDistrictId(), l.getDropoffFloor(), l.getDropoffHasElevator()),
+                place(l.getPickupDistrictId(), l.getPickupNeighborhood(), l.getPickupFloor(), l.getPickupHasElevator()),
+                place(l.getDropoffDistrictId(), l.getDropoffNeighborhood(), l.getDropoffFloor(), l.getDropoffHasElevator()),
                 l.getExtraServices(), l.getDeclaredItems(),
                 listingPhotos.stream().map(ListingPhotoService::view).toList(),
                 l.getCargoDescription(), l.getPickupWindowStart(), l.getPickupWindowEnd(),
                 Money.tryOf(l.getEstimatedAmount()), l.getEstimateSnapshot(), l.getStatus(),
                 l.getAwardedOfferId() == null ? null : l.getAwardedOfferId().toString(),
                 offers.countByListingIdAndStatus(l.getId(), OfferStatus.SUBMITTED),
-                l.getPublishedAt(), l.getExpiresAt());
+                l.getPublishedAt(), l.getExpiresAt(), null);
     }
 
-    private ListingView.Place place(UUID districtId, Integer floor, Boolean elevator) {
+    private ListingView.Place place(UUID districtId, String neighborhood, Integer floor, Boolean elevator) {
         var d = geo.district(districtId.toString());
         return new ListingView.Place(districtId.toString(),
-                d.map(District::cityName).orElse(null), d.map(District::name).orElse(null), floor, elevator);
+                d.map(District::cityName).orElse(null), d.map(District::name).orElse(null),
+                neighborhood, floor, elevator);
+    }
+
+    /**
+     * Teklif aşamasındaki araç sahibinin gördüğü iletişim.
+     *
+     * <p>Numara kimlik modülünden <em>maskeli</em> alınıyor; ham hâli bu modüle
+     * hiç girmiyor. Sızdıramayacağımız bir veriyi korumak zorunda değiliz.
+     */
+    private ListingView.ShipperContact shipperContact(String shipperId) {
+        // displayName() ad yoksa e-postaya düşüyor; teklif aşamasındaki araç
+        // sahibine müşterinin e-postasını göstermek istemiyoruz — adı yoksa yok
+        var ad = users.user(shipperId)
+                .map(u -> ((u.firstName() == null ? "" : u.firstName()) + " "
+                        + (u.lastName() == null ? "" : u.lastName())).trim())
+                .filter(a -> !a.isEmpty())
+                .orElse(null);
+        var telefon = phones.maskedVerifiedPhone(shipperId).orElse(null);
+        return ad == null && telefon == null ? null : new ListingView.ShipperContact(ad, telefon);
     }
 
     /**

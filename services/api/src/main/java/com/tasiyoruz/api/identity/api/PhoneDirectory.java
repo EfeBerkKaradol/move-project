@@ -13,4 +13,14 @@ public interface PhoneDirectory {
 
     /** Kullanıcının doğrulanmış numarası; doğrulanmamışsa boş. */
     Optional<String> verifiedPhone(String userId);
+
+    /**
+     * Doğrulanmış numaranın maskelenmiş hâli: {@code +90 5** *** ** 34}.
+     *
+     * <p>Ayrı bir uç, çünkü maskeleme çağıran tarafa bırakılırsa er ya da geç
+     * biri unutur. Numarayı ekranda göstermesi gereken ama tamamına ihtiyacı
+     * olmayan taraf — teklif aşamasındaki araç sahibi gibi — ham numarayı hiç
+     * görmüyor: sızdıramayacağı bir veriyi korumak zorunda değil.
+     */
+    Optional<String> maskedVerifiedPhone(String userId);
 }

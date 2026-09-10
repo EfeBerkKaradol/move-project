@@ -34,11 +34,22 @@ public record ListingView(
         String awardedOfferId,
         int offerCount,
         Instant publishedAt,
-        Instant expiresAt) {
+        Instant expiresAt,
+        /** Yük verenin adı ve maskeli numarası; yalnızca araç sahibi görünümünde dolu. */
+        ShipperContact shipper) {
 
-    /** İlçe düzeyi; adres taşıyıcıya atama sonrasında açılır. */
+    /** Semt düzeyi; tam adres ve kapı numarası atama sonrasında paylaşılıyor. */
     public record Place(String districtId, String cityName, String districtName,
-                        Integer floor, Boolean hasElevator) {}
+                        String neighborhood, Integer floor, Boolean hasElevator) {}
+
+    /**
+     * Teklif aşamasında görünen iletişim.
+     *
+     * <p>Numara maskeli geliyor ve ham hâli bu modüle hiç girmiyor: teklif veren
+     * herkesin tam numarayı görmesi, iş almadan müşteri listesi toplayabilmek
+     * demekti. Tam numara işi üstlenince açılıyor.
+     */
+    public record ShipperContact(String displayName, String maskedPhone) {}
 
     /** Beyan edilen toplam hacim — araç sahibi kasasına sığar mı diye buna bakıyor. */
     public BigDecimal declaredVolumeM3() {
@@ -50,9 +61,15 @@ public record ListingView(
         return cargoItems.stream().mapToInt(DeclaredItem::totalWeightKg).sum();
     }
 
+    /** Kimliği gizlenmiş hâl; liste ekranlarında iletişim hiç taşınmıyor. */
     public ListingView forCarrier() {
+        return forCarrier(null);
+    }
+
+    public ListingView forCarrier(ShipperContact contact) {
         return new ListingView(id, listingNumber, null, serviceModel, vehicleTypeCode, pickup, dropoff,
                 extraServices, cargoItems, photos, cargoDescription, pickupWindowStart, pickupWindowEnd,
-                estimatedAmount, estimate, status, awardedOfferId, offerCount, publishedAt, expiresAt);
+                estimatedAmount, estimate, status, awardedOfferId, offerCount, publishedAt, expiresAt,
+                contact);
     }
 }

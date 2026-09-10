@@ -37,4 +37,34 @@ class PhoneNumbersTest {
     void gosterimBiciminde_okunabilirGruplar() {
         assertThat(PhoneNumbers.display("+905321234567")).isEqualTo("+90 532 123 45 67");
     }
+
+    @Test
+    void maskeliGosterimSonIkiHaneyiBirakiyor() {
+        // Teyit için son haneler yetiyor: "aradığım numara bu mu?" cevaplanabiliyor
+        assertThat(PhoneNumbers.mask("+905321234567")).isEqualTo("+90 5** *** ** 67");
+    }
+
+    @Test
+    void maskeOperatorKodunuGizliyor() {
+        // 532 ile 555 aynı görünmeli; operatör kodu kişiyi daraltan bir bilgi
+        assertThat(PhoneNumbers.mask("+905321234567"))
+                .isEqualTo(PhoneNumbers.mask("+905551234567"));
+    }
+
+    @Test
+    void maskeAbonenumarasindanSonIkiHaneDisindaBirSeyBirakmiyor() {
+        var maskeli = PhoneNumbers.mask("+905321234567");
+        // Görünen rakamlar: +90, cep numarasını belli eden 5, ve son iki hane.
+        // İlk üçü Türkiye'deki her cep numarasında aynı — kişiyi daraltmıyor.
+        assertThat(maskeli.replaceAll("[^0-9]", "")).isEqualTo("90567");
+        assertThat(maskeli).doesNotContain("32").doesNotContain("123").doesNotContain("45");
+        assertThat(maskeli).endsWith("67");
+    }
+
+    @Test
+    void bozukNumarada_cokmuyor() {
+        assertThat(PhoneNumbers.mask(null)).isNull();
+        assertThat(PhoneNumbers.mask("")).isEmpty();
+        assertThat(PhoneNumbers.mask("12")).isEqualTo("12");
+    }
 }

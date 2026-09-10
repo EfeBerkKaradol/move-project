@@ -42,6 +42,22 @@ export function formatPlace(city: string, district: string, neighborhood?: strin
 }
 
 /**
+ * Yazılan adresten mahalle/semt adını çıkarır; yoksa null.
+ *
+ * <p>{@link formatPlace} biçiminin tersi. Kullanıcı zaten mahalleyi seçiyordu ama
+ * ilçeye çevrilirken atılıyordu; teklif veren araç sahibi "Kadıköy" görüp yolun
+ * ne kadarını çıkacağını bilemiyordu.
+ *
+ * <p>Elle yazılmış bir metin de gelebilir: ayraç yoksa ya da arkası boşsa null
+ * dönüyor, uydurulmuş bir semt ilana yazılmıyor.
+ */
+export function neighborhoodOf(value: string): string | null {
+  const [, neighborhood] = value.split(' - ');
+  const trimmed = neighborhood?.trim();
+  return trimmed ? trimmed.slice(0, 96) : null;
+}
+
+/**
  * Her harfte daralan arama. İlçeler önce, mahalleler ilçesine göre gruplanmış hâlde
  * altta. Boş sorguda tüm ilçeler listelenir (mahalle yok — 2.000+ satır anlamsız).
  *

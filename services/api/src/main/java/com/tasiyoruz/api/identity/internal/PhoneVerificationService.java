@@ -61,6 +61,11 @@ class PhoneVerificationService implements PhoneDirectory {
         return phones.findById(userId).map(UserPhone::phone);
     }
 
+    @Override
+    public Optional<String> maskedVerifiedPhone(String userId) {
+        return verifiedPhone(userId).map(PhoneNumbers::mask);
+    }
+
     @Transactional(readOnly = true)
     PhoneView current(String userId) {
         return phones.findById(userId)

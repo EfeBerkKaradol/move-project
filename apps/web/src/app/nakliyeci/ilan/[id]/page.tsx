@@ -23,7 +23,10 @@ export const dynamic = 'force-dynamic';
  * için gereken her şeyi bir arada gösteriyor — beyan, kareler, kat ve asansör, tarife
  * tahmini.
  *
- * <p>Adres ve kişi bilgisi burada da yok; onlar iş verildikten sonra açılıyor.
+ * <p>İletişim <strong>maskeli</strong>: ad ve numaranın son iki hanesi görünüyor,
+ * tam numara iş üstlenilince açılıyor. Teklif veren herkesin tam numarayı
+ * görmesi, iş almadan müşteri listesi toplayabilmek demekti. Konum aynı sebeple
+ * semt düzeyinde; kapı numarası zaten hiç toplanmıyor.
  */
 export default async function CarrierListingPage({ params }: { params: Promise<{ id: string }> }) {
   const [session, { id }] = await Promise.all([auth(), params]);
@@ -43,7 +46,13 @@ export default async function CarrierListingPage({ params }: { params: Promise<{
   const myOffers = await apiFetch<OfferView[]>('/driver/offers');
   const mine = myOffers.find((o) => o.listingId === listing.id && o.status === 'SUBMITTED');
   const stop = (p: ListingView['pickup']) =>
-    `${p.floor ?? 0}. kat · ${p.hasElevator ? 'asansör var' : 'asansör yok'}`;
+    [
+      p.neighborhood,
+      `${p.floor ?? 0}. kat`,
+      p.hasElevator ? 'asansör var' : 'asansör yok',
+    ]
+      .filter(Boolean)
+      .join(' · ');
 
   return (
     <Shell eyebrow="Araç sahibi" title={listing.listingNumber}>
@@ -102,9 +111,28 @@ export default async function CarrierListingPage({ params }: { params: Promise<{
             )}
           </div>
 
-          <p className="mt-4 text-xs text-muted">
-            Adres ve iletişim bilgisi işi üstlendiğinde açılır.
-          </p>
+          {/* İletişim yayınla düğmesinin yanında değil altında: teklif önce yüke
+              bakılarak veriliyor, kiminle konuşulacağı ikincil. */}
+          <div className="mt-4 border-t border-line pt-4">
+            <p className="label-mono text-muted">İlan sahibi</p>
+            {listing.shipper?.displayName || listing.shipper?.maskedPhone ? (
+              <>
+                {listing.shipper.displayName && (
+                  <p className="mt-1 text-sm font-semibold">{listing.shipper.displayName}</p>
+                )}
+                {listing.shipper.maskedPhone && (
+                  <p className="mt-0.5 text-sm tabular-nums text-muted">
+                    {listing.shipper.maskedPhone}
+                  </p>
+                )}
+              </>
+            ) : (
+              <p className="mt-1 text-sm text-muted">Paylaşılmadı.</p>
+            )}
+            <p className="mt-2 text-xs text-muted">
+              Tam numara ve adres, işi üstlendiğinde açılır.
+            </p>
+          </div>
         </aside>
       </div>
     </Shell>

@@ -42,8 +42,20 @@ public record CreateListingRequest(
 
     public record Stop(
             @NotBlank String districtId,
+            /** Kullanıcının seçtiği mahalle/semt; isteğe bağlı, adres değil. */
+            @jakarta.validation.constraints.Size(max = 96) String neighborhood,
             @Min(0) @Max(50) Integer floor,
-            Boolean hasElevator) {}
+            Boolean hasElevator) {
+
+        /**
+         * Semtsiz durak. Semt isteğe bağlı: kullanıcı adres alanına yalnızca ilçe
+         * yazmış olabilir, ve fiyat sorgusu gibi semtin hiç rol oynamadığı
+         * çağrılar da var.
+         */
+        public Stop(String districtId, Integer floor, Boolean hasElevator) {
+            this(districtId, null, floor, hasElevator);
+        }
+    }
 
     /** Katalogdan seçilmiş bir kalem ve adedi. */
     public record ItemLine(

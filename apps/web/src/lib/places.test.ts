@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import type { CityPlaces } from '@/data/places';
-import { cityOf, matchDistrict, normalize, parsePlace, sameCity, searchPlaces } from './places';
+import { cityOf, matchDistrict, neighborhoodOf, normalize, parsePlace, sameCity, searchPlaces } from './places';
 
 const DATA: CityPlaces[] = [
   { city: 'İstanbul', districts: [['Kadıköy', ['Caferağa', 'Moda']], ['Beşiktaş', ['Cihannüma']]] },
@@ -73,5 +73,31 @@ describe('ilçe eşleme', () => {
 
   it('listede olmayan serbest metin eşleşmez', () => {
     expect(matchDistrict(districts, 'Hadımköy')).toBeNull();
+  });
+});
+
+describe('neighborhoodOf', () => {
+  /*
+   * Kullanıcı mahalleyi zaten seçiyordu ama ilçeye çevrilirken atılıyordu; araç
+   * sahibi "Kadıköy" görüp yolun ne kadarını çıkacağını bilemiyordu.
+   */
+  it('formatPlace biçiminden semti çıkarıyor', () => {
+    expect(neighborhoodOf('İstanbul, Beşiktaş - Cihannüma')).toBe('Cihannüma');
+  });
+
+  it('yalnızca ilçe yazılmışsa null', () => {
+    expect(neighborhoodOf('İstanbul, Beşiktaş')).toBeNull();
+  });
+
+  it('boş ya da bozuk girdide null — uydurulmuş semt ilana yazılmıyor', () => {
+    expect(neighborhoodOf('')).toBeNull();
+    expect(neighborhoodOf('İstanbul, Beşiktaş - ')).toBeNull();
+    expect(neighborhoodOf(' - ')).toBeNull();
+  });
+
+  it('çok uzun metni sunucu sınırına kırpıyor', () => {
+    // Sunucu 96 karakter kabul ediyor; reddi burada değil orada öğrenmeyelim
+    const uzun = neighborhoodOf(`İstanbul, Beşiktaş - ${'a'.repeat(200)}`);
+    expect(uzun).toHaveLength(96);
   });
 });

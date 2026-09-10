@@ -342,3 +342,30 @@ gizlenmiş bir ilanın fotoğrafının açık kalmasına yol açardı.
 Formda kullanıcıya ne çekeceği söyleniyor: **eşyanın kendisi, kimlik/adres/yüz değil.**
 Karelerin kimlerin göreceği aynı cümlede yazıyor — sonradan öğrenilen bir görünürlük,
 verilmemiş bir rızadır.
+
+---
+
+## 9. İlan detayında konum ve iletişim (V23)
+
+Araç sahibi teklif verirken yalnızca ilçeyi görüyordu: "Kadıköy" yolun ne kadarını
+çıkacağını söylemiyor. Kullanıcı adres alanında mahalleyi zaten seçiyordu
+("İstanbul, Kadıköy - Caferağa") ama o bilgi ilçeye çevrilirken atılıyordu.
+
+**Semt** artık ilana yazılıyor ve teklif aşamasında görünüyor. Tam adres ve kapı
+numarası hâlâ **toplanmıyor**; iş verildikten sonra taraflar arasında paylaşılıyor.
+
+**İletişim** teklif aşamasında maskeli: ad ve `+90 5** *** ** 67`. Numaranın ham
+hâli `ordering` modülüne hiç girmiyor — `identity` maskeleyerek veriyor
+(`PhoneDirectory.maskedVerifiedPhone`). Sızdıramayacağımız bir veriyi korumak
+zorunda değiliz.
+
+| | İlçe | Semt | Ad | Telefon | Tam adres |
+|---|---|---|---|---|---|
+| Herkese açık yüzey | ✓ | — | — | — | — |
+| Onaylı araç sahibi, ilan listesi | ✓ | ✓ | — | — | — |
+| Onaylı araç sahibi, ilan detayı | ✓ | ✓ | ✓ | maskeli | — |
+| İşi üstlenen araç sahibi | ✓ | ✓ | ✓ | tam | ✓ |
+
+İletişim **listede taşınmıyor**, yalnızca detayda: taşınsaydı tek istekle yüz
+ilanın adı ve numarası dışarı çıkardı. Sızdırma, bir ekranın veriyi göstermesiyle
+değil yanıtın onu taşımasıyla olur — test bunu bağlıyor.

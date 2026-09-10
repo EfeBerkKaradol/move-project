@@ -69,6 +69,9 @@ export function PublishForm({
     pickupWindow: { start: string; end: string } | null;
     /** Fiyat adımında tarif edilen yük; kullanıcı burada değiştirebiliyor. */
     cargoItems: Record<string, number>;
+    /** Adres alanında seçilen semt; ilçeden dar, adres değil. */
+    pickupNeighborhood: string;
+    dropoffNeighborhood: string;
   };
 }) {
   const [state, action, pending] = useActionState<ActionState, FormData>(publishListing, {});
@@ -99,6 +102,8 @@ export function PublishForm({
       <input type="hidden" name="vehicleTypeCode" value={vehicle.code} />
       <input type="hidden" name="pickupDistrictId" value={pickup.id} />
       <input type="hidden" name="dropoffDistrictId" value={dropoff.id} />
+      <input type="hidden" name="pickupNeighborhood" value={initial.pickupNeighborhood} />
+      <input type="hidden" name="dropoffNeighborhood" value={initial.dropoffNeighborhood} />
       <input type="hidden" name="pickupFloor" value={initial.pickupFloor} />
       <input type="hidden" name="dropoffFloor" value={initial.dropoffFloor} />
       {initial.pickupHasElevator && <input type="hidden" name="pickupHasElevator" value="on" />}

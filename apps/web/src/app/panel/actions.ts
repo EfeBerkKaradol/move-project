@@ -13,11 +13,13 @@ export async function publishListing(_prev: ActionState, form: FormData): Promis
     vehicleTypeCode: String(form.get('vehicleTypeCode')),
     pickup: {
       districtId: String(form.get('pickupDistrictId')),
+      neighborhood: String(form.get('pickupNeighborhood') ?? '') || null,
       floor: Number(form.get('pickupFloor') ?? 0),
       hasElevator: form.get('pickupHasElevator') === 'on',
     },
     dropoff: {
       districtId: String(form.get('dropoffDistrictId')),
+      neighborhood: String(form.get('dropoffNeighborhood') ?? '') || null,
       floor: Number(form.get('dropoffFloor') ?? 0),
       hasElevator: form.get('dropoffHasElevator') === 'on',
     },

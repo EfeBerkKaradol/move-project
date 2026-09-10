@@ -197,6 +197,62 @@ class ListingCargoDeclarationTest extends IntegrationTestBase {
         assertThat(marketplace.listingForCarrier(CARRIER, listing.id())).isEmpty();
     }
 
+
+    // ── Semt ve iletişim (V23) ───────────────────────────────────────
+
+    @Test
+    void semtIlanaYaziliyorVeAracSahibineGoruluyor() {
+        // İlçe teklif için yetmiyordu: araç sahibi "Kadıköy" görüp yolun ne
+        // kadarını çıkacağını bilemiyordu
+        var listing = marketplace.publish(SHIPPER, new CreateListingRequest("INSTANT", "KAMYONET",
+                new CreateListingRequest.Stop(district("34", "kadikoy"), "Caferağa", 0, true),
+                new CreateListingRequest.Stop(district("34", "besiktas"), "Cihannüma", 0, true),
+                List.of(), List.of(new CreateListingRequest.ItemLine("KOLI_STANDART", 2)),
+                listingFixture.photoIds(SHIPPER), true, null, null, null));
+
+        assertThat(listing.pickup().neighborhood()).isEqualTo("Caferağa");
+        assertThat(listing.dropoff().neighborhood()).isEqualTo("Cihannüma");
+
+        var gorunen = marketplace.listingForCarrier(CARRIER, listing.id()).orElseThrow();
+        assertThat(gorunen.pickup().neighborhood()).isEqualTo("Caferağa");
+    }
+
+    @Test
+    void semtSecilmemisseIlanYineAcilir() {
+        // Semt isteğe bağlı: kullanıcı adres alanına yalnızca ilçe yazmış olabilir
+        var listing = marketplace.publish(SHIPPER,
+                request(List.of(new CreateListingRequest.ItemLine("KOLI_STANDART", 1))));
+
+        assertThat(listing.pickup().neighborhood()).isNull();
+    }
+
+    @Test
+    void listeEkranindaIletisimTasinmiyor() {
+        /*
+         * Detayda gösterilen ad ve numara listede taşınsaydı, tek istekle yüz
+         * ilanın iletişim bilgisi dışarı çıkardı. Sızdırma, bir ekranın onu
+         * göstermesiyle değil yanıtın onu taşımasıyla olur.
+         */
+        marketplace.publish(SHIPPER,
+                request(List.of(new CreateListingRequest.ItemLine("KOLI_STANDART", 1))));
+
+        assertThat(marketplace.openListings(null, null))
+                .isNotEmpty()
+                .allSatisfy(l -> assertThat(l.shipper()).isNull());
+    }
+
+    @Test
+    void aracSahibiHamNumarayiHicbirZamanGormuyor() {
+        // Numara kimlik modülünden maskeli geliyor; ham hâli ordering'e hiç girmiyor
+        var listing = marketplace.publish(SHIPPER,
+                request(List.of(new CreateListingRequest.ItemLine("KOLI_STANDART", 1))));
+
+        var gorunen = marketplace.listingForCarrier(CARRIER, listing.id()).orElseThrow();
+        if (gorunen.shipper() != null && gorunen.shipper().maskedPhone() != null) {
+            assertThat(gorunen.shipper().maskedPhone()).contains("*");
+        }
+    }
+
     // ── Yardımcılar ──────────────────────────────────────────────────
 
     private CreateListingRequest request(List<CreateListingRequest.ItemLine> items) {

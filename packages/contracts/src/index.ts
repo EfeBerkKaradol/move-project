@@ -157,6 +157,8 @@ export type ListingPlace = {
   districtId: string;
   cityName: string | null;
   districtName: string | null;
+  /** Semt — ilçeden dar, adresten geniş. Kullanıcı seçmediyse null. */
+  neighborhood: string | null;
   floor: number | null;
   hasElevator: boolean | null;
 };
@@ -234,6 +236,18 @@ export type ListingView = {
   offerCount: number;
   publishedAt: string;
   expiresAt: string;
+  /**
+   * Yük verenin adı ve maskeli numarası. Yalnızca araç sahibinin ilan detayında
+   * dolu; liste ekranlarında ve herkese açık yüzeyde null. Tam numara iş
+   * üstlenildikten sonra açılıyor.
+   */
+  shipper: ShipperContact | null;
+};
+
+/** Teklif aşamasında görünen iletişim; numara maskeli (+90 5** *** ** 67). */
+export type ShipperContact = {
+  displayName: string | null;
+  maskedPhone: string | null;
 };
 
 export type OfferView = {
@@ -287,11 +301,19 @@ export type NotificationView = {
   sentAt: string | null;
 };
 
+/** Durak. Semt isteğe bağlı ve adres değil; kapı numarası hiç toplanmıyor. */
+export type ListingStop = {
+  districtId: string;
+  neighborhood?: string | null;
+  floor?: number | null;
+  hasElevator?: boolean | null;
+};
+
 export type CreateListingRequest = {
   serviceModel: 'INSTANT' | 'SCHEDULED';
   vehicleTypeCode: string;
-  pickup: { districtId: string; floor?: number | null; hasElevator?: boolean | null };
-  dropoff: { districtId: string; floor?: number | null; hasElevator?: boolean | null };
+  pickup: ListingStop;
+  dropoff: ListingStop;
   extraServices?: string[];
   /** Zorunlu: ilan neyi taşıdığını söylemeden yayınlanamıyor. */
   cargoItems: { cargoItemCode: string; quantity: number }[];

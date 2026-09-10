@@ -37,4 +37,22 @@ final class PhoneNumbers {
         var d = e164.substring(3);
         return "+90 " + d.substring(0, 3) + " " + d.substring(3, 6) + " " + d.substring(6, 8) + " " + d.substring(8);
     }
+
+    /**
+     * Maskeli gösterim: {@code +90 5** *** ** 67}.
+     *
+     * <p>Son iki hane duruyor çünkü teyit için o yetiyor — "aradığım numara bu
+     * mu?" sorusu son hanelerle cevaplanıyor. Operatör kodu da duruyor: araç
+     * sahibi numaranın gerçek bir cep numarası olduğunu görebilmeli.
+     */
+    static String mask(String e164) {
+        var gosterim = display(e164);
+        if (gosterim == null || gosterim.length() < 4) return gosterim;
+        // "+90 5" korunuyor, son iki hane korunuyor, arası yıldız
+        var bas = gosterim.substring(0, Math.min(5, gosterim.length()));
+        var son = gosterim.substring(gosterim.length() - 2);
+        var orta = gosterim.substring(bas.length(), gosterim.length() - 2)
+                .replaceAll("[0-9]", "*");
+        return bas + orta + son;
+    }
 }

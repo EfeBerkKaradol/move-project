@@ -74,6 +74,8 @@ export default async function NewListingPage({ searchParams }: { searchParams: P
             : null,
           // Yük fiyat adımında tarif edildi; aynı soru burada tekrar sorulmuyor
           cargoItems: decodeItems(first(p.yuk), new Set(secilebilir.map((i) => i.code))),
+          pickupNeighborhood: first(p.sa).slice(0, 96),
+          dropoffNeighborhood: first(p.st).slice(0, 96),
         }}
       />
     </Shell>

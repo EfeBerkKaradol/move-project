@@ -50,6 +50,15 @@ public class LoadListing {
     private Instant pickupWindowStart;
     private Instant pickupWindowEnd;
 
+    /**
+     * Semt — ilçeden dar, adresten geniş (V23). Tam adres burada yok ve
+     * toplanmıyor: teklif veren herkesin adresi görmesi, iş almadan da müşteri
+     * adresi toplayabilmek demekti.
+     */
+    private String pickupNeighborhood;
+
+    private String dropoffNeighborhood;
+
     @JdbcTypeCode(SqlTypes.JSON) @Column(nullable = false, columnDefinition = "jsonb")
     private Map<String, Object> estimateSnapshot;
 
@@ -98,6 +107,19 @@ public class LoadListing {
         l.publishedAt = now;
         l.expiresAt = expiresAt;
         return l;
+    }
+
+    /**
+     * Semt bilgisini yerleştirir ve kendini döner.
+     *
+     * <p>{@code publish} imzası zaten on dokuz parametre; yirmi birinci ve
+     * yirmi ikinci sırada iki katarın hangisinin alış hangisinin teslim
+     * olduğunu çağrı yerinde okumak imkânsız hâle gelirdi.
+     */
+    public LoadListing withNeighborhoods(String pickup, String dropoff) {
+        this.pickupNeighborhood = pickup;
+        this.dropoffNeighborhood = dropoff;
+        return this;
     }
 
     public boolean isOpen(Instant now) {

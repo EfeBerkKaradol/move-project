@@ -15,7 +15,7 @@ import type { CargoSelection } from '@/components/booking/CargoDetail';
 import { FULL_LOAD_CATEGORY, declaredItems, encodeItems, isFullLoad } from '@/lib/cargo';
 import { PlaceSearch } from '@/components/site/PlaceSearch';
 import { fetchQuote } from '@/lib/api';
-import { cityOf, matchDistrict, sameCity } from '@/lib/places';
+import { cityOf, matchDistrict, neighborhoodOf, sameCity } from '@/lib/places';
 import { type Aralik, PickupWindow } from '@/components/form/PickupWindow';
 import { BOS_SECIM, CargoAdvisor } from './CargoAdvisor';
 import { CargoPhotoPicker } from './CargoPhotoPicker';
@@ -187,6 +187,11 @@ export function EstimateFlow({
     // Beyan da taşınıyor; ilan adımı aynı soruyu tekrar sormasın
     const yuk = encodeItems(kalemler);
     if (yuk) q.set('yuk', yuk);
+    // Semt: kullanıcı adres alanında zaten seçti, ilçeye çevrilirken kaybolmasın
+    const alisSemt = neighborhoodOf(from);
+    const teslimSemt = neighborhoodOf(to);
+    if (alisSemt) q.set('sa', alisSemt);
+    if (teslimSemt) q.set('st', teslimSemt);
     return `/panel/ilan/yeni?${q.toString()}`;
   })();
 
