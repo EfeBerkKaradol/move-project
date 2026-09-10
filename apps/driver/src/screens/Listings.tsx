@@ -1,4 +1,4 @@
-import type { ListingView, VehicleType } from '@tasiyoruz/contracts';
+import type { ListingView, OfferView, VehicleType } from '@tasiyoruz/contracts';
 import { formatPrice, formatVolume } from '@tasiyoruz/shared';
 import { useCallback, useEffect, useState } from 'react';
 import {
@@ -13,6 +13,7 @@ import {
 import { ApiError, apiFetch } from '../api';
 import { useAuth } from '../auth/AuthContext';
 import { colors, fonts, label, radius, touch } from '../theme';
+import { OfferSheet } from './OfferSheet';
 
 type Durum =
   | { tip: 'yukleniyor' }
@@ -46,15 +47,23 @@ export function Listings() {
   const [durum, setDurum] = useState<Durum>({ tip: 'yukleniyor' });
   const [araclar, setAraclar] = useState<Record<string, string>>({});
   const [yenileniyor, setYenileniyor] = useState(false);
+  const [secili, setSecili] = useState<ListingView | null>(null);
+  // Teklif verilmiş ilanlar; sürücü aynı ilana ikinci kez dokunup 409 almasın.
+  const [teklifliler, setTeklifliler] = useState<Set<string>>(new Set());
+  const [sonTeklif, setSonTeklif] = useState<string | null>(null);
 
   const yukle = useCallback(async () => {
     try {
-      const [ilanlar, tipler] = await Promise.all([
+      const [ilanlar, tipler, teklifler] = await Promise.all([
         apiFetch<ListingView[]>('/driver/listings/open', erisimTokeni),
         // Araç adları herkese açık uçtan; kod yerine ad göstermek için.
         apiFetch<VehicleType[]>('/public/vehicle-types', erisimTokeni).catch(() => [] as VehicleType[]),
+        apiFetch<OfferView[]>('/driver/offers', erisimTokeni).catch(() => [] as OfferView[]),
       ]);
       setAraclar(Object.fromEntries(tipler.map((t) => [t.code, t.displayName])));
+      setTeklifliler(
+        new Set(teklifler.filter((o) => o.status === 'SUBMITTED').map((o) => o.listingId)),
+      );
       setDurum({ tip: 'hazir', ilanlar });
     } catch (e) {
       setDurum({
@@ -91,7 +100,23 @@ export function Listings() {
   }
 
   return (
-    <FlatList
+    <>
+      {sonTeklif && (
+        <View style={styles.bilgi}>
+          <Text style={styles.bilgiYazi}>{sonTeklif}</Text>
+        </View>
+      )}
+      <OfferSheet
+        ilan={secili}
+        aracAdi={secili ? (araclar[secili.vehicleTypeCode] ?? secili.vehicleTypeCode) : ''}
+        kapat={() => setSecili(null)}
+        teklifVerildi={() => {
+          setSecili(null);
+          setSonTeklif('Teklifin gönderildi. Yük veren kabul ederse bilgilerin açılacak.');
+          void yukle();
+        }}
+      />
+      <FlatList
       data={durum.ilanlar}
       keyExtractor={(l) => l.id}
       contentContainerStyle={styles.liste}
@@ -115,10 +140,25 @@ export function Listings() {
         </View>
       }
       renderItem={({ item }) => {
+        const teklifVerildi = teklifliler.has(item.id);
         const parca = item.cargoItems.reduce((t, i) => t + i.quantity, 0);
         const hacim = item.cargoItems.reduce((t, i) => t + i.volumeM3 * i.quantity, 0);
         return (
-          <View style={styles.ilan}>
+          <Pressable
+            onPress={() => !teklifVerildi && setSecili(item)}
+            disabled={teklifVerildi}
+            accessibilityRole="button"
+            accessibilityLabel={
+              teklifVerildi
+                ? `${yer(item.pickup)} - ${yer(item.dropoff)} ilanına teklif verdin`
+                : `${yer(item.pickup)} - ${yer(item.dropoff)} ilanına teklif ver`
+            }
+            style={({ pressed }) => [
+              styles.ilan,
+              pressed && styles.ilanBasili,
+              teklifVerildi && styles.ilanTeklifli,
+            ]}
+          >
             <View style={styles.rotaSatiri}>
               <Text style={styles.rota} numberOfLines={2}>
                 {yer(item.pickup)} → {yer(item.dropoff)}
@@ -137,16 +177,21 @@ export function Listings() {
                 <Text style={styles.tutar}>{formatPrice(item.estimatedAmount.amount)}</Text>
               </View>
               <View style={styles.sagBilgi}>
-                <Text style={styles.teklif}>
-                  {item.offerCount === 0 ? 'ilk teklif senin olabilir' : `${item.offerCount} teklif`}
+                <Text style={[styles.teklif, teklifVerildi && styles.teklifVerildi]}>
+                  {teklifVerildi
+                    ? 'teklif verdin'
+                    : item.offerCount === 0
+                      ? 'ilk teklif senin olabilir'
+                      : `${item.offerCount} teklif`}
                 </Text>
                 <Text style={styles.sure}>{kalanSure(item.expiresAt)}</Text>
               </View>
             </View>
-          </View>
+          </Pressable>
         );
       }}
-    />
+      />
+    </>
   );
 }
 
@@ -163,6 +208,23 @@ const styles = StyleSheet.create({
     marginTop: 8,
   },
   ortaBosluk: { marginTop: 40 },
+  ilanBasili: { opacity: 0.7 },
+  // Teklif verilmiş ilan listede kalıyor ama sönük: sürücü ne teklif ettiğini
+  // hatırlamak isteyebilir, listeden çıkarmak bilgiyi gizlemek olurdu.
+  ilanTeklifli: { backgroundColor: colors.cream.surface2, borderColor: colors.cream.line },
+  teklifVerildi: { color: colors.cream.muted },
+  bilgi: {
+    backgroundColor: colors.routeSoft,
+    borderRadius: radius.field,
+    padding: 12,
+    marginTop: 16,
+  },
+  bilgiYazi: {
+    color: colors.routeDeep,
+    fontFamily: fonts.sansBold,
+    fontSize: 13,
+    lineHeight: 19,
+  },
   ilan: {
     backgroundColor: colors.cream.surface,
     borderRadius: radius.card,
