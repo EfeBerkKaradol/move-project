@@ -57,7 +57,10 @@ export function Footer() {
   return (
     <footer className="theme-cream border-t border-line bg-bg">
       <div className="mx-auto max-w-[76rem] px-6 py-14">
-        <div className="grid gap-10 md:grid-cols-[minmax(0,1fr)_minmax(0,2.2fr)]">
+        {/* Marka bloğu daraltıldı: beş bağlantı sütununun tek sıraya sığması için
+            genişliğe ihtiyaç var ve o blokta logo ile tek satır yazıdan başka bir
+            şey yok — kalan yer boşa gidiyordu. */}
+        <div className="grid gap-10 md:grid-cols-[minmax(0,1fr)_minmax(0,3.6fr)]">
           <div>
             <p className="flex items-center gap-2.5 text-[15px] font-extrabold tracking-tight">
               <Logo className="size-7" />
@@ -66,7 +69,18 @@ export function Footer() {
             <p className="mt-3 max-w-xs text-sm leading-relaxed text-muted">{BRAND.slogan}</p>
           </div>
 
-          <div className="grid gap-8 sm:grid-cols-4">
+          {/*
+            Beş grup, dört sütun: sonuncusu ("Kurallar") alt sıraya düşüyor ve
+            ızgarada sıra yüksekliğini en uzun sütun belirlediği için — "Yasal"
+            altı bağlantı — üstünde bir ekran boyu boşluk kalıyordu.
+
+            Sütun sayısı artık grup sayısıyla eşit. Dar ekranda üçe, telefonda
+            ikiye iniyor; her ikisinde de sıra bölünmesi dengeli oluyor: üstte
+            kısa gruplar, altta altışar bağlantılı iki uzun grup yan yana.
+            Telefonda tek sütun, yirmi iki bağlantıyı alt alta dizip alt bilgiyi
+            bir buçuk ekran uzunluğuna çıkarıyordu.
+          */}
+          <div className="grid grid-cols-2 gap-x-6 gap-y-8 sm:grid-cols-3 lg:grid-cols-5">
             {COLUMNS.map((column) => (
               <div key={column.title}>
                 <p className="label-mono text-muted">{column.title}</p>
