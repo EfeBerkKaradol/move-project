@@ -15,7 +15,7 @@ import {
 } from 'react-native';
 import { ApiError, apiFetch } from '../api';
 import { useAuth } from '../auth/AuthContext';
-import { colors, fonts, label, radius, touch } from '../theme';
+import { buyukHarf, colors, fonts, label, radius, touch } from '../theme';
 
 /**
  * İlan detayı ve teklif formu.
@@ -121,7 +121,7 @@ export function OfferSheet({
           ) : null}
 
           <View style={styles.kutu}>
-            <Text style={styles.kutuEtiket}>Tarife tahmini</Text>
+            <Text style={styles.kutuEtiket}>{buyukHarf('Tarife tahmini')}</Text>
             <Text style={styles.tutar}>{formatPrice(ilan.estimatedAmount.amount)}</Text>
             <Text style={styles.aciklama}>
               Benzer işlerde teklifler {formatPrice(aralik.low)} – {formatPrice(aralik.high)}{' '}
@@ -129,7 +129,7 @@ export function OfferSheet({
             </Text>
           </View>
 
-          <Text style={styles.alanEtiket}>Teklifin</Text>
+          <Text style={styles.alanEtiket}>{buyukHarf('Teklifin')}</Text>
           <TextInput
             value={tutar}
             onChangeText={setTutar}
@@ -140,7 +140,7 @@ export function OfferSheet({
             accessibilityLabel="Teklif tutarı"
           />
 
-          <Text style={styles.alanEtiket}>Not (isteğe bağlı)</Text>
+          <Text style={styles.alanEtiket}>{buyukHarf('Not (isteğe bağlı)')}</Text>
           <TextInput
             value={not}
             onChangeText={setNot}

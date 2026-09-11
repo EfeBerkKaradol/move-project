@@ -12,7 +12,7 @@ import {
 } from 'react-native';
 import { ApiError, apiFetch } from '../api';
 import { useAuth } from '../auth/AuthContext';
-import { colors, fonts, label, radius, touch } from '../theme';
+import { buyukHarf, colors, fonts, label, radius, touch } from '../theme';
 import { OfferSheet } from './OfferSheet';
 
 type Durum =
@@ -125,7 +125,7 @@ export function Listings() {
       }
       ListHeaderComponent={
         <View style={styles.listeBasligi}>
-          <Text style={styles.etiket}>Açık ilanlar</Text>
+          <Text style={styles.etiket}>{buyukHarf('Açık ilanlar')}</Text>
           <Text style={styles.sayi}>
             {durum.ilanlar.length} yük teklif bekliyor
           </Text>
@@ -173,7 +173,7 @@ export function Listings() {
 
             <View style={styles.altSatir}>
               <View>
-                <Text style={styles.tarifeEtiket}>tarife tahmini</Text>
+                <Text style={styles.tarifeEtiket}>{buyukHarf('tarife tahmini')}</Text>
                 <Text style={styles.tutar}>{formatPrice(item.estimatedAmount.amount)}</Text>
               </View>
               <View style={styles.sagBilgi}>

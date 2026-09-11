@@ -30,3 +30,10 @@ export const label = {
   letterSpacing: typography.label.letterSpacing,
   textTransform: 'uppercase',
 } as const;
+
+/**
+ * Türkçe büyük harf. `textTransform: 'uppercase'` yerel ayarı tanımıyor:
+ * "tarife tahmini" → "TARIFE TAHMINI" oluyor, noktalı İ kayboluyor. Etiket
+ * metinleri buradan geçirilir; stilin uppercase'i önceden büyütülmüş metne dokunmaz.
+ */
+export const buyukHarf = (metin: string) => metin.toLocaleUpperCase('tr-TR');
