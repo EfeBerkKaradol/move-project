@@ -3,8 +3,12 @@ import Link from 'next/link';
 import { redirect } from 'next/navigation';
 import { auth, homeFor, signIn } from '@/auth';
 import { Shell } from '@/components/app/Shell';
+import { PendingButton } from '@/components/ui/PendingButton';
 
 export const metadata: Metadata = { title: 'Giriş yap' };
+
+/** Bekleme uzayınca gösterilen açıklama — kullanıcı neden beklediğini bilsin. */
+const WAKE_HINT = 'Kimlik sunucusu uyandırılıyor; ilk açılışta bir dakika kadar sürebilir.';
 
 /**
  * Giriş Keycloak'a yönlendirir. Telefon + OTP, SMS sağlayıcısı bağlanınca
@@ -48,12 +52,15 @@ export default async function LoginPage({ searchParams }: { searchParams: Promis
             await signIn('keycloak', { redirectTo: target ?? '/giris' });
           }}
         >
-          <button
-            type="submit"
+          {/* Kimlik servisi uykudan uyanıyorsa yönlendirme bir dakikayı bulabiliyor;
+              düğme bu süre boyunca sessiz kalınca "çalışmıyor" sanılıyordu. */}
+          <PendingButton
+            pendingLabel="Giriş sayfası açılıyor…"
+            slowHint={WAKE_HINT}
             className="w-full rounded-field bg-route px-6 py-4 font-bold text-[var(--route-ink)] transition hover:bg-[var(--route-hover)] hover:shadow-[0_6px_18px_rgb(244_159_44_/_0.30)] active:translate-y-px"
           >
             Giriş yap
-          </button>
+          </PendingButton>
         </form>
 
         {/* Kayıt aynı akış, yalnızca Keycloak'ın kayıt formuyla başlıyor */}
@@ -66,12 +73,13 @@ export default async function LoginPage({ searchParams }: { searchParams: Promis
               await signIn('keycloak-signup', { redirectTo: target ?? '/giris' });
             }}
           >
-            <button
-              type="submit"
+            <PendingButton
+              pendingLabel="Kayıt formu açılıyor…"
+              slowHint={WAKE_HINT}
               className="w-full rounded-field border border-line px-6 py-4 font-bold transition hover:border-route"
             >
               Hesap oluştur
-            </button>
+            </PendingButton>
           </form>
           <p className="mt-3 text-xs text-muted">
             Kayıt olan herkes yük veren olarak başlar. Araç sahibi olmak için belgelerini

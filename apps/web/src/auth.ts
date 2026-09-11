@@ -45,11 +45,27 @@ async function refresh(refreshToken: string): Promise<KeycloakTokenSet> {
   return body;
 }
 
+/**
+ * Keycloak uç noktaları açıkça yazılıyor, keşfe (discovery) bırakılmıyor.
+ *
+ * <p>Auth.js, `authorization.url` verilmediğinde her "Giriş yap" tıklamasında önce
+ * Keycloak'tan `.well-known/openid-configuration` çekiyor ve yönlendirme ancak o
+ * yanıt gelince başlıyor. Kimlik servisi uykudaysa (ücretsiz katman, 15 dk sonra
+ * duruyor) bu keşif 60–90 saniye sürüyor ve düğme o süre boyunca hiç tepki
+ * vermiyor. Adres bilinince yönlendirme anında oluyor; bekleme tarayıcının
+ * kendi yükleme göstergesinde, sunucu uyanınca form açılıyor.
+ *
+ * <p>Değer yoksa (kimlik servisi bağlanmamış ortam) keşfe düşülüyor; giriş
+ * sayfası o durumu zaten ayrı bir mesajla karşılıyor.
+ */
+const issuer = process.env.AUTH_KEYCLOAK_ISSUER;
+const endpoint = (path: string) => (issuer ? `${issuer}/protocol/openid-connect/${path}` : undefined);
+
 export const authConfig: NextAuthConfig = {
   providers: [
     Keycloak({
       // Keycloak arayüz dilini tarayıcı dili belirliyor; realm varsayılanı yetmiyor
-      authorization: { params: { ui_locales: 'tr' } },
+      authorization: { url: endpoint('auth'), params: { ui_locales: 'tr' } },
     }),
     /*
      * Kayıt, aynı istemcinin farklı bir uç noktası: Keycloak'ın /registrations
@@ -61,7 +77,7 @@ export const authConfig: NextAuthConfig = {
       id: 'keycloak-signup',
       name: 'Keycloak (kayıt)',
       authorization: {
-        url: `${process.env.AUTH_KEYCLOAK_ISSUER}/protocol/openid-connect/registrations`,
+        url: endpoint('registrations'),
         params: { ui_locales: 'tr', scope: 'openid profile email' },
       },
     }),
