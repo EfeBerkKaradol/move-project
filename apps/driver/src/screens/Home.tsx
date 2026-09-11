@@ -2,8 +2,11 @@ import { CARRIER_STATUS_LABELS, type CarrierProfileView } from '@tasiyoruz/contr
 import { useCallback, useEffect, useState } from 'react';
 import { ActivityIndicator, Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
 import { ApiError, apiFetch } from '../api';
+import { Corridors } from './Corridors';
 import { Listings } from './Listings';
 import { Offers } from './Offers';
+import { Trips } from './Trips';
+import { TabBar, type Sekme } from '../components/TabBar';
 import { useAuth } from '../auth/AuthContext';
 import { Logo } from '../components/Logo';
 import { colors, fonts, label, radius, touch } from '../theme';
@@ -27,8 +30,8 @@ export function Home() {
     kullanici: { ad: string | null; eposta: string | null };
   };
   const [durum, setDurum] = useState<Durum>({ tip: 'yukleniyor' });
-  // Onaylı sürücünün iki görünümü: iş bulmak ve verdiği teklifleri izlemek.
-  const [sekme, setSekme] = useState<'ilanlar' | 'teklifler'>('ilanlar');
+  // Onaylı sürücünün görünümleri alt sekmede; yönlendirici ekran sayısı artınca gelecek.
+  const [sekme, setSekme] = useState<Sekme>('ilanlar');
 
   const yukle = useCallback(async () => {
     setDurum({ tip: 'yukleniyor' });
@@ -71,32 +74,15 @@ export function Home() {
   // kaydırma yaratır ve FlatList'in geri dönüşümü çalışmaz.
   if (onayli) {
     return (
-      <View style={[styles.zemin, styles.icerik]}>
-        {ustBar}
-        {/* Sekme, gezinme çubuğu yerine: iki görünüm var ve ikisi de aynı
-            ekranın parçası; yönlendirici ekran sayısı artınca gelecek. */}
-        <View style={styles.sekmeler} accessibilityRole="tablist">
-          {(
-            [
-              ['ilanlar', 'Açık ilanlar'],
-              ['teklifler', 'Tekliflerim'],
-            ] as const
-          ).map(([id, ad]) => {
-            const secili = sekme === id;
-            return (
-              <Pressable
-                key={id}
-                onPress={() => setSekme(id)}
-                accessibilityRole="tab"
-                accessibilityState={{ selected: secili }}
-                style={[styles.sekme, secili && styles.sekmeSecili]}
-              >
-                <Text style={[styles.sekmeYazi, secili && styles.sekmeYaziSecili]}>{ad}</Text>
-              </Pressable>
-            );
-          })}
+      <View style={styles.zemin}>
+        <View style={[styles.icerik, styles.sekmeIcerigi]}>
+          {ustBar}
+          {sekme === 'ilanlar' && <Listings />}
+          {sekme === 'donus' && <Corridors />}
+          {sekme === 'isler' && <Trips />}
+          {sekme === 'teklifler' && <Offers />}
         </View>
-        {sekme === 'ilanlar' ? <Listings /> : <Offers />}
+        <TabBar secili={sekme} sec={setSekme} />
       </View>
     );
   }
@@ -166,23 +152,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: 8,
   },
   cikisYazi: { color: colors.cream.muted, fontFamily: fonts.sansBold, fontSize: 14 },
-  sekmeler: {
-    flexDirection: 'row',
-    backgroundColor: colors.cream.surface2,
-    borderRadius: radius.field,
-    padding: 4,
-    marginTop: 16,
-  },
-  sekme: {
-    flex: 1,
-    minHeight: touch.min - 8,
-    alignItems: 'center',
-    justifyContent: 'center',
-    borderRadius: radius.field - 4,
-  },
-  sekmeSecili: { backgroundColor: colors.cream.surface },
-  sekmeYazi: { color: colors.cream.muted, fontFamily: fonts.sansBold, fontSize: 14 },
-  sekmeYaziSecili: { color: colors.cream.ink },
+  sekmeIcerigi: { flex: 1, paddingBottom: 0 },
   etiket: { ...label, color: colors.routeDeep, marginTop: 20 },
   baslik: {
     color: colors.cream.ink,

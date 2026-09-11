@@ -18,3 +18,9 @@ React Native tercihinin tek gerekçesi bu paylaşım).
 
 **Dokunma hedefi en az 48px** (`touch.min`). Uygulama araç içinde, tek elle ve
 hareket hâlinde kullanılıyor.
+
+**Dosya yükleme `expo-file-system` `File` ile.** Expo'nun fetch'i RN'in eski
+`{ uri, name, type }` FormData parçasını tanımıyor ("Unsupported FormDataPart
+implementation"). `formData.append('file', new File(uri) as unknown as Blob, ad)`
+— bkz. `src/screens/TripSheet.tsx`. `apiFetch` yalnızca string gövdede JSON
+başlığı yazıyor; multipart'ta sınırı (boundary) fetch kendisi koyuyor.

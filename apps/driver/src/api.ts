@@ -29,7 +29,9 @@ export async function apiFetch<T>(
     ...kalan,
     headers: {
       Authorization: `Bearer ${token}`,
-      ...(kalan.body ? { 'Content-Type': 'application/json' } : {}),
+      // Yalnızca JSON gövdede: FormData'da tarayıcı/RN sınır (boundary) dahil
+      // kendi başlığını yazıyor, elle verilen başlık multipart'ı bozuyordu.
+      ...(typeof kalan.body === 'string' ? { 'Content-Type': 'application/json' } : {}),
       ...(kalan.headers ?? {}),
     },
     signal: AbortSignal.timeout(timeoutMs ?? 15_000),

@@ -25,7 +25,14 @@
     "plugins": [
       "expo-font",
       "expo-secure-store",
-      "expo-web-browser"
+      "expo-web-browser",
+      [
+        "expo-image-picker",
+        {
+          "cameraPermission": "Yükleme ve teslim fotoğrafları için kamera gerekiyor.",
+          "photosPermission": "Galeriden fotoğraf seçmek için izin gerekiyor."
+        }
+      ]
     ],
     "scheme": "tasiyoruz-driver",
     "backgroundColor": "#171a19"
