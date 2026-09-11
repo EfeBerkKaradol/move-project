@@ -168,8 +168,16 @@ Keycloak yönetici parolasını Render üretiyor: servis açıldıktan sonra
 **tasiyoruz-keycloak → Environment → `KC_BOOTSTRAP_ADMIN_PASSWORD`** altından oku.
 
 ⚠️ **Ücretsiz plan 15 dakika istek gelmezse servisi uyutuyor.** Uyanması yaklaşık bir
-dakika sürüyor, yani ilk giriş yavaş olacak. İki servis ayrı ayrı uyuduğu için bazen
-iki kez beklersin. Bu bir hata değil.
+dakika sürüyor (Keycloak için ölçülen: 86 sn), yani ilk giriş yavaş olacak. İki servis
+ayrı ayrı uyuduğu için bazen iki kez beklersin. Bu bir hata değil.
+
+Web bunu üç yerde karşılıyor, düğmeler "çalışmıyor" gibi görünmesin diye:
+ilk sayfada arka planda API ve Keycloak'a birer uyandırma isteği
+(`WarmUp`), sayfa geçişlerinde üstte akan çubuk (`NavigationProgress`),
+giriş/kayıt düğmelerinde kilitlenip dönen simge ve 4 sn sonra "sunucu
+uyandırılıyor" satırı (`PendingButton`). Auth.js'e Keycloak uç noktaları
+açıkça verildi; aksi hâlde yönlendirme bile Keycloak uyanmadan başlamıyordu.
+Ücretli plana geçince bunların hiçbiri zarar vermez, yalnızca görünmez olur.
 
 ---
 
