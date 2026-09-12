@@ -117,6 +117,23 @@ export const getPublicListings = (params: { vehicleType?: string; city?: string 
   const suffix = query.size > 0 ? `?${query}` : '';
   return get<PublicListingView[]>(`/listings${suffix}`, 60);
 };
+/**
+ * Tek bir açık ilan.
+ *
+ * <p><strong>Neden ayrı bir uç yok:</strong> API'de `/listings/{id}` bulunmuyor ve
+ * eklenseydi bu sayfa yalnızca API yeniden dağıtıldıktan sonra çalışırdı. Liste ucu
+ * hem yayında hem önbellekli (60 sn) ve ilanın herkese açık hâlinde gereken bütün
+ * alanları zaten taşıyor; aradaki fark sunucuda birkaç yüz kaydı gezmek.
+ *
+ * <p>Sınırı açık olsun: ilan, listenin döndüğü üst sınırın dışında kalırsa burada
+ * bulunamaz ve sayfa 404 verir. İlan gerçekten kapandığında da aynı sonuç doğru
+ * cevap. Pano binlerce ilana çıktığında kimliğe göre dönen bir uç gerekecek.
+ */
+export const getPublicListing = async (id: string): Promise<PublicListingView | null> => {
+  const hepsi = await getPublicListings();
+  return hepsi?.find((l) => l.id === id) ?? null;
+};
+
 export const getPublicStats = () => get<PublicStatsView>('/stats', 60);
 export const getExtraServices = () => get<ExtraService[]>('/extra-services');
 

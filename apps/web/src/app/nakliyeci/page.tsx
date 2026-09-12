@@ -85,15 +85,24 @@ export default async function DriverPage({ searchParams }: { searchParams: Param
     ? tumIlanlar.filter((l) => byId.get(l.pickup.districtId)?.cityCode === cityFilter)
     : tumIlanlar;
 
-  // İl içi ilanların haritadaki izi; koordinatlar sunucuda projekte ediliyor
-  const ilIciRotalar: MapRoute[] = cityFilter
+  /*
+   * Seçili ilden çıkan işlerin haritadaki izi; koordinatlar sunucuda projekte
+   * ediliyor. İl içi kalanlar yayla, başka ile gidenler kesik çizgiyle —
+   * araç sahibi için ikisi farklı iş: biri gün içinde döner, diğeri dönüş yükü
+   * arayacağı bir hat.
+   */
+  const rotalar: MapRoute[] = cityFilter
     ? listings.flatMap((l) => {
         const a = byId.get(l.pickup.districtId);
         const b = byId.get(l.dropoff.districtId);
-        if (!a || !b || a.cityCode !== cityFilter || b.cityCode !== cityFilter) return [];
+        if (!a || !b || a.cityCode !== cityFilter) return [];
+        const ic = b.cityCode === cityFilter;
         return [{
           id: l.id,
-          label: `${a.name} → ${b.name} · ${l.vehicleTypeCode}`,
+          kind: ic ? ('ic' as const) : ('dis' as const),
+          label: ic
+            ? `${a.name} → ${b.name} · ${l.vehicleTypeCode}`
+            : `${a.name} → ${b.cityName} · ${l.vehicleTypeCode}`,
           from: projectLonLat(a.lng, a.lat),
           to: projectLonLat(b.lng, b.lat),
         }];
@@ -122,7 +131,7 @@ export default async function DriverPage({ searchParams }: { searchParams: Param
             provinces={provinceStats}
             selectedCityCode={cityFilter || null}
             basePath="/nakliyeci"
-            routes={ilIciRotalar}
+            routes={rotalar}
             districts={districtsOf(cityName)}
           />
           <ProvinceList

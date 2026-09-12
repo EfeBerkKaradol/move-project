@@ -151,6 +151,109 @@ FROM (VALUES
      'Ofis taşınması, asansör yok.')
 ) AS d(n, from_slug, to_slug, vehicle, floor, elevator, km, amount, items, note);
 
+-- ── Her ilde iş olsun ─────────────────────────────────────────────────────
+--
+-- Harita il il tıklanabilir ve ilanı OLMAYAN il tıklanmıyor: gri bir ile basıp
+-- boş sayfaya düşmek süzgeç değil çıkmaz sokak olurdu. Yukarıdaki elle yazılmış
+-- ilanlar yalnızca birkaç ili dolduruyor, geri kalan yetmiş küsur il haritada
+-- ölüydü.
+--
+-- Bu blok üretiyor: her il, kod sırasında kendinden BİR ve YEDİ sonraki ile
+-- birer yük yolluyor (dairesel — son iller başa dönüyor). Eşleme keyfi ama
+-- deterministik: betik yeniden çalıştığında aynı tablo çıkıyor.
+--
+-- Mesafe UYDURULMUYOR: ilçe centroid'leri arasındaki gerçek uzaklık, PostGIS
+-- geography tipi üzerinde metre cinsinden. Tutar ise tarife motorundan gelmiyor
+-- (SQL fiyat hesaplayamaz); taban + km × katsayı ile üretiliyor. Yuvarlak
+-- duruyor ki demo verisi olduğu belli olsun, fiyat sayfasının çıktısıyla
+-- karıştırılmasın.
+WITH il_ilce AS (
+    -- İl başına tek temsilci: adı ilk gelen ilçe
+    SELECT DISTINCT ON (city_code) city_code, id, centroid
+    FROM districts WHERE active
+    ORDER BY city_code, name
+),
+sirali AS (
+    SELECT *, row_number() OVER (ORDER BY city_code) AS n, count(*) OVER () AS toplam
+    FROM il_ilce
+),
+rotalar AS (
+    SELECT a.city_code, a.id AS from_id, b.id AS to_id, a.centroid AS f_c, b.centroid AS t_c, 1 AS k
+    FROM sirali a JOIN sirali b ON b.n = (a.n % a.toplam) + 1
+    UNION ALL
+    SELECT a.city_code, a.id, b.id, a.centroid, b.centroid, 2
+    FROM sirali a JOIN sirali b ON b.n = ((a.n + 6) % a.toplam) + 1
+    UNION ALL
+    /*
+     * İl içi rota yalnızca gerçek ilçe listesi olan illerde kurulabiliyor:
+     * İstanbul, Ankara ve Hatay. Diğer 78 ilde katalogda tek bir "Merkez" var
+     * (V8'de geçici konmuş yer tutucu), yani alış ile teslim aynı noktaya
+     * düşerdi. Sıfır kilometrelik bir ilan üretmektense üretmemek doğru.
+     * Katalog gerçek ilçelerle dolduğunda bu satır kendiliğinden çoğalır.
+     */
+    SELECT d1.city_code, d1.id, d2.id, d1.centroid, d2.centroid, 3
+    FROM il_ilce d1
+    JOIN LATERAL (
+        SELECT id, centroid FROM districts d
+        WHERE d.city_code = d1.city_code AND d.id <> d1.id AND d.active
+        ORDER BY d.name DESC LIMIT 1
+    ) d2 ON true
+)
+INSERT INTO load_listings (
+    listing_number, shipper_id, service_model, vehicle_type_code,
+    pickup_district_id, dropoff_district_id,
+    pickup_floor, pickup_has_elevator, dropoff_floor, dropoff_has_elevator,
+    extra_services, declared_items, cargo_description,
+    estimate_snapshot, estimated_amount, status, published_at, expires_at)
+SELECT
+    'DEMO-IL-' || r.city_code || '-' || r.k,
+    'demo-shipper', 'SCHEDULED', v.vehicle,
+    r.from_id, r.to_id,
+    0, true, 0, true,
+    '[]'::jsonb,
+    v.items,
+    v.note,
+    jsonb_build_object(
+        'quoteId', gen_random_uuid()::text,
+        'serviceModel', 'SCHEDULED',
+        'vehicleTypeCode', v.vehicle,
+        'distanceMeters', m.km * 1000,
+        'durationSeconds', m.km * 55,
+        'approximateDistance', true,
+        'breakdown', '[]'::jsonb,
+        'totalAmount', jsonb_build_object('amount', v.amount, 'currency', 'TRY'),
+        'floorPrice', jsonb_build_object('amount', v.amount, 'currency', 'TRY'),
+        'expiresAt', to_char(now() + interval '2 days', 'YYYY-MM-DD"T"HH24:MI:SS"Z"'),
+        'signature', 'demo'),
+    v.amount, 'OPEN',
+    -- Yayın anları dağılsın: hepsi aynı saniyede görünürse liste sıralaması
+    -- rastgeleleşiyor ve "en yeni" başlığı anlamsızlaşıyor
+    now() - ((r.k * 7 + (('x' || substr(md5(r.city_code), 1, 4))::bit(16)::int % 40)) || ' hours')::interval,
+    now() + interval '3 days'
+FROM rotalar r
+CROSS JOIN LATERAL (SELECT greatest(round(ST_Distance(r.f_c, r.t_c) / 1000)::int, 1) AS km) m
+CROSS JOIN LATERAL (
+    SELECT
+        CASE r.k WHEN 1 THEN 'PANELVAN' WHEN 2 THEN 'KAMYONET' ELSE 'PANELVAN' END AS vehicle,
+        CASE r.k
+            -- İl içi kısa mesafe: V22'nin panelvan tabanı ve minimumuyla aynı çizgide
+            WHEN 3 THEN greatest(900 + m.km * 55, 1500)
+            WHEN 1 THEN 900 + m.km * 22
+            ELSE 1200 + m.km * 28
+        END AS amount,
+        CASE r.k
+            WHEN 3 THEN '[{"itemCode":"KOLI_STANDART","displayName":"Standart koli","quantity":9,"volumeM3":0.12,"weightKg":12}]'::jsonb
+            WHEN 1 THEN '[{"itemCode":"KOLI_BUYUK","displayName":"Büyük koli","quantity":6,"volumeM3":0.25,"weightKg":20},
+                          {"itemCode":"CALISMA_MASASI","displayName":"Çalışma masası","quantity":1,"volumeM3":0.50,"weightKg":30}]'::jsonb
+            ELSE '[{"itemCode":"PALET_EURO","displayName":"Palet (120×80)","quantity":4,"volumeM3":1.44,"weightKg":600}]'::jsonb
+        END AS items,
+        CASE r.k
+            WHEN 3 THEN 'Şehir içi taşıma.'
+            WHEN 1 THEN 'Parça yük, şehirlerarası.'
+            ELSE 'Paletli sevkiyat.'
+        END AS note
+) v;
+
 COMMIT;
 
 SELECT count(*) || ' demo ilan eklendi.' AS sonuc FROM load_listings WHERE shipper_id = 'demo-shipper';

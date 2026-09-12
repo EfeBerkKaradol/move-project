@@ -38,8 +38,21 @@ import org.springframework.web.bind.annotation.RestController;
 @Tag(name = "Güven panosu")
 class PublicListingsController {
 
-    /** Tek sayfada dönen en fazla ilan; liste sayfası bundan uzun olmuyor. */
-    private static final int MAX_LISTINGS = 60;
+    /**
+     * Tek çağrıda dönen en fazla ilan.
+     *
+     * <p>60'tı ve haritayı sessizce yanlış gösteriyordu: ilan panosundaki Türkiye
+     * haritası il başına sayıyı <em>bu listeden</em> çıkarıyor, ayrı bir sayaç ucu
+     * yok. Seksen bir ilin tamamında iş varken 60'ta kesilen liste, sınırdan sonraki
+     * illeri "ilan yok" diye boyuyor ve o iller tıklanamıyordu — ilan duruyor ama
+     * haritada görünmüyor.
+     *
+     * <p>Kalıcı çözüm bu sayıyı büyütmek değil, il başına sayıyı dönen ayrı bir uç:
+     * pano gerçekten binlerce ilana çıktığında hepsini taşıyıp istemcide saymak
+     * savurganlık olur. Şimdilik sınır, katalogun makul üst sınırının üstünde
+     * tutuluyor ki harita doğru olsun.
+     */
+    private static final int MAX_LISTINGS = 500;
 
     private final MarketplaceService marketplace;
 

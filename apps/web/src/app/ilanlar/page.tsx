@@ -3,7 +3,14 @@ import { formatPrice } from '@tasiyoruz/shared';
 import type { Metadata } from 'next';
 import Link from 'next/link';
 import { auth, isDriver } from '@/auth';
-import { ProvinceList, ProvinceMap, type MapRoute, type ProvinceStat } from '@/components/map/ProvinceMap';
+import {
+  DistrictList,
+  ProvinceList,
+  ProvinceMap,
+  type DistrictStat,
+  type MapRoute,
+  type ProvinceStat,
+} from '@/components/map/ProvinceMap';
 import { districtsOf } from '@/components/map/districts';
 import { Footer } from '@/components/site/Footer';
 import { Header } from '@/components/site/Header';
@@ -40,13 +47,13 @@ export default async function PublicListingsPage({ searchParams }: { searchParam
   // Ana sayfadaki koridor kartı buraya il koduyla geliyor; ziyaretçi kendi hattını
   // aramak zorunda kalmasın
   const cityFilter = first(p.il);
+  // İlçe süzgeci ilsiz anlamsız: aynı ilçe adı birden çok ilde geçiyor
+  const districtFilter = cityFilter ? first(p.ilce) : '';
   // Araç süzgeci sunucuda değil burada uygulanıyor: çiplerin yanındaki sayılar için
-  // zaten o ildeki bütün ilanlar gerekiyor ve iki istek atmanın anlamı yok. (Uç en
-  // fazla 60 ilan dönüyor; sayılar o üst sınırın içinden.)
+  // zaten o ildeki bütün ilanlar gerekiyor ve iki istek atmanın anlamı yok.
   // İki liste: haritanın sayaçları bütün illeri bilmek zorunda, liste ise
   // seçilen ilin ilanlarını sunucudan süzülmüş hâlde istiyor. Süzgeç yokken
-  // ikisi aynı istek. (Uç en fazla 60 ilan dönüyor; sayılar o üst sınırın
-  // içinden — haritada gösterilen sayı, listede görülebilecek sayı.)
+  // ikisi aynı istek — haritada gösterilen sayı, listede görülebilecek sayı.
   /*
    * Hepsi TEK dalgada. Eskiden katalog (araçlar + ilçeler) beklendikten SONRA
    * ilanlar isteniyordu; ilanlar katalogdan türemediği hâlde onu bekliyordu. API
@@ -61,7 +68,17 @@ export default async function PublicListingsPage({ searchParams }: { searchParam
     cityFilter ? getPublicListings({ city: cityFilter }) : Promise.resolve(null),
   ]);
   const all = secilenIl ?? tumIller;
-  const listings = vehicleFilter ? (all ?? []).filter((l) => l.vehicleTypeCode === vehicleFilter) : all;
+  const aracSuzulmus = vehicleFilter
+    ? (all ?? []).filter((l) => l.vehicleTypeCode === vehicleFilter)
+    : all;
+  /*
+   * İlçe süzgeci "buradan ÇIKAN yükler" demek, "burada geçen" değil. Araç sahibi
+   * bir ilçe seçtiğinde sorduğu şey "yükü nereden alacağım"; teslim ilçesine göre
+   * süzmek, o ilçeye gidecek ama bambaşka bir yerden yüklenecek işleri getirirdi.
+   */
+  const listings = districtFilter
+    ? (aracSuzulmus ?? []).filter((l) => normalize(l.fromDistrict) === normalize(districtFilter))
+    : aracSuzulmus;
 
   /*
    * Haritadaki sayılar araç süzgecini de yansıtıyor: yansıtmasaydı kullanıcı
@@ -87,25 +104,59 @@ export default async function PublicListingsPage({ searchParams }: { searchParam
     : null;
 
   const signedInDriver = !!session && isDriver(session.roles ?? []);
-  // Araç sahibi olmayan ziyaretçi teklif veremiyor; onu yükü göremeyeceği bir
-  // giriş ekranına değil, ne yapması gerektiğini anlatan sayfaya gönderiyoruz.
-  const detailHref = (id: string) => (signedInDriver ? `/nakliyeci/ilan/${id}` : '/sofor-ol');
 
   /*
-   * İl içi ilanların haritadaki izi: alış ve teslim aynı ilde. Koordinatlar
-   * sunucuda projekte ediliyor, istemciye ilçe enlem/boylamı taşınmıyor.
-   * Koordinatı bulunamayan ilan çizilmiyor ama listede duruyor — eksik bir
-   * katalog kaydı yüzünden iş gizlenmemeli.
+   * Seçili ildeki ilçe başına ilan sayısı — haritada hangi ilçenin tıklanabilir
+   * olduğunu bu belirliyor. Araç süzgeci yansıtılıyor, il sayaçlarıyla aynı
+   * gerekçe: yansıtılmasaydı boyalı bir ilçeye basıp boş liste bulunurdu.
+   *
+   * Sayım ALIŞ ilçesine göre: ilçe süzgeci de öyle çalışıyor, ikisi ayrışsaydı
+   * haritadaki sayı listedekini tutmazdı.
+   */
+  const ilinIlanlari = vehicleFilter
+    ? (all ?? []).filter((l) => l.vehicleTypeCode === vehicleFilter)
+    : (all ?? []);
+  const ilceSayisi = new Map<string, { name: string; count: number }>();
+  if (cityFilter) {
+    for (const l of ilinIlanlari) {
+      const a = (districts ?? []).find((d: District) => d.id === l.fromDistrictId);
+      if (!a || a.cityCode !== cityFilter) continue;
+      const k = normalize(a.name);
+      const v = ilceSayisi.get(k);
+      if (v) v.count += 1;
+      else ilceSayisi.set(k, { name: a.name, count: 1 });
+    }
+  }
+  const districtStats: DistrictStat[] = [...ilceSayisi.values()];
+
+  const districtName = districtFilter
+    ? ([...ilceSayisi.values()].find((d) => normalize(d.name) === normalize(districtFilter))?.name ??
+      districtFilter)
+    : null;
+
+  /*
+   * Haritadaki rotalar. İki tür var ve ikisi de seçili ilden ÇIKAN işler:
+   *   ic  — teslim de aynı ilde; yayla çiziliyor, ilçe görünümünde okunuyor.
+   *   dis — teslim başka bir ilde; hedefi kadrajın dışında kalıyor, kesik
+   *         çizgiyle çıkıp kenarda okla bitiyor (bkz. ProvinceMap).
+   *
+   * Koordinatlar sunucuda projekte ediliyor, istemciye ilçe enlem/boylamı
+   * taşınmıyor. Koordinatı bulunamayan ilan çizilmiyor ama listede duruyor —
+   * eksik bir katalog kaydı yüzünden iş gizlenmemeli.
    */
   const konum = new Map((districts ?? []).map((d: District) => [d.id, d]));
-  const ilIciRotalar: MapRoute[] = cityFilter
+  const rotalar: MapRoute[] = cityFilter
     ? (listings ?? []).flatMap((l) => {
         const a = konum.get(l.fromDistrictId);
         const b = konum.get(l.toDistrictId);
-        if (!a || !b || a.cityCode !== cityFilter || b.cityCode !== cityFilter) return [];
+        if (!a || !b || a.cityCode !== cityFilter) return [];
+        const ic = b.cityCode === cityFilter;
         return [{
           id: l.id,
-          label: `${a.name} → ${b.name} · ${l.vehicleTypeCode}`,
+          kind: ic ? ('ic' as const) : ('dis' as const),
+          label: ic
+            ? `${a.name} → ${b.name} · ${l.vehicleTypeCode}`
+            : `${a.name} → ${b.cityName} · ${l.vehicleTypeCode}`,
           from: projectLonLat(a.lng, a.lat),
           to: projectLonLat(b.lng, b.lat),
         }];
@@ -172,10 +223,12 @@ export default async function PublicListingsPage({ searchParams }: { searchParam
             <ProvinceMap
               provinces={provinceStats}
               selectedCityCode={cityFilter || null}
+              selectedDistrict={districtName}
               vehicleFilter={vehicleFilter}
               basePath="/ilanlar"
-              routes={ilIciRotalar}
+              routes={rotalar}
               districts={districtsOf(cityName)}
+              districtStats={districtStats}
             />
             <ProvinceList
               provinces={provinceStats}
@@ -183,6 +236,15 @@ export default async function PublicListingsPage({ searchParams }: { searchParam
               vehicleFilter={vehicleFilter}
               basePath="/ilanlar"
             />
+            {cityFilter && (
+              <DistrictList
+                districtStats={districtStats}
+                selectedCityCode={cityFilter}
+                selectedDistrict={districtName}
+                vehicleFilter={vehicleFilter}
+                basePath="/ilanlar"
+              />
+            )}
           </div>
 
           {!listings || listings.length === 0 ? (
@@ -236,11 +298,18 @@ export default async function PublicListingsPage({ searchParams }: { searchParam
                       {l.offerCount} teklif · {shortDateTime(l.expiresAt)} tarihine kadar açık
                     </p>
 
+                    {/*
+                      Kart artık ilanın kendi sayfasına gidiyor, doğrudan teklif
+                      akışına değil. Bağlantı paylaşılabiliyor, geri tuşu listeye
+                      dönüyor ve "teklif verebilir miyim?" sorusu orada tek yerde
+                      cevaplanıyor — kartın üstünde iki ayrı düğme metni tutmaya
+                      gerek kalmıyor.
+                    */}
                     <Link
-                      href={detailHref(l.id)}
+                      href={`/ilanlar/${l.id}`}
                       className="mt-4 inline-flex min-h-11 items-center justify-center gap-1.5 rounded-field border border-line px-4 text-sm font-semibold transition hover:border-route hover:bg-surface-2"
                     >
-                      {signedInDriver ? 'Yükü gör ve teklif ver' : 'Teklif vermek için araç sahibi ol'}
+                      İlanı aç
                       <Icon name="arrowRight" size={16} />
                     </Link>
                   </li>
