@@ -626,3 +626,31 @@ export type ShipmentFinanceView = {
   carrierPayout: Money;
   platformRevenue: Money;
 };
+
+/** Hakediş durumu. Teslim edilmeden ELIGIBLE, sağlayıcı bağlanmadan PAID olmaz. */
+export type PayoutStatus =
+  | 'PENDING'
+  | 'ELIGIBLE'
+  | 'PROCESSING'
+  | 'PAID'
+  | 'FAILED'
+  | 'ON_HOLD';
+
+export const PAYOUT_STATUS_LABELS: Record<PayoutStatus, string> = {
+  PENDING: 'Teslim bekliyor',
+  ELIGIBLE: 'Ödenmeye hazır',
+  PROCESSING: 'Ödeme işleniyor',
+  PAID: 'Ödendi',
+  FAILED: 'Ödeme başarısız',
+  ON_HOLD: 'İncelemede',
+};
+
+export type PayoutView = {
+  id: string;
+  listingId: string;
+  carrierId: string;
+  gross: Money;
+  commission: Money;
+  net: Money;
+  status: PayoutStatus;
+};

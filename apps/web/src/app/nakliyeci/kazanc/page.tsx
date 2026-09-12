@@ -1,4 +1,4 @@
-import { type TripView } from '@tasiyoruz/contracts';
+import { PAYOUT_STATUS_LABELS, type PayoutStatus, type PayoutView, type TripView } from '@tasiyoruz/contracts';
 import { formatPrice } from '@tasiyoruz/shared';
 import type { Metadata } from 'next';
 import Link from 'next/link';
@@ -11,88 +11,84 @@ import { apiFetch } from '@/lib/api-server';
 export const metadata: Metadata = { title: 'Kazançlarım' };
 export const dynamic = 'force-dynamic';
 
-/** "2026-09" — aya göre gruplama anahtarı; yerel saate göre, kullanıcının ayı bu. */
-function ayAnahtari(iso: string): string {
-  const d = new Date(iso);
-  return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}`;
-}
+/**
+ * Durumun taşıyıcıya ne anlattığı.
+ *
+ * <p>Etiket yetmiyor: "Ödenmeye hazır" ile "Ödendi" arasındaki farkı bilmeyen
+ * taşıyıcı parasının nerede olduğunu soruyor. Her durum, o durumda ne beklemesi
+ * gerektiğini de söylüyor.
+ */
+const DURUM_ACIKLAMA: Record<PayoutStatus, string> = {
+  PENDING: 'İş tamamlanınca ödenmeye hazır hâle gelir.',
+  ELIGIBLE: 'Hakediş kesinleşti. Ödeme altyapısı bağlandığında aktarılacak.',
+  PROCESSING: 'Ödeme gönderildi, sağlayıcıdan onay bekleniyor.',
+  PAID: 'Hesabına aktarıldı.',
+  FAILED: 'Aktarım başarısız oldu. Operasyon ekibi inceliyor.',
+  ON_HOLD: 'İade ya da itiraz nedeniyle beklemede. Tutar yeniden değerlendiriliyor.',
+};
 
-function ayAdi(anahtar: string): string {
-  const [y, m] = anahtar.split('-').map(Number);
-  return new Date(y, m - 1, 1).toLocaleDateString('tr-TR', { month: 'long', year: 'numeric' });
-}
+/** Beklemede duran para: henüz ödenmemiş ama kazanılmış olabilecek hakedişler. */
+const BEKLEYEN: PayoutStatus[] = ['PENDING', 'ELIGIBLE', 'PROCESSING', 'ON_HOLD'];
 
-const topla = (trips: TripView[]) =>
-  trips.reduce((t, x) => t + Number(x.agreedAmount.amount), 0);
+const topla = (l: { net: { amount: string } }[]) =>
+  l.reduce((t, x) => t + Number(x.net.amount), 0);
 
 /**
- * Araç sahibinin kazancı.
+ * Araç sahibinin kazancı — hakediş kayıtlarından.
  *
- * <p>Rakamlar <strong>tamamlanmış</strong> işlerin anlaşılan tutarlarından
- * geliyor; uydurma yok, tahmin yok. Devam eden iş ayrı gösteriliyor çünkü
- * kazanılmış değil: teslim edilip onaylanana kadar tutar değişebilir.
+ * <p>Önce tamamlanmış işlerin anlaşılan tutarları toplanıyordu. O rakam "ne
+ * kazandım" sorusunu cevaplıyordu ama "param nerede" sorusunu cevaplamıyordu:
+ * komisyon görünmüyordu, ödenmiş ile ödenmemiş ayrılmıyordu. Artık kaynak
+ * hakediş kaydının kendisi; brüt, komisyon ve net ayrı ayrı duruyor.
  *
- * <p><strong>Hakediş burada değil.</strong> Ödeme akışı (yetkilendirme, serbest
- * bırakma, iade) henüz bağlı değil; "ödendi" demek olmayan bir şeyi olmuş gibi
- * göstermek olurdu. Platform komisyonu gerçek ve şu an sıfır — tarifeden
- * okunuyor, buraya sabit yazılmadı.
+ * <p><strong>Ödeme altyapısı henüz bağlı değil</strong> ve bu saklanmıyor:
+ * hakedişler ELIGIBLE'da bekliyor, "ödendi" yazmıyor.
  */
 export default async function DriverEarningsPage() {
   const session = await auth();
   if (!canCallApi(session)) redirect('/giris');
   if (!isDriver(session.roles)) redirect(homeFor(session.roles));
 
-  const trips = await apiFetch<TripView[]>('/driver/trips');
-  const tamamlanan = trips.filter((t) => t.stage === 'COMPLETED' && t.completedAt);
-  const suren = trips.filter((t) => t.stage !== 'COMPLETED');
+  const [payouts, trips] = await Promise.all([
+    apiFetch<PayoutView[]>('/driver/payouts').catch(() => [] as PayoutView[]),
+    // İş sayısı ve tarih dökümü için; hakediş kaydı işin kendisini taşımıyor
+    apiFetch<TripView[]>('/driver/trips').catch(() => [] as TripView[]),
+  ]);
 
-  const simdi = new Date();
-  const buAy = `${simdi.getFullYear()}-${String(simdi.getMonth() + 1).padStart(2, '0')}`;
-  const buAyinIsleri = tamamlanan.filter((t) => ayAnahtari(t.completedAt!) === buAy);
+  const odenen = payouts.filter((p) => p.status === 'PAID');
+  const bekleyen = payouts.filter((p) => BEKLEYEN.includes(p.status));
+  const brutToplam = payouts.reduce((t, p) => t + Number(p.gross.amount), 0);
+  const komisyonToplam = payouts.reduce((t, p) => t + Number(p.commission.amount), 0);
 
-  // Aylara göre, en yeni önce
-  const aylar = new Map<string, TripView[]>();
-  for (const t of tamamlanan) {
-    const k = ayAnahtari(t.completedAt!);
-    aylar.set(k, [...(aylar.get(k) ?? []), t]);
-  }
-  const sirali = [...aylar.entries()].sort((a, b) => b[0].localeCompare(a[0]));
+  // Duruma göre grupla; sıra kullanıcının ilgi sırası: önce para nerede takıldı
+  const siralama: PayoutStatus[] = ['ON_HOLD', 'FAILED', 'PROCESSING', 'ELIGIBLE', 'PENDING', 'PAID'];
+  const gruplar = siralama
+    .map((durum) => ({ durum, kayitlar: payouts.filter((p) => p.status === durum) }))
+    .filter((g) => g.kayitlar.length > 0);
 
-  const ozet: { etiket: string; deger: string; not: string }[] = [
-    {
-      etiket: 'Bu ay',
-      deger: formatPrice(String(topla(buAyinIsleri))),
-      not: `${buAyinIsleri.length} tamamlanan iş`,
-    },
-    {
-      etiket: 'Toplam',
-      deger: formatPrice(String(topla(tamamlanan))),
-      not: `${tamamlanan.length} tamamlanan iş`,
-    },
-    {
-      etiket: 'Süren işler',
-      deger: formatPrice(String(topla(suren))),
-      not: `${suren.length} iş · henüz kazanılmadı`,
-    },
-  ];
+  const nav = (
+    <SubNav
+      items={[
+        { href: '/nakliyeci', label: 'Açık ilanlar' },
+        { href: '/nakliyeci/koridor', label: 'Boş dönüş' },
+        { href: '/nakliyeci/isler', label: 'İşlerim' },
+        { href: '/nakliyeci/teklifler', label: 'Tekliflerim' },
+        { href: '/sofor-ol', label: 'Belgelerim' },
+      ]}
+      className="-ml-3"
+    />
+  );
 
-  return (
-    <Shell eyebrow="Araç sahibi" title="Kazançlarım">
-      <SubNav
-        items={[
-          { href: '/nakliyeci', label: 'Açık ilanlar' },
-          { href: '/nakliyeci/koridor', label: 'Boş dönüş' },
-          { href: '/nakliyeci/isler', label: 'İşlerim' },
-          { href: '/nakliyeci/teklifler', label: 'Tekliflerim' },
-        ]}
-        className="-ml-3"
-      />
-
-      {tamamlanan.length === 0 && suren.length === 0 ? (
+  if (payouts.length === 0) {
+    return (
+      <Shell eyebrow="Araç sahibi" title="Kazançlarım">
+        {nav}
         <div className="mt-6 rounded-card border border-dashed border-line p-8 text-center">
-          <p className="font-semibold">Henüz kazanç yok.</p>
+          <p className="font-semibold">Henüz hakediş kaydın yok.</p>
           <p className="mt-1 text-sm text-muted">
-            İlk işini aldığında tutarlar burada birikmeye başlar.
+            {trips.length > 0
+              ? 'İşlerin var ama hakediş kaydı yalnızca iş sana verildikten sonra açılıyor.'
+              : 'İlk işini aldığında hakediş burada açılır.'}
           </p>
           <Link
             href="/nakliyeci"
@@ -101,51 +97,86 @@ export default async function DriverEarningsPage() {
             Açık ilanlara bak
           </Link>
         </div>
-      ) : (
-        <>
-          <dl className="mt-6 grid gap-3 sm:grid-cols-3">
-            {ozet.map((o) => (
-              <div key={o.etiket} className="rounded-card border border-line bg-surface p-5">
-                <dt className="label-mono text-muted">{o.etiket}</dt>
-                <dd className="stat mt-2 text-[1.75rem] leading-none">{o.deger}</dd>
-                <p className="label-mono mt-2 text-muted">{o.not}</p>
-              </div>
-            ))}
-          </dl>
+      </Shell>
+    );
+  }
 
-          {/*
-            Hakediş burada yok ve olmadığı açıkça yazıyor. Ödeme akışı bağlı
-            değilken "ödendi" göstermek, olmayan bir şeyi olmuş gibi sunmak olurdu.
-          */}
-          <p className="mt-3 text-sm text-muted">
-            Tutarlar anlaşılan taşıma bedelidir. Platform komisyonu şu an %0.
-            Ödeme ve hakediş akışı bağlandığında ödenen/bekleyen ayrımı bu sayfada
-            görünecek.
+  return (
+    <Shell eyebrow="Araç sahibi" title="Kazançlarım">
+      {nav}
+
+      <dl className="mt-6 grid gap-3 sm:grid-cols-3">
+        <div className="rounded-card border border-[var(--route-deep)] bg-[var(--route-soft)] p-5">
+          <dt className="label-mono text-muted">Bekleyen hakediş</dt>
+          <dd className="stat mt-2 text-[1.75rem] leading-none">
+            {formatPrice(String(topla(bekleyen)))}
+          </dd>
+          <p className="label-mono mt-2 text-muted">{bekleyen.length} iş</p>
+        </div>
+        <div className="rounded-card border border-line bg-surface p-5">
+          <dt className="label-mono text-muted">Ödenen</dt>
+          <dd className="stat mt-2 text-[1.75rem] leading-none">
+            {formatPrice(String(topla(odenen)))}
+          </dd>
+          <p className="label-mono mt-2 text-muted">{odenen.length} iş</p>
+        </div>
+        <div className="rounded-card border border-line bg-surface p-5">
+          <dt className="label-mono text-muted">Toplam taşıma bedeli</dt>
+          <dd className="stat mt-2 text-[1.75rem] leading-none">
+            {formatPrice(String(brutToplam))}
+          </dd>
+          {/* Komisyon açıkça yazıyor: hakedişle taşıma bedeli arasındaki farkı
+              taşıyıcının hesaplaması gerekmesin */}
+          <p className="label-mono mt-2 text-muted">
+            {komisyonToplam > 0
+              ? `${formatPrice(String(komisyonToplam))} komisyon düşüldü`
+              : 'komisyon alınmadı'}
           </p>
+        </div>
+      </dl>
 
-          {sirali.length > 0 && (
-            <section className="mt-8">
-              <h2 className="text-lg font-bold">Aya göre</h2>
-              <ul className="mt-3 overflow-hidden rounded-card border border-line bg-surface">
-                {sirali.map(([anahtar, isler], i) => (
-                  <li
-                    key={anahtar}
-                    className={`flex flex-wrap items-center gap-x-4 gap-y-1 px-5 py-4 ${
-                      i > 0 ? 'border-t border-line' : ''
-                    }`}
-                  >
-                    <span className="font-semibold">{ayAdi(anahtar)}</span>
-                    <span className="label-mono text-muted">{isler.length} iş</span>
-                    <span className="stat ml-auto text-base">
-                      {formatPrice(String(topla(isler)))}
-                    </span>
-                  </li>
-                ))}
-              </ul>
-            </section>
-          )}
-        </>
-      )}
+      {gruplar.map(({ durum, kayitlar }) => (
+        <section key={durum} className="mt-8">
+          <h2 className="text-base font-bold">
+            {PAYOUT_STATUS_LABELS[durum]}
+            <span className="label-mono ml-2 font-normal text-muted">{kayitlar.length}</span>
+          </h2>
+          <p className="mt-1 text-sm text-muted">{DURUM_ACIKLAMA[durum]}</p>
+
+          <ul className="mt-3 overflow-hidden rounded-card border border-line bg-surface">
+            {kayitlar.map((p, i) => (
+              <li
+                key={p.id}
+                className={`flex flex-wrap items-center gap-x-5 gap-y-1 px-5 py-4 ${
+                  i > 0 ? 'border-t border-line' : ''
+                }`}
+              >
+                <Link
+                  href={`/nakliyeci/ilan/${p.listingId}`}
+                  className="font-semibold underline-offset-4 hover:underline"
+                >
+                  İlanı gör
+                </Link>
+                <span className="label-mono text-muted">
+                  taşıma {formatPrice(p.gross.amount)}
+                  {Number(p.commission.amount) > 0 && ` · komisyon ${formatPrice(p.commission.amount)}`}
+                </span>
+                <span className="stat ml-auto text-base">{formatPrice(p.net.amount)}</span>
+              </li>
+            ))}
+          </ul>
+        </section>
+      ))}
+
+      {/*
+        Ödeme altyapısının bağlı olmadığı saklanmıyor. Hakedişi "ödendi"
+        göstermek, olmayan bir para hareketini olmuş gibi sunmak olurdu.
+      */}
+      <p className="mt-8 text-sm text-muted">
+        Hakediş tutarları kesinleşmiş taşıma bedelinden komisyon düşülerek
+        hesaplanıyor. Ödeme altyapısı bağlandığında aktarım bu sayfadan
+        izlenebilecek.
+      </p>
     </Shell>
   );
 }

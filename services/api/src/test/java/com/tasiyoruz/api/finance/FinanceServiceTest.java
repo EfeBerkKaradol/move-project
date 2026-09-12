@@ -198,6 +198,44 @@ class FinanceServiceTest extends IntegrationTestBase {
         assertThat(finance.reconcile(ozet.listingId()).balanced()).isTrue();
     }
 
+    /**
+     * Hakediş listesi taşıyıcıya göre yalıtık.
+     *
+     * <p>Uç kimliği token'dan okuyor ama servis de kendi başına doğru davranmalı:
+     * biri başkasının hakedişini istediğinde boş dönmeli. İki katmanın birden
+     * doğru olması gerekiyor, çünkü ileride servisi başka bir uç da çağırabilir.
+     */
+    @Test
+    void hakedisListesiTasiyiciyaGoreYalitik() {
+        var ilanA = yeniIlan();
+        var ilanB = yeniIlan();
+        finance.openForAward(ilanA, "s", "carrier-A", Money.tryOf(new BigDecimal("1000.00")));
+        finance.openForAward(ilanB, "s", "carrier-B", Money.tryOf(new BigDecimal("2000.00")));
+
+        assertThat(finance.payoutsOfCarrier("carrier-A"))
+                .extracting(FinanceService.PayoutView::listingId)
+                .contains(ilanA)
+                .doesNotContain(ilanB);
+        assertThat(finance.payoutsOfCarrier("carrier-A"))
+                .allMatch(p -> p.carrierId().equals("carrier-A"));
+    }
+
+    /** Hakediş kaydı brüt, komisyon ve neti AYRI taşıyor. */
+    @Test
+    void hakedisBrutKomisyonVeNetiAyriTasir() {
+        var ilan = yeniIlan();
+        var ozet = finance.openForAward(ilan, "s", "carrier-detay", Money.tryOf(new BigDecimal("6000.00")));
+
+        var hakedis = finance.payoutsOfCarrier("carrier-detay").stream()
+                .filter(p -> p.listingId().equals(ilan)).findFirst().orElseThrow();
+
+        assertThat(hakedis.gross().amount()).isEqualByComparingTo("6000.00");
+        assertThat(hakedis.commission().amount()).isEqualByComparingTo(ozet.commissionAmount().amount());
+        // Net = brüt − komisyon; taşıyıcının bunu kendi hesaplaması gerekmiyor
+        assertThat(hakedis.net().amount())
+                .isEqualByComparingTo(hakedis.gross().amount().subtract(hakedis.commission().amount()));
+    }
+
     /** Yönetim özeti ciroyu gelirle karıştırmıyor. */
     @Test
     void ozetCiroyuGelirdenAyirir() {
