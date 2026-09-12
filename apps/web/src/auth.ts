@@ -29,10 +29,25 @@ function rolesOf(accessToken: string | undefined): string[] {
   }
 }
 
+/**
+ * Token yenilemenin üst sınırı.
+ *
+ * <p>Zaman aşımı yokken bu istek <em>sınırsız</em> bekliyordu ve her sayfa bu
+ * çağrının arkasında duruyor: `Header` oturumu bekliyor, oturum yenilemeyi. Render'ın
+ * ücretsiz Keycloak'ı 15 dakika istek almayınca uyuduğu için giriş yapmış bir
+ * kullanıcı, uyanmayı bekleyen tamamen boş bir sayfayla karşılaşıyordu.
+ *
+ * <p>Bedeli açık: zaman aşımına uğrayan yenileme `RefreshFailed` üretiyor ve
+ * kullanıcı çıkmış görünüyor. Bu yüzden süre cömert — geçici yavaşlığı değil,
+ * yalnızca gerçekten asılı kalmış bir isteği kesmeli.
+ */
+const REFRESH_TIMEOUT_MS = 10_000;
+
 async function refresh(refreshToken: string): Promise<KeycloakTokenSet> {
   const res = await fetch(`${process.env.AUTH_KEYCLOAK_ISSUER}/protocol/openid-connect/token`, {
     method: 'POST',
     headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+    signal: AbortSignal.timeout(REFRESH_TIMEOUT_MS),
     body: new URLSearchParams({
       grant_type: 'refresh_token',
       client_id: process.env.AUTH_KEYCLOAK_ID!,

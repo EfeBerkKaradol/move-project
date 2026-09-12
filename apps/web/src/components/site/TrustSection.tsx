@@ -1,5 +1,6 @@
+import { Suspense } from 'react';
 import { Icon, type IconName } from '@/components/ui/Icon';
-import { LiveStats } from './LiveStats';
+import { LiveStats, LiveStatsFallback } from './LiveStats';
 import { MobileClamp } from './MobileClamp';
 import { Reveal } from './Reveal';
 
@@ -62,7 +63,15 @@ export function TrustSection() {
         </ul>
         </MobileClamp>
 
-        <LiveStats />
+        {/*
+          Sınır burada, çağıran sayfada değil: bu bölüm nereye konursa konsun
+          sayaç isteği o sayfanın kabuğunu bekletmemeli. Sarmalanmadığında tek bir
+          /stats çağrısı bütün sayfayı — başlıktaki düğmeler dahil — API cevap
+          verene kadar HTML'siz bırakıyordu.
+        */}
+        <Suspense fallback={<LiveStatsFallback />}>
+          <LiveStats />
+        </Suspense>
       </div>
     </section>
   );

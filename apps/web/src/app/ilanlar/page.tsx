@@ -33,9 +33,9 @@ const first = (v: string | string[] | undefined) => (Array.isArray(v) ? v[0] : v
  * Sunucu da bunları hiç göndermiyor, gizleme burada değil uçta yapılıyor.
  */
 export default async function PublicListingsPage({ searchParams }: { searchParams: Params }) {
-  const [session, p, vehicles, districts] = await Promise.all([
-    auth(), searchParams, getVehicleTypes(), getDistricts(),
-  ]);
+  // searchParams bir ağ isteği değil; süzgeçleri önce okumak hiçbir şeye mal
+  // olmuyor ve aşağıdaki tek dalgayı mümkün kılıyor.
+  const p = await searchParams;
   const vehicleFilter = first(p.arac);
   // Ana sayfadaki koridor kartı buraya il koduyla geliyor; ziyaretçi kendi hattını
   // aramak zorunda kalmasın
@@ -47,7 +47,16 @@ export default async function PublicListingsPage({ searchParams }: { searchParam
   // seçilen ilin ilanlarını sunucudan süzülmüş hâlde istiyor. Süzgeç yokken
   // ikisi aynı istek. (Uç en fazla 60 ilan dönüyor; sayılar o üst sınırın
   // içinden — haritada gösterilen sayı, listede görülebilecek sayı.)
-  const [tumIller, secilenIl] = await Promise.all([
+  /*
+   * Hepsi TEK dalgada. Eskiden katalog (araçlar + ilçeler) beklendikten SONRA
+   * ilanlar isteniyordu; ilanlar katalogdan türemediği hâlde onu bekliyordu. API
+   * uykudayken iki zaman aşımı arka arkaya binip sayfayı 6 yerine 12 saniye
+   * HTML'siz bırakıyordu.
+   */
+  const [session, vehicles, districts, tumIller, secilenIl] = await Promise.all([
+    auth(),
+    getVehicleTypes(),
+    getDistricts(),
     getPublicListings(),
     cityFilter ? getPublicListings({ city: cityFilter }) : Promise.resolve(null),
   ]);
