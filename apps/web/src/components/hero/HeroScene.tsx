@@ -195,7 +195,13 @@ export function HeroScene({
           {/* Mobilde harita alt yarıda ve tam genişlikte; masaüstünde sağ-alt bölgeye
               çekiliyor. Rota, başlık sütununun üzerinden geçmemeli — araç metnin
               üstünden geçerse ikisi de okunmaz oluyor. */}
-          <div className="pointer-events-none absolute inset-x-0 bottom-[6%] top-[44%] md:bottom-[4%] md:top-[14%] lg:top-[20%]">
+          {/* Telefonda harita YUKARI çekildi. SVG'ler `xMidYMax` ile kutunun
+              ALTINA yaslanıyor; 375 pikselde harita yalnızca ~154 piksel
+              yüksekliğinde olduğu için 406 piksellik kutunun üstünde 250 piksel
+              ölü alan kalıyor ve harita ekranın en dibine düşüyordu. Kutuyu
+              alçaltmak yerine tabanını yukarı almak gerekiyor: konumu belirleyen
+              şey alt kenar. */}
+          <div className="pointer-events-none absolute inset-x-0 bottom-[15%] top-[42%] md:bottom-[4%] md:top-[14%] lg:top-[20%]">
             {/* Harita, navbar'ın içeriğiyle aynı kutuya hizalanıyor: sol kenarı
                 logoyla, sağ kenarı "Yük ver" düğmesiyle aynı hatta. Widget bu
                 kutunun sağ ucunda, haritanın üstünde duruyor. */}
@@ -310,7 +316,7 @@ export function HeroScene({
               <p className="label-mono text-route">{BRAND.name} · 81 il</p>
               <p
                 aria-hidden
-                className="mt-4 text-[clamp(2.6rem,8.2vw,5.6rem)] font-extrabold uppercase leading-[0.94] tracking-[-0.045em]"
+                className="mt-4 text-[clamp(2.15rem,8.2vw,5.6rem)] font-extrabold uppercase leading-[0.94] tracking-[-0.045em]"
               >
                 {BRAND.sloganWords.map((word) => (
                   <span key={word} className="block">

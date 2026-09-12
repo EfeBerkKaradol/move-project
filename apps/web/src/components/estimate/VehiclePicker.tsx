@@ -35,9 +35,13 @@ export function VehiclePicker({
             disabled={soon}
             onClick={() => onChange(v.code)}
             className={[
-              // Sıkı kart: yedi araç üç satır tutuyor ve hero'daki widget bu yüzden
-              // ekrana sığmayıp kendi içinde kayıyordu. Bilgi aynı, çevresi dar.
-              'rounded-field border p-2.5 text-left transition',
+              /*
+               * Telefonda YATAY satır, sm'den itibaren kart. Dikey kart iki
+               * sütunda yedi aracı dört satıra yayıyor ve yalnız araç seçici
+               * 380 piksel tutuyordu — form ekrana sığmıyordu. Yatay satırda
+               * aynı bilgi 190 piksele iniyor.
+               */
+              'flex items-center gap-2.5 rounded-field border p-2.5 text-left transition sm:block',
               soon
                 ? 'cursor-not-allowed border-dashed border-line text-muted'
                 : selected
@@ -45,10 +49,12 @@ export function VehiclePicker({
                   : 'border-line bg-surface hover:border-muted',
             ].join(' ')}
           >
-            <VehicleGlyph code={v.code} className="size-5" />
-            <span className="mt-1.5 block text-sm leading-tight font-semibold">{v.displayName}</span>
-            <span className={`label-mono block ${selected ? 'text-[var(--route-deep)]' : 'text-muted'}`}>
-              {soon ? 'Yakında' : capacityLabel(v)}
+            <VehicleGlyph code={v.code} className="size-5 shrink-0" />
+            <span className="min-w-0 sm:mt-1.5 sm:block">
+              <span className="block truncate text-sm font-semibold leading-tight">{v.displayName}</span>
+              <span className={`label-mono block ${selected ? 'text-[var(--route-deep)]' : 'text-muted'}`}>
+                {soon ? 'Yakında' : capacityLabel(v)}
+              </span>
             </span>
           </button>
         );

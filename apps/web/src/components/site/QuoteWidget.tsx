@@ -97,10 +97,10 @@ export function QuoteWidget({
         ))}
       </div>
 
-      <div className="mt-5 space-y-4">
+      <div className="mt-4 space-y-3.5 sm:mt-5 sm:space-y-4">
         {/* Değiştir butonu iki alanın sınırında duruyor; bu yüzden ikisini de
             saran bir kapsayıcıya göre konumlanıyor. */}
-        <div className="relative space-y-4">
+        <div className="relative space-y-2.5 sm:space-y-4">
           <PlaceSearch
             name="nereden"
             label="Nereden"

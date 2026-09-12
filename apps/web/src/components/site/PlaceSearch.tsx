@@ -30,7 +30,6 @@ export function PlaceSearch({
   onChange: (v: string) => void;
   placeholder: string;
   icon: React.ReactNode;
-  /** Verilirse liste bu ille sınırlanır — teslim alanı alış iline kilitleniyor. */
 }) {
   const uid = useId();
   // Alan kimliği bileşenin kendisinden üretiliyor. Sabit yazıldığında aynı widget
@@ -99,7 +98,9 @@ export function PlaceSearch({
       <label htmlFor={inputId} className="label-mono text-muted">
         {label}
       </label>
-      <div className="mt-1.5 flex items-center gap-2.5 rounded-field border border-line bg-surface-2 px-3.5 transition hover:border-muted focus:border-route focus:ring-2 focus:ring-route/25">
+      {/* Telefonda daha alçak: iki alan + etiketleri 168 piksel tutuyordu ve
+          iri gri bloklar gibi duruyordu. sm'den itibaren eski ölçü. */}
+      <div className="mt-1 flex items-center gap-2.5 rounded-field border border-line bg-surface-2 px-3 transition hover:border-muted focus:border-route focus:ring-2 focus:ring-route/25 sm:mt-1.5 sm:px-3.5">
         <svg viewBox="0 0 16 16" className="size-4 shrink-0 text-muted" fill="none" stroke="currentColor"
           strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round" aria-hidden>
           {icon}
@@ -122,7 +123,7 @@ export function PlaceSearch({
           aria-controls={listId}
           aria-autocomplete="list"
           aria-activedescendant={active >= 0 ? `${listId}-${active}` : undefined}
-          className="w-full bg-transparent py-3.5 pr-12 text-[15px] outline-none placeholder:text-muted"
+          className="w-full bg-transparent py-2.5 pr-12 text-[15px] outline-none placeholder:text-muted sm:py-3.5"
         />
       </div>
 

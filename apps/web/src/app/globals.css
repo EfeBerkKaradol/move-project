@@ -168,9 +168,12 @@ h1, h2, h3 {
 /* ── Hero sahnesi ─────────────────────────────────────────────────── */
 
 /* Sarmalayıcının ekran boyunu aşan kısmı kaydırma mesafesidir; içerideki sticky
-   katman ekranda sabit kalır ve anlatı bu mesafe boyunca ilerler. Mobilde mesafe
-   kısa: uzun bir animasyon tüneli telefonda sabır sınavına dönüyor. */
-[data-hero] { height: 175vh; }
+   katman ekranda sabit kalır ve anlatı bu mesafe boyunca ilerler.
+
+   Telefonda 175vh'ti: sahne 1,75 ekran sürüyor ve kullanıcı ilk bölüme varmadan
+   önce bir ekrandan fazla kaydırıyordu. Masaüstünde sahnenin anlatacağı daha çok
+   şey var (sağ sütundaki widget, faz metinleri), orada 280vh duruyor. */
+[data-hero] { height: 135vh; }
 
 @media (min-width: 768px) {
   [data-hero] { height: 280vh; }
