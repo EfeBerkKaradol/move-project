@@ -33,10 +33,12 @@ export default async function DriverTripsPage() {
     <Shell eyebrow="Araç sahibi" title="İşlerim">
       <SubNav
         items={[
-          { href: '/nakliyeci', label: 'Açık ilanlar' },
-          { href: '/nakliyeci/koridor', label: 'Boş dönüş' },
-          { href: '/nakliyeci/teklifler', label: 'Tekliflerim' },
-        ]}
+            { href: '/nakliyeci', label: 'Açık ilanlar' },
+            { href: '/nakliyeci/koridor', label: 'Boş dönüş' },
+            { href: '/nakliyeci/teklifler', label: 'Tekliflerim' },
+            { href: '/nakliyeci/kazanc', label: 'Kazançlarım' },
+            { href: '/sofor-ol', label: 'Belgelerim' },
+          ]}
         className="-ml-3"
       />
       <h2 className="mt-6 text-lg">Devam eden ({active.length})</h2>

@@ -1,20 +1,13 @@
 import { getPublicStats } from '@/lib/api';
 
-type Stat = { value: string; label: string; unknown: boolean };
+type Stat = { value: string; label: string };
 
-const ETIKETLER = ['Açık yük ilanı', 'Doğrulanmış araç', 'Ort. ilk teklif'] as const;
-
-function StatList({ items, busy = false }: { items: Stat[]; busy?: boolean }) {
+function StatList({ items }: { items: Stat[] }) {
   return (
-    <dl
-      aria-busy={busy || undefined}
-      className="mt-16 flex flex-wrap gap-x-14 gap-y-6 border-t border-line pt-8"
-    >
+    <dl className="mt-16 flex flex-wrap gap-x-14 gap-y-6 border-t border-line pt-8">
       {items.map((s) => (
         <div key={s.label}>
-          <dd className={`stat text-[2rem] leading-none ${s.unknown ? 'text-muted' : 'text-ink'}`}>
-            [{s.value}]
-          </dd>
+          <dd className="stat text-[2rem] leading-none text-ink">[{s.value}]</dd>
           <dt className="label-mono mt-2 text-muted">{s.label}</dt>
         </div>
       ))}
@@ -23,19 +16,15 @@ function StatList({ items, busy = false }: { items: Stat[]; busy?: boolean }) {
 }
 
 /**
- * Sayaçlar gelene kadar duran iskelet.
+ * Sayaçlar gelene kadar HİÇBİR ŞEY gösterilmiyor.
  *
- * <p>Aynı `<dl>`, aynı yükseklik: bölüm sayılar akınca yerinden oynamıyor. Tire
- * zaten bileşenin "bilinmiyor" işareti ve yükleme anında bilinen bir şey yok —
- * ayrı bir gri kutu çizmek, olmayan bir durumu icat etmek olurdu.
+ * <p>Önce tire ("[—] Açık yük ilanı") çiziliyordu. Amaç dürüstlüktü ama sonuç
+ * öyle okunmuyordu: ziyaretçi köşeli parantez içinde tire görünce ürünün bozuk
+ * olduğunu düşünüyor. Bilinmeyen bir sayıyı göstermemek, bilinmediğini
+ * göstermekten daha dürüst bir arayüz üretiyor.
  */
 export function LiveStatsFallback() {
-  return (
-    <StatList
-      busy
-      items={ETIKETLER.map((label) => ({ value: '—', label, unknown: true }))}
-    />
-  );
+  return null;
 }
 
 /**
@@ -57,24 +46,20 @@ export function LiveStatsFallback() {
  */
 export async function LiveStats() {
   const stats = await getPublicStats();
+  // Servis cevap vermediyse bölüm hiç çizilmiyor: tire dizisi ürünü bozuk
+  // gösteriyordu ve zaten hiçbir soruya cevap vermiyordu
+  if (!stats) return null;
 
   const items: Stat[] = [
-    {
-      value: stats ? String(stats.openListings) : '—',
-      label: ETIKETLER[0],
-      unknown: !stats,
-    },
-    {
-      value: stats ? String(stats.verifiedCarriers) : '—',
-      label: ETIKETLER[1],
-      unknown: !stats,
-    },
-    {
-      value: stats?.averageMinutesToFirstOffer ? `${stats.averageMinutesToFirstOffer} dk` : '—',
-      label: ETIKETLER[2],
-      unknown: !stats?.averageMinutesToFirstOffer,
-    },
+    { value: String(stats.openListings), label: 'Açık yük ilanı' },
+    { value: String(stats.verifiedCarriers), label: 'Doğrulanmış araç' },
+    // Henüz ölçülemeyen sayaç yazılmıyor; "—" yazmak yerine satır düşüyor
+    ...(stats.averageMinutesToFirstOffer
+      ? [{ value: `${stats.averageMinutesToFirstOffer} dk`, label: 'Ort. ilk teklif' }]
+      : []),
   ];
 
+  // Tek bir sayı bile gelmediyse çizgi ve boşluk bırakmanın anlamı yok
+  if (items.length === 0) return null;
   return <StatList items={items} />;
 }

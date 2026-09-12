@@ -38,10 +38,16 @@ const IDEAL_ROUTE: Record<string, string> = {
  */
 async function Sayac({ sayaclar, code }: { sayaclar: Promise<PublicFleetCountView[]>; code: string }) {
   const liste = await sayaclar;
-  // Uç hiç cevap vermediyse sayı yerine tire: uydurma bir rakam,
-  // "doğrulanmış araç sahibi" diyen bir ürünün ilk yalanı olurdu
-  if (liste.length === 0) return <>—</>;
-  return <>{liste.find((c) => c.vehicleTypeCode === code)?.carrierCount ?? 0}</>;
+  // Sayı gelmediyse rozet hiç çizilmiyor: uydurma bir rakam "doğrulanmış araç
+  // sahibi" diyen bir ürünün ilk yalanı olurdu, tire ise ürünü bozuk gösteriyor
+  if (liste.length === 0) return null;
+  const adet = liste.find((c) => c.vehicleTypeCode === code)?.carrierCount ?? 0;
+  return (
+    <span className="text-right">
+      <span className="stat block text-lg leading-none text-ink">{adet}</span>
+      <span className="label-mono mt-1 block text-muted">kayıtlı</span>
+    </span>
+  );
 }
 
 /** Sıfır kayıtlı araç gizlenmiyor; tip katalogda açık ve onunla fiyat alınabiliyor. */
@@ -59,28 +65,29 @@ async function SifirNotu({ sayaclar, code }: { sayaclar: Promise<PublicFleetCoun
 }
 
 /** Üstteki üç sayaç; API'ye ulaşılamazsa tire gösteriyor. */
-/** Sayaçlar gelene kadar aynı yükseklikte duran iskelet; sayfa oynamıyor. */
+/**
+ * Sayaçlar gelene kadar yalnızca KESİN bilinen sayı duruyor.
+ *
+ * <p>Araç tipi sayısı katalogdan geliyor, beklemesi gerekmiyor. Diğer ikisi için
+ * tire çizmek yerine hiç satır açılmıyor: "[—] Doğrulanmış taşıyıcı" ziyaretçiye
+ * ürünün bozuk olduğunu düşündürüyordu.
+ */
 function OzetIskelet({ aktifSayisi }: { aktifSayisi: number }) {
   return (
-    <>
-      {[['Doğrulanmış taşıyıcı', '—'], ['Açık araç tipi', aktifSayisi], ['Açık yük ilanı', '—']].map(
-        ([etiket, deger]) => (
-          <div key={String(etiket)}>
-            <dd className="stat text-[2rem] leading-none">[{deger}]</dd>
-            <dt className="label-mono mt-2 text-muted">{String(etiket)}</dt>
-          </div>
-        ),
-      )}
-    </>
+    <div>
+      <dd className="stat text-[2rem] leading-none">[{aktifSayisi}]</dd>
+      <dt className="label-mono mt-2 text-muted">Açık araç tipi</dt>
+    </div>
   );
 }
 
 async function Ozet({ istatistik, aktifSayisi }: { istatistik: Promise<PublicStatsView | null>; aktifSayisi: number }) {
   const stats = await istatistik;
+  // Gelmeyen sayı yazılmıyor; satır tamamen düşüyor
   const satirlar: [string, string | number][] = [
-    ['Doğrulanmış taşıyıcı', stats ? stats.verifiedCarriers : '—'],
+    ...(stats ? ([['Doğrulanmış taşıyıcı', stats.verifiedCarriers]] as [string, number][]) : []),
     ['Açık araç tipi', aktifSayisi],
-    ['Açık yük ilanı', stats ? stats.openListings : '—'],
+    ...(stats ? ([['Açık yük ilanı', stats.openListings]] as [string, number][]) : []),
   ];
   return (
     <>
@@ -173,14 +180,9 @@ export default async function VehiclesPage() {
                           Yakında
                         </span>
                       ) : (
-                        <span className="text-right">
-                          <span className="stat block text-lg leading-none text-ink">
-                            <Suspense fallback={<>·</>}>
-                              <Sayac sayaclar={sayaclar} code={vehicle.code} />
-                            </Suspense>
-                          </span>
-                          <span className="label-mono mt-1 block text-muted">kayıtlı</span>
-                        </span>
+                        <Suspense fallback={null}>
+                          <Sayac sayaclar={sayaclar} code={vehicle.code} />
+                        </Suspense>
                       )}
                     </div>
 

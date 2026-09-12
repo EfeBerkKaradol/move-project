@@ -12,6 +12,7 @@ import { TripPhotos } from '@/components/app/TripPhotos';
 import { TripTimeline } from '@/components/app/TripTimeline';
 import { ApiError, apiFetch } from '@/lib/api-server';
 import { TripTrail } from './TripTrail';
+import { OfferCompare, type CompareOffer } from './OfferCompare';
 import { acceptOffer, cancelListing, confirmDelivery } from '../../actions';
 import { RatingForm } from './RatingForm';
 
@@ -72,6 +73,41 @@ export default async function ListingPage({ params }: { params: Promise<{ id: st
           <div className="mt-4">
             <CargoPanel listing={listing} />
           </div>
+
+          {/*
+            Karşılaştırma listeden ÖNCE: karar fiyatla bitmiyor, doğrulanmış bir
+            taşıyıcının biraz pahalı teklifi çoğu zaman daha iyi. Kartlar alt
+            altayken bu ancak kaydırıp akılda tutarak yapılabiliyordu.
+
+            Veri kümesi listedekiyle aynı; istemciye yeni bir alan inmiyor.
+          */}
+          <OfferCompare
+            offers={[...offers]
+              .sort((a, b) => Number(a.amount.amount) - Number(b.amount.amount))
+              .map((o): CompareOffer => {
+                const r = ratingById.get(o.carrierId);
+                return {
+                  id: o.id,
+                  carrier: o.carrierDisplayName ?? 'Araç sahibi',
+                  amount: o.amount.amount,
+                  verified: !!o.verified,
+                  vehicle: o.vehicleTypeCode ? `${o.vehicleTypeCode} · ${o.plate}` : null,
+                  rating:
+                    r && r.averageScore != null
+                      ? { score: r.averageScore, count: r.ratingCount }
+                      : null,
+                  completedJobs: r ? r.completedJobs : null,
+                  note: o.note ?? null,
+                  accept:
+                    open && o.status === 'SUBMITTED'
+                      ? async () => {
+                          'use server';
+                          await acceptOffer(listing.id, o.id);
+                        }
+                      : null,
+                };
+              })}
+          />
 
           <h2 className="mt-8 text-lg">Teklifler ({offers.length})</h2>
           {offers.length === 0 ? (

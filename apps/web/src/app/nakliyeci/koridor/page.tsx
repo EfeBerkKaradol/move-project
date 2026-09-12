@@ -49,10 +49,12 @@ export default async function CorridorPage() {
     <Shell eyebrow="Araç sahibi" title="Boş dönüş">
       <SubNav
         items={[
-          { href: '/nakliyeci', label: 'Açık ilanlar' },
-          { href: '/nakliyeci/isler', label: 'İşlerim' },
-          { href: '/nakliyeci/teklifler', label: 'Tekliflerim' },
-        ]}
+            { href: '/nakliyeci', label: 'Açık ilanlar' },
+            { href: '/nakliyeci/isler', label: 'İşlerim' },
+            { href: '/nakliyeci/teklifler', label: 'Tekliflerim' },
+            { href: '/nakliyeci/kazanc', label: 'Kazançlarım' },
+            { href: '/sofor-ol', label: 'Belgelerim' },
+          ]}
         className="-ml-3"
       />
 

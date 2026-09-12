@@ -118,6 +118,8 @@ export default async function DriverPage({ searchParams }: { searchParams: Param
             { href: '/nakliyeci/koridor', label: 'Boş dönüş' },
             { href: '/nakliyeci/isler', label: 'İşlerim' },
             { href: '/nakliyeci/teklifler', label: 'Tekliflerim' },
+            { href: '/nakliyeci/kazanc', label: 'Kazançlarım' },
+            { href: '/sofor-ol', label: 'Belgelerim' },
           ]}
           className="-mr-3"
         />

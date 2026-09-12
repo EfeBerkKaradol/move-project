@@ -22,10 +22,12 @@ export default async function MyOffersPage() {
     <Shell eyebrow="Araç sahibi" title="Tekliflerim">
       <SubNav
         items={[
-          { href: '/nakliyeci', label: 'Açık ilanlar' },
-          { href: '/nakliyeci/koridor', label: 'Boş dönüş' },
-          { href: '/nakliyeci/isler', label: 'İşlerim' },
-        ]}
+            { href: '/nakliyeci', label: 'Açık ilanlar' },
+            { href: '/nakliyeci/koridor', label: 'Boş dönüş' },
+            { href: '/nakliyeci/isler', label: 'İşlerim' },
+            { href: '/nakliyeci/kazanc', label: 'Kazançlarım' },
+            { href: '/sofor-ol', label: 'Belgelerim' },
+          ]}
         className="-ml-3 mb-4"
       />
       {offers.length === 0 ? (

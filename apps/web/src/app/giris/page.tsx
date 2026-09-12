@@ -118,7 +118,6 @@ export default async function LoginPage({
           </p>
         </div>
 
-        <p className="label-mono mt-5 text-center text-muted">Telefon + tek kullanımlık kod yakında</p>
         <div className="mt-6 border-t border-line pt-4 text-center">
           <Link
             href="/"
