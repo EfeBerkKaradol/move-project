@@ -186,7 +186,9 @@ export function HeroScene({
       data-hero
       className="relative theme-dark bg-bg text-ink"
     >
-      <div className="sticky top-0 flex h-[100svh] flex-col overflow-hidden">
+      {/* Telefonda panel kısa: harita metnin hemen altına geldiğinde altta kalan
+          boşluk 100svh'de iki yüz pikseli buluyordu. */}
+      <div className="sticky top-0 flex h-[86svh] flex-col overflow-hidden md:h-[100svh]">
         {/* Sahnenin tamamı dekoratif: okunabilir karşılığı aşağıdaki gizli başlık
             ve hero'dan sonraki bölümler. Ekran okuyucu kaydırma animasyonunun
             içinde kaybolmamalı. */}
@@ -195,13 +197,22 @@ export function HeroScene({
           {/* Mobilde harita alt yarıda ve tam genişlikte; masaüstünde sağ-alt bölgeye
               çekiliyor. Rota, başlık sütununun üzerinden geçmemeli — araç metnin
               üstünden geçerse ikisi de okunmaz oluyor. */}
-          {/* Telefonda harita YUKARI çekildi. SVG'ler `xMidYMax` ile kutunun
-              ALTINA yaslanıyor; 375 pikselde harita yalnızca ~154 piksel
-              yüksekliğinde olduğu için 406 piksellik kutunun üstünde 250 piksel
-              ölü alan kalıyor ve harita ekranın en dibine düşüyordu. Kutuyu
-              alçaltmak yerine tabanını yukarı almak gerekiyor: konumu belirleyen
-              şey alt kenar. */}
-          <div className="pointer-events-none absolute inset-x-0 bottom-[15%] top-[42%] md:bottom-[4%] md:top-[14%] lg:top-[20%]">
+          {/*
+            Telefonda kutunun yüksekliği YÜZDEYLE değil haritanın kendi oranıyla
+            veriliyor (aspect-[1000/470]).
+
+            Yüzdeyle verildiğinde kutu haritadan çok daha yüksek kalıyordu ve
+            SVG'ler `xMidYMax` ile kutunun ALTINA yaslandığı için üstte iki yüz
+            elli piksel ölü alan oluşuyor, harita da ekranın dibine düşüyordu.
+            Alt kenarı yukarı çekmek yetmedi: bu kez haritanın altında aynı
+            boşluk kalıyordu. Kutu haritanın oranına bağlanınca ölü alan
+            tamamen kalkıyor ve `top` gerçekten haritanın başladığı yer oluyor —
+            metnin hemen altı.
+
+            Masaüstünde kutu geniş ve oranı zaten tutuyor; orada eski
+            inset düzeni duruyor.
+          */}
+          <div className="pointer-events-none absolute inset-x-0 top-[53%] aspect-[1000/470] md:inset-y-auto md:bottom-[4%] md:top-[14%] md:aspect-auto lg:top-[20%]">
             {/* Harita, navbar'ın içeriğiyle aynı kutuya hizalanıyor: sol kenarı
                 logoyla, sağ kenarı "Yük ver" düğmesiyle aynı hatta. Widget bu
                 kutunun sağ ucunda, haritanın üstünde duruyor. */}
@@ -230,21 +241,26 @@ export function HeroScene({
                 <TruckAsset className="h-auto w-[clamp(5rem,13vw,9.5rem)] md:drop-shadow-[0_8px_18px_rgb(0_0_0/0.45)]" />
               </div>
 
-              {/* Kartlar rotanın çevresinde; mobilde tek bir yuvada üst üste */}
+              {/*
+                Kartlar rotanın çevresinde; mobilde tek bir yuvada üst üste.
+                Telefonda harita kutusu artık haritanın kendi boyunda olduğu için
+                kutunun İÇİNE konan kart haritanın üstünü kapatıyordu — kartlar
+                kutunun üstüne alındı.
+              */}
               <SceneCard
                 layer="cardCargo" icon="package" label="Yükün"
                 title="12 ton · Kuru yük" meta={['Hadımköy → Ankara', 'Kapalı kasa']}
-                className="left-1/2 top-2 -translate-x-1/2 md:left-[38%] md:top-[10%] md:translate-x-0"
+                className="bottom-full left-1/2 mb-3 -translate-x-1/2 md:bottom-auto md:mb-0 md:left-[38%] md:top-[10%] md:translate-x-0"
               />
               <SceneCard
                 layer="cardMatch" tone="match" icon="handshake" label="Eşleşme bulundu"
                 title="3 uygun araç" meta={['İstanbul → Ankara', 'İlk teklif ~11 dk']}
-                className="left-1/2 top-2 -translate-x-1/2 md:left-[44%] md:top-[10%] md:translate-x-0"
+                className="bottom-full left-1/2 mb-3 -translate-x-1/2 md:bottom-auto md:mb-0 md:left-[44%] md:top-[10%] md:translate-x-0"
               />
               <SceneCard
                 layer="cardNew" tone="match" icon="route" label="Yeni yük bulundu"
                 title="8 ton · Dönüş rotanda" meta={['Ankara → İzmir', 'Sapma yok']}
-                className="left-1/2 top-2 -translate-x-1/2 md:left-[38%] md:top-[64%] md:translate-x-0"
+                className="bottom-full left-1/2 mb-3 -translate-x-1/2 md:bottom-auto md:mb-0 md:left-[38%] md:top-[64%] md:translate-x-0"
               />
               </div>
             </div>
@@ -303,7 +319,7 @@ export function HeroScene({
           {/* Üst boşluk sabit menünün (69 px) altından başlıyor: metinler yukarı
               çekilince kicker satırı menünün altına giriyordu. Harita kutunun
               altına hizalı olduğu için aşağıda hâlâ yer var. */}
-            <div className="relative mx-auto flex h-full max-w-[76rem] flex-col px-6 pt-24 md:pt-28">
+            <div className="relative mx-auto flex h-full max-w-[76rem] flex-col px-6 pt-20 md:pt-28">
             {/* Açılış */}
             <div
               data-layer="intro"
@@ -316,7 +332,7 @@ export function HeroScene({
               <p className="label-mono text-route">{BRAND.name} · 81 il</p>
               <p
                 aria-hidden
-                className="mt-4 text-[clamp(2.15rem,8.2vw,5.6rem)] font-extrabold uppercase leading-[0.94] tracking-[-0.045em]"
+                className="mt-3 text-[clamp(1.9rem,7.6vw,5.6rem)] font-extrabold uppercase leading-[0.94] tracking-[-0.045em] md:mt-4"
               >
                 {BRAND.sloganWords.map((word) => (
                   <span key={word} className="block">
@@ -324,12 +340,12 @@ export function HeroScene({
                   </span>
                 ))}
               </p>
-              <p className="mt-6 max-w-sm text-[15px] leading-relaxed text-muted md:text-base">
+              <p className="mt-4 max-w-sm text-[15px] leading-relaxed text-muted md:mt-6 md:text-base">
                 {BRAND.promise.shipper}
                 <br />
                 {BRAND.promise.carrier}
               </p>
-              <div className="mt-8 flex flex-wrap items-start gap-3 lg:hidden">
+              <div className="mt-5 flex flex-wrap items-start gap-3 md:mt-8 lg:hidden">
                 <ButtonLink href={shipperHref} size="lg" hint="Aracını bul.">
                   Yüküm var
                   <Icon name="arrowRight" size={16} />
@@ -343,7 +359,7 @@ export function HeroScene({
             {/* Sonraki fazların metinleri aynı yuvada sırayla belirir */}
             {/* Faz metinleri açılış başlığından dar: harita sola alındıkça rota ve şehir
                 etiketleri sola yaklaşıyor, geniş bir paragraf onların üstüne biniyordu. */}
-            <div className="pointer-events-none absolute inset-x-6 top-24 max-w-sm md:top-28">
+            <div className="pointer-events-none absolute inset-x-6 top-20 max-w-sm md:top-28">
               <PhaseText layer="enterLoad" kicker="Adım 1" title="Yükünü gir."
                 body="Nereden nereye, ne kadar. Araç tipini bilmiyorsan sistem öneriyor." />
               <PhaseText layer="crossing" kicker="Boğaz geçişi" title="Avrupa yakasından Anadolu yakasına."
