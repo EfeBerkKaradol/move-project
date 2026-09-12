@@ -3,6 +3,7 @@ import { CARRIER_STATUS_LABELS } from '@tasiyoruz/contracts';
 import type { Metadata } from 'next';
 import Link from 'next/link';
 import { auth, canCallApi } from '@/auth';
+import { girisHref } from '@/lib/signup-role';
 import { Shell } from '@/components/app/Shell';
 import { PlaceholderPage } from '@/components/site/PlaceholderPage';
 import { getVehicleTypes } from '@/lib/api';
@@ -46,7 +47,7 @@ export default async function DriverSignupPage() {
       <PlaceholderPage
         eyebrow="Araç sahibi için"
         title="Belgeleri bir kez yükle, işe başla."
-        cta={{ href: '/giris', label: 'Giriş yap ya da hesap aç' }}
+        cta={{ href: girisHref('tasiyici', '/sofor-ol'), label: 'Araç sahibi olarak giriş yap ya da kaydol' }}
       >
         <p>
           Başvurmak için önce hesap açman gerekiyor. Kayıt olan herkes yük veren olarak

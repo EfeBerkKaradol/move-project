@@ -17,19 +17,34 @@ import { ProhibitedNotice } from '@/components/legal/ProhibitedNotice';
  * durduğu için burada tekrarlanmıyor.
  */
 function SubmitButton({
-  pending, missing, showReason = false, className = 'mt-5 w-full px-6 py-4',
+  pending, missing, onBlocked, showReason = false, className = 'mt-5 w-full px-6 py-4',
 }: {
   pending: boolean;
   missing: { short: string; long: string }[];
+  /** Eksik varken tıklanınca çağrılıyor; gönderim yapılmıyor. */
+  onBlocked: () => void;
   /** Eksiklerin altta yazılıp yazılmayacağı; dar ekranda sebep zaten çubukta. */
   showReason?: boolean;
   className?: string;
 }) {
   return (
     <>
+      {/*
+        Eksik varken düğme KAPATILMIYOR, tıklama engelleniyor.
+        disabled bir düğme tıklanınca hiçbir şey yapmıyor: kullanıcı formu
+        doldurduğunu sanıp üst üste basıyor ve "yayınla çalışmıyor" diyor.
+        Basılabilir bırakıp sebebi söylemek, aynı korumayı sağlayıp soruyu da
+        cevaplıyor. Sunucu zaten kendi doğrulamasını yapıyor.
+      */}
       <button
         type="submit"
-        disabled={pending || missing.length > 0}
+        aria-disabled={missing.length > 0 || undefined}
+        onClick={(e) => {
+          if (missing.length === 0) return;
+          e.preventDefault();
+          onBlocked();
+        }}
+        disabled={pending}
         className={`min-h-11 rounded-field bg-route font-bold text-[var(--route-ink)] transition hover:bg-[var(--route-hover)] hover:shadow-[0_6px_18px_rgb(244_159_44_/_0.30)] active:translate-y-px disabled:opacity-60 ${className}`}
       >
         {pending ? 'Yayınlanıyor…' : 'İlanı yayınla'}
@@ -79,6 +94,8 @@ export function PublishForm({
   const [photoIds, setPhotoIds] = useState<string[]>([]);
   const [declared, setDeclared] = useState(false);
   const [alisPenceresi, setAlisPenceresi] = useState(initial.pickupWindow);
+  /** Eksikken yayınlamaya basıldı mı; basıldıysa sebep vurgulanıyor. */
+  const [engelGoruldu, setEngelGoruldu] = useState(false);
   const planli = initial.serviceModel === 'SCHEDULED';
   const chosenExtras = extras.filter((e) => initial.extraServices.includes(e.code));
 
@@ -220,12 +237,17 @@ export function PublishForm({
         )}
 
         {state.error && <p className="mt-4 rounded-field bg-[#fbe9e7] px-3 py-2 text-sm text-[#8a2a1f]">{state.error}</p>}
+        {engelGoruldu && missing.length > 0 && (
+          <p role="alert" className="mt-4 rounded-field bg-[#fbe9e7] px-3 py-2 text-sm text-[#8a2a1f]">
+            Yayınlamak için önce {missing.map((m) => m.long).join(' ve ')}.
+          </p>
+        )}
 
         {/* Geniş ekranda düğme burada; dar ekranda alttaki sabit çubukta. İkisi aynı
             anda görünmüyor, biri display:none olduğu için erişilebilirlik ağacında da
             tek düğme kalıyor. */}
         <div className="hidden lg:block">
-          <SubmitButton pending={pending} missing={missing} showReason />
+          <SubmitButton pending={pending} missing={missing} onBlocked={() => setEngelGoruldu(true)} showReason />
         </div>
         <p className="label-mono mt-3 text-center text-muted">Komisyon dahil · Teslimatta ödeme</p>
       </aside>
@@ -243,7 +265,12 @@ export function PublishForm({
               ? `Eksik: ${missing.map((m) => m.short).join(' ve ')}`
               : `${totals.pieces} parça · ${totals.volumeM3.toLocaleString('tr-TR', { maximumFractionDigits: 1 })} m³`}
           </p>
-          <SubmitButton pending={pending} missing={missing} className="w-auto shrink-0 px-6 py-3.5" />
+          <SubmitButton
+            pending={pending}
+            missing={missing}
+            onBlocked={() => setEngelGoruldu(true)}
+            className="w-auto shrink-0 px-6 py-3.5"
+          />
         </div>
       </div>
     </form>

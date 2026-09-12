@@ -4,6 +4,7 @@ import { redirect } from 'next/navigation';
 import { auth, homeFor, signIn } from '@/auth';
 import { Shell } from '@/components/app/Shell';
 import { PendingButton } from '@/components/ui/PendingButton';
+import { girisHref, otherRole, roleCopy } from '@/lib/signup-role';
 
 export const metadata: Metadata = { title: 'Giriş yap' };
 
@@ -14,10 +15,28 @@ const WAKE_HINT = 'Kimlik sunucusu uyandırılıyor; ilk açılışta bir dakika
  * Giriş Keycloak'a yönlendirir. Telefon + OTP, SMS sağlayıcısı bağlanınca
  * (ANAHTARLAR.md #2) Keycloak tarafında açılacak; bu sayfa değişmeyecek.
  */
-export default async function LoginPage({ searchParams }: { searchParams: Promise<{ callbackUrl?: string }> }) {
+export default async function LoginPage({
+  searchParams,
+}: {
+  searchParams: Promise<{ callbackUrl?: string; rol?: string }>;
+}) {
   const [session, params] = await Promise.all([auth(), searchParams]);
   const target = params.callbackUrl && params.callbackUrl.startsWith('/') ? params.callbackUrl : null;
   if (session && session.error !== 'RefreshFailed') redirect(target ?? homeFor(session.roles));
+
+  /*
+   * Kim geldiği NEREDEN geldiğinden belli: "Yük ver" düğmesi yük verenden,
+   * "Yük bul" araç sahibinden gelir. Tek bir kayıt ekranı ikisine de aynı şeyi
+   * anlatıyordu — yükü olan kişiye belge yüklemekten söz ediliyor, aracı olan
+   * kişiye kayıttan sonra ne yapacağı hiç söylenmiyordu.
+   *
+   * Rol bir yetki değil: Keycloak yeni kaydolan herkese CUSTOMER veriyor,
+   * taşıyıcılık ancak belgeler onaylanınca açılıyor. Buradaki seçim, kullanıcının
+   * nereye ineceği ve ona ne anlatıldığı.
+   */
+  const copy = roleCopy(params.rol);
+  const diger = otherRole(copy.role);
+  const varis = target ?? copy.landing;
 
   // Kimlik sağlayıcısı bağlı değilse (henüz dağıtılmamış ortam) sunucu hatası yerine
   // net bir mesaj: ziyaretçi neyin eksik olduğunu anlasın, site kırık görünmesin.
@@ -39,17 +58,25 @@ export default async function LoginPage({ searchParams }: { searchParams: Promis
   }
 
   return (
-    <Shell eyebrow="Hesap" title="Giriş yap">
+    <Shell eyebrow="Hesap" title={copy.title}>
       <div className="max-w-md rounded-card border border-line bg-surface p-6">
-        <p className="text-sm text-muted">
-          Fiyat görmek için giriş gerekmiyor. Hesap yalnızca ilan yayınlarken ve teklif verirken
-          lazım.
-        </p>
+        <p className="text-sm text-muted">{copy.lead}</p>
+
+        {/* Kayıttan sonra ne isteneceği ÖNCEDEN yazıyor. Araç sahibi belge
+            yükleyeceğini kaydolduktan sonra öğrendiğinde yarıda bırakıyordu. */}
+        <ul className="mt-4 space-y-2 border-t border-line pt-4 text-sm text-muted">
+          {copy.next.map((satir) => (
+            <li key={satir} className="flex gap-2">
+              <span aria-hidden className="text-[var(--route-deep)]">·</span>
+              <span>{satir}</span>
+            </li>
+          ))}
+        </ul>
         <form
           className="mt-6"
           action={async () => {
             'use server';
-            await signIn('keycloak', { redirectTo: target ?? '/giris' });
+            await signIn('keycloak', { redirectTo: varis });
           }}
         >
           {/* Kimlik servisi uykudan uyanıyorsa yönlendirme bir dakikayı bulabiliyor;
@@ -70,7 +97,7 @@ export default async function LoginPage({ searchParams }: { searchParams: Promis
             className="mt-2"
             action={async () => {
               'use server';
-              await signIn('keycloak-signup', { redirectTo: target ?? '/giris' });
+              await signIn('keycloak-signup', { redirectTo: varis });
             }}
           >
             <PendingButton
@@ -78,13 +105,16 @@ export default async function LoginPage({ searchParams }: { searchParams: Promis
               slowHint={WAKE_HINT}
               className="w-full rounded-field border border-line px-6 py-4 font-bold transition hover:border-route"
             >
-              Hesap oluştur
+              {copy.signupLabel}
             </PendingButton>
           </form>
+          {/* Yanlış kapıdan gelen kullanıcı buradan karşı akışa geçiyor;
+              seçimi callbackUrl'i korumadan taşımak, doldurduğu formu
+              kaybettirirdi. */}
           <p className="mt-3 text-xs text-muted">
-            Kayıt olan herkes yük veren olarak başlar. Araç sahibi olmak için belgelerini
-            yükleyip onay alman gerekiyor —{' '}
-            <Link href="/sofor-ol" className="underline underline-offset-2">şoför ol</Link>.
+            <Link href={girisHref(diger.role, target)} className="underline underline-offset-2">
+              {diger.switchLabel}
+            </Link>
           </p>
         </div>
 

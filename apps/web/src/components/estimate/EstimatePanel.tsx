@@ -1,5 +1,6 @@
 'use client';
 
+import { girisHref } from '@/lib/signup-role';
 import type { Quote } from '@tasiyoruz/contracts';
 import { estimateRange, formatPrice } from '@tasiyoruz/shared';
 import Link from 'next/link';
@@ -47,7 +48,8 @@ export function EstimatePanel({
    * olacağını önceden söylemek, kullanıcıyı beklemediği bir kapıya çarpmaktan
    * iyi. Seçim callbackUrl'de duruyor, girişten sonra aynı adrese dönülüyor.
    */
-  const href = signedIn ? publishHref : `/giris?callbackUrl=${encodeURIComponent(publishHref)}`;
+  // Buradan gelen herkes yük veren: kayıt ekranı belge değil ilan akışını anlatsın
+  const href = signedIn ? publishHref : girisHref('yuk-veren', publishHref);
 
   return (
     <aside
