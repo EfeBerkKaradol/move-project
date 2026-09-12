@@ -135,6 +135,30 @@ export function MobileMenu({
                 {children && <div className="mt-4">{children}</div>}
               </div>
             )}
+
+            {/*
+              Yasal belgeler menünün DİBİNDE, tek satır.
+
+              Ana menüye konmadı: oradaki maddeler kullanıcının yapmaya geldiği
+              işler (yük ver, ilan bul) ve kimse KARINCA'ya çerez politikası
+              okumaya gelmiyor. Ama telefonda footer ana sayfanın yedi bin piksel
+              altında kalıyor; sözleşmeyi arayan kullanıcının onu bulmasının
+              pratik bir yolu yoktu.
+
+              Tek bağlantı yeter: /legal hepsini gruplanmış hâlde listeliyor.
+            */}
+            <div className="mt-5 border-t border-line pt-4">
+              <Link
+                href="/legal"
+                onClick={() => setOpen(false)}
+                className="flex min-h-12 items-center justify-between text-sm text-muted transition hover:text-ink"
+              >
+                Sözleşmeler ve politikalar
+                <span aria-hidden>
+                  <Icon name="arrowRight" size={16} />
+                </span>
+              </Link>
+            </div>
           </div>
         </>
       )}
