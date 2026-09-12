@@ -171,13 +171,26 @@ Keycloak yönetici parolasını Render üretiyor: servis açıldıktan sonra
 dakika sürüyor (Keycloak için ölçülen: 86 sn), yani ilk giriş yavaş olacak. İki servis
 ayrı ayrı uyuduğu için bazen iki kez beklersin. Bu bir hata değil.
 
-Web bunu üç yerde karşılıyor, düğmeler "çalışmıyor" gibi görünmesin diye:
+Web bunu dört yerde karşılıyor, düğmeler "çalışmıyor" gibi görünmesin diye:
 ilk sayfada arka planda API ve Keycloak'a birer uyandırma isteği
 (`WarmUp`), sayfa geçişlerinde üstte akan çubuk (`NavigationProgress`),
 giriş/kayıt düğmelerinde kilitlenip dönen simge ve 4 sn sonra "sunucu
 uyandırılıyor" satırı (`PendingButton`). Auth.js'e Keycloak uç noktaları
 açıkça verildi; aksi hâlde yönlendirme bile Keycloak uyanmadan başlamıyordu.
 Ücretli plana geçince bunların hiçbiri zarar vermez, yalnızca görünmez olur.
+
+Dördüncüsü diğer üçünün ön şartı: **sayfa kabuğu hiçbir API çağrısını
+beklemiyor.** Veri çeken her bölüm bir `Suspense` sınırının içinde ve yavaş
+rotaların `loading.tsx` dosyası var; başlık, hero ve altbilgi ilk pakette
+akıyor. Ölçüldüğünde ana sayfanın ilk baytı 6,05 sn'den 0,19 sn'ye,
+gezinme çubuğunun HTML'e düşmesi 0,095 sn'ye indi (API'ye hiç ulaşılamayan
+koşulda). Bu olmadan diğer üçü de çalışmıyordu: `WarmUp` bir `useEffect`,
+yani hidrasyondan sonra ateşleniyor — kabuk 12 saniye beklerken uyandırma
+isteği de 12 saniye gecikiyordu.
+
+⚠️ Yeni bir sunucu bileşeni veri çekecekse `Suspense` sınırına al. Sarmasız
+tek bir çağrı, o bileşeni barındıran **bütün** sayfayı bekletiyor: `/stats`
+çağıran `LiveStats` tam olarak bunu yapıyordu.
 
 ---
 
