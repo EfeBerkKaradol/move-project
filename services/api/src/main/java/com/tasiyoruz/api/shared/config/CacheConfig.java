@@ -37,6 +37,7 @@ class CacheConfig {
     // eziyordu; ikinci uç yanlış tipte nesne alıp ClassCastException atıyordu.
     static final String PUBLIC_CORRIDORS = "publicCorridors";
     static final String PUBLIC_LISTINGS = "publicListings";
+    static final String PUBLIC_FLEET_COUNTS = "publicFleetCounts";
 
     @Bean
     @Primary
@@ -61,7 +62,8 @@ class CacheConfig {
      */
     @Bean
     CacheManager shortLivedCacheManager() {
-        var manager = new CaffeineCacheManager(PUBLIC_STATS, PUBLIC_CORRIDORS, PUBLIC_LISTINGS);
+        var manager = new CaffeineCacheManager(
+                PUBLIC_STATS, PUBLIC_CORRIDORS, PUBLIC_LISTINGS, PUBLIC_FLEET_COUNTS);
         manager.setCaffeine(Caffeine.newBuilder()
                 .maximumSize(16)
                 .expireAfterWrite(Duration.ofSeconds(60)));

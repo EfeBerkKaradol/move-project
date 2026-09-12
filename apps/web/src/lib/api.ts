@@ -2,6 +2,7 @@ import type {
   CargoCategory,
   LegalDocumentView,
   PublicCorridorView,
+  PublicFleetCountView,
   PublicListingView,
   CargoDeclarationRequest,
   CargoItem,
@@ -133,6 +134,13 @@ export const getPublicListing = async (id: string): Promise<PublicListingView | 
   const hepsi = await getPublicListings();
   return hepsi?.find((l) => l.id === id) ?? null;
 };
+
+/**
+ * Araç tipi başına kayıtlı taşıyıcı sayısı. Katalogla kod üzerinden birleşiyor;
+ * uç yalnızca sayıları taşıyor (bkz. PublicFleetCountView).
+ */
+export const getFleetCounts = () =>
+  get<PublicFleetCountView[]>('/fleet-counts', 300).then((d) => d ?? []);
 
 export const getPublicStats = () => get<PublicStatsView>('/stats', 60);
 export const getExtraServices = () => get<ExtraService[]>('/extra-services');

@@ -21,6 +21,8 @@ import org.springframework.web.server.ResponseStatusException;
 class CarrierServiceTest extends IntegrationTestBase {
 
     @Autowired CarrierService carriers;
+    /** Sayaçlar dar yüzde duruyor; CarrierService onları taşımıyor. */
+    @Autowired CarrierDirectory directory;
 
     private static String carrier() {
         return "carrier-" + UUID.randomUUID();
@@ -133,6 +135,39 @@ class CarrierServiceTest extends IntegrationTestBase {
         var approved = carriers.reviewProfile(id, new ReviewDecision(true, "Belgeler tam"));
         assertThat(approved.status()).isEqualTo(CarrierStatus.APPROVED);
         assertThat(approved.documents()).allMatch(d -> d.status() == DocumentStatus.APPROVED);
+    }
+
+    /**
+     * Araçlar sayfası "şu kadar panelvan kayıtlı" diyor. Sayıya onaylanmamış
+     * başvurular da girseydi, ürün iş alabilecek olandan fazla araç vadetmiş
+     * olurdu — ve bu ancak teklif gelmeyince fark edilirdi.
+     */
+    @Test
+    void aracTipiSayaci_yalnizcaOnayliTasiyiciyiSayar() {
+        var onayli = carrier();
+        carriers.apply(onayli, application("MOTOR"));
+        uploadSmallVehicleDocuments(carriers, onayli);
+        var profile = carriers.submitForReview(onayli);
+        profile.documents().forEach(d -> carriers.reviewDocument(d.id(), new ReviewDecision(true, null)));
+        carriers.reviewProfile(onayli, new ReviewDecision(true, "Belgeler tam"));
+
+        // İncelemeyi bekleyen ikinci bir MOTOR başvurusu sayıya girmemeli
+        var bekleyen = carrier();
+        carriers.apply(bekleyen, application("MOTOR"));
+        uploadSmallVehicleDocuments(carriers, bekleyen);
+        carriers.submitForReview(bekleyen);
+
+        assertThat(directory.approvedCountByVehicleType()).containsEntry("MOTOR", 1L);
+        assertThat(directory.approvedCarrierCount()).isEqualTo(1);
+    }
+
+    /** Hiç onaylı taşıyıcı yoksa anahtar da yok: çağıran taraf sıfırı kendi gösteriyor. */
+    @Test
+    void aracTipiSayaci_onayliYokkenBosDoner() {
+        var id = carrier();
+        carriers.apply(id, application("KAMYON"));
+
+        assertThat(directory.approvedCountByVehicleType()).doesNotContainKey("KAMYON");
     }
 
     @Test

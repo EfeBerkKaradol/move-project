@@ -30,7 +30,7 @@ export async function Header({ overlay = false }: { overlay?: boolean } = {}) {
     { href: '/ilanlar', label: 'İlanlar' },
     { href: carrierHref === '/ilanlar' ? '/ilanlar?gorunum=harita' : carrierHref, label: 'Yük bul' },
     { href: '/#nasil-calisir', label: 'Nasıl çalışır' },
-    { href: '/#araclar', label: 'Araçlar' },
+    { href: '/araclar', label: 'Araçlar' },
   ];
 
   // Dar ekranda çubuk yalnızca logo + tek eylem + menü taşıyor; geri kalanı menünün

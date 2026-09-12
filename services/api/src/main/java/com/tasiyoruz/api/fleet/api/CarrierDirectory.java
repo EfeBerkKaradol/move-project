@@ -1,5 +1,6 @@
 package com.tasiyoruz.api.fleet.api;
 
+import java.util.Map;
 import java.util.Optional;
 
 /**
@@ -24,4 +25,16 @@ public interface CarrierDirectory {
 
     /** Herkese açık sayaç: belgeleri doğrulanmış taşıyıcı sayısı. */
     long approvedCarrierCount();
+
+    /**
+     * Araç tipi kodu → doğrulanmış taşıyıcı sayısı.
+     *
+     * <p>Araçlar sayfası "hangi araçla çalışıyoruz" sorusunu katalogdan, "kaç tane
+     * var" sorusunu buradan alıyor. Hiç taşıyıcısı olmayan tip anahtar olarak
+     * dönmüyor; çağıran taraf sıfırı kendi gösteriyor.
+     *
+     * <p>Sayı toplulaştırılmış ve ulusal: kimseyi işaret etmiyor, ADR-0008'in
+     * ilan/adres kısıtları buraya girmiyor.
+     */
+    Map<String, Long> approvedCountByVehicleType();
 }

@@ -19,7 +19,9 @@ import java.time.LocalDate;
 import java.time.ZoneId;
 import java.util.Arrays;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
+import java.util.stream.Collectors;
 import java.util.UUID;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -108,6 +110,13 @@ class DefaultCarrierService implements CarrierService, CarrierDirectory {
     @Transactional(readOnly = true)
     public long approvedCarrierCount() {
         return profiles.countByStatus(CarrierStatus.APPROVED);
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public Map<String, Long> approvedCountByVehicleType() {
+        return profiles.countByVehicleType(CarrierStatus.APPROVED).stream()
+                .collect(Collectors.toMap(r -> (String) r[0], r -> (Long) r[1]));
     }
 
     @Override

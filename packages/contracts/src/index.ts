@@ -144,6 +144,18 @@ export type QuoteRequest = {
  *
  * <p>Taşıyıcının kendi boş dönüş koridoru ayrı bir tip: {@link CorridorView}.
  */
+/**
+ * Bir araç tipinde kayıtlı, doğrulanmış taşıyıcı sayısı.
+ *
+ * <p>Araç adı ve kapasitesi burada yok; onlar katalogdan (VehicleType) geliyor ve
+ * iki liste kod üzerinden birleştiriliyor. Güven panosu katalogu tekrar
+ * yayınlasaydı aynı veri iki yerden gelir ve zamanla ayrışırdı.
+ */
+export type PublicFleetCountView = {
+  vehicleTypeCode: string;
+  carrierCount: number;
+};
+
 export type PublicCorridorView = {
   fromCity: string;
   toCity: string;

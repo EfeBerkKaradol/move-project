@@ -254,6 +254,41 @@ CROSS JOIN LATERAL (
         END AS note
 ) v;
 
+-- ── Doğrulanmış taşıyıcılar ───────────────────────────────────────────────
+--
+-- Araçlar sayfası "şu kadar panelvan kayıtlı" diyor ve bu sayıyı onaylı taşıyıcı
+-- profillerinden okuyor. Sıfırdan kurulan ortamda hiç profil olmadığı için sayfa
+-- her araç için sıfır gösteriyordu — ürün çalışmıyor gibi.
+--
+-- Plakalar bilerek sahte ve "DEM" harfleriyle: gerçek bir plakaya benzemesinler.
+-- Dağılım da bilerek eşit değil; gerçek bir pazarda panelvan ve kamyonet çok,
+-- TIR az olur. TIR katalogda pasif olduğu için hiç taşıyıcısı yok.
+DELETE FROM carrier_profiles WHERE carrier_id LIKE 'demo-carrier-%';
+
+INSERT INTO carrier_profiles (
+    carrier_id, display_name, phone, vehicle_type_code, plate, status,
+    submitted_at, reviewed_at, created_at)
+SELECT
+    'demo-carrier-' || v.code || '-' || n,
+    'Demo Taşıyıcı ' || upper(substr(v.code, 1, 3)) || ' ' || n,
+    '+90555' || lpad((v.taban + n)::text, 6, '0'),
+    v.code,
+    lpad(((v.taban + n) % 81 + 1)::text, 2, '0') || ' DEM ' || lpad(n::text, 3, '0'),
+    'APPROVED',
+    now() - ((n * 3) || ' days')::interval,
+    now() - ((n * 3 - 1) || ' days')::interval,
+    now() - ((n * 3) || ' days')::interval
+FROM (VALUES
+    ('MOTOR', 18, 100),
+    ('OTOMOBIL', 12, 200),
+    ('MINI_PANELVAN', 22, 300),
+    ('PANELVAN', 41, 400),
+    ('KAMYONET', 33, 500),
+    ('KAMYON', 15, 600)
+) AS v(code, adet, taban)
+CROSS JOIN LATERAL generate_series(1, v.adet) AS n;
+
 COMMIT;
 
 SELECT count(*) || ' demo ilan eklendi.' AS sonuc FROM load_listings WHERE shipper_id = 'demo-shipper';
+SELECT count(*) || ' demo taşıyıcı onaylı.' AS sonuc FROM carrier_profiles WHERE carrier_id LIKE 'demo-carrier-%';
