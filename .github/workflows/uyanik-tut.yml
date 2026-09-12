@@ -1,0 +1,61 @@
+# Render'ın ücretsiz katmanını uyanık tutar.
+#
+# SORUN: ücretsiz plan 15 dakika istek almayınca servisi uyutuyor ve uyanması
+# ölçüldüğünde 35–60 saniye sürüyor (Keycloak için 86 sn). Siteye ara verip
+# dönen kullanıcı neredeyse her seferinde uyuyan örneğe çarpıyor: sayfa hemen
+# açılıyor ama API'ye bağlı içerik zaman aşımına kadar bekliyor.
+#
+# Web tarafındaki önlemler bunu yumuşattı (kabuk anında akıyor, katalog bayat
+# kopyadan geliyor, zaman aşımı 3 sn) ama ilanlar gibi CANLI veriyi
+# bayatlatmak doğru olmazdı — o yüzden ilk ziyaret hâlâ gecikiyordu.
+#
+# Bu iş kök nedene dokunuyor: her 10 dakikada bir hafif bir istek atıp servisi
+# ayakta tutuyor. Herkese açık depoda zamanlanmış işler ücretsiz.
+#
+# ⚠️ Sınırları: GitHub zamanlanmış işleri yoğun saatlerde geciktirebiliyor ve
+# depo 60 gün hareketsiz kalırsa zamanlamayı kendiliğinden durduruyor. Kalıcı
+# çözüm ücretli katman; bu, ona kadar köprü.
+name: Servisleri uyanık tut
+
+on:
+  schedule:
+    # 10 dakikada bir. Render 15 dakikada uyuttuğu için bu aralık payı bırakıyor.
+    - cron: '*/10 * * * *'
+  # Elle de çalıştırılabilsin: dağıtım sonrası ısıtmak için
+  workflow_dispatch:
+
+# Aynı anda ikinci bir ısıtma çalıştırmanın faydası yok
+concurrency:
+  group: uyanik-tut
+  cancel-in-progress: true
+
+jobs:
+  ping:
+    runs-on: ubuntu-latest
+    # Uyanma bir dakikayı bulabiliyor; iş ondan önce kesilmemeli
+    timeout-minutes: 5
+    steps:
+      - name: API ve kimlik servisini uyandır
+        shell: bash
+        run: |
+          set -u
+          # Liste AÇIKÇA yazılıyor. Tek bir değişkene doldurup kelime
+          # ayrıştırmasına güvenmek kabuğa göre değişiyor (zsh ayrıştırmıyor) ve
+          # sessizce tek bir bozuk adrese dönüşebiliyordu.
+          #
+          # En ucuz uçlar seçildi: sayaçlar önbellekli ve çekirdek tabloya
+          # sorgu atmıyor, realm belgesi ise statik.
+          hata=0
+          for url in \
+            "https://tasiyoruz-api.onrender.com/api/v1/public/stats" \
+            "https://tasiyoruz-keycloak.onrender.com/realms/tasiyoruz"
+          do
+            # --max-time 120: uyanan servis yanıt verene kadar bekle
+            kod=$(curl -s -o /dev/null -w '%{http_code}' --max-time 120 "$url" || echo 000)
+            sure=$(curl -s -o /dev/null -w '%{time_total}' --max-time 120 "$url" || echo 0)
+            echo "$url -> HTTP $kod (${sure}s)"
+            # Uyandırma başarısızsa işi kırmızıya düşür: sessizce çalışmayan bir
+            # cron, hiç olmayan crondan kötüdür
+            case "$kod" in 2*|3*) ;; *) hata=1 ;; esac
+          done
+          exit $hata
