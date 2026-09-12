@@ -3,7 +3,8 @@
 import { Fragment, useEffect, useId, useMemo, useRef, useState } from 'react';
 import type { District } from '@tasiyoruz/contracts';
 import type { CityPlaces } from '@/data/places';
-import { mergePlaces, searchPlaces, type PlaceOption } from '@/lib/places';
+import { closedCityMatch, mergePlaces, searchPlaces, type PlaceOption } from '@/lib/places';
+import { SERVED_CITIES_LABEL } from '@/lib/served-cities';
 
 /** Veri ilk odaklanmada bir kez yüklenir; ana sayfa paketine girmez. */
 let placesPromise: Promise<CityPlaces[]> | null = null;
@@ -54,6 +55,8 @@ export function PlaceSearch({
   // Birleştirme her tuşta değil, veri ya da katalog değişince
   const kaynak = useMemo(() => (data ? mergePlaces(data, catalog) : null), [data, catalog]);
   const options: PlaceOption[] = kaynak && open ? searchPlaces(kaynak, value) : [];
+  // Kapalı il mi, yoksa bulunamayan bir ad mı? İkisine aynı cümle gösterilemez.
+  const kapaliIl = options.length === 0 ? closedCityMatch(value, catalog) : null;
 
   useEffect(() => {
     if (!open) return;
@@ -144,9 +147,27 @@ export function PlaceSearch({
           role="listbox"
           className="absolute left-0 right-0 z-20 mt-2 max-h-72 overflow-y-auto rounded-field border border-line bg-surface p-1.5 shadow-lift transition hover:border-route hover:bg-surface-2"
         >
+          {/*
+            Serbest metne izin vermek burada kullanıcıyı yanıltıyordu: yazdığı yer
+            katalogda karşılık bulmayınca rota sessizce çözülemiyor ve form
+            "eksik" demeye devam ediyordu. Hangi illerde hizmet verildiğini
+            söylemek, neyi yanlış yaptığını anlatan tek dürüst cevap.
+          */}
           {options.length === 0 && (
             <li className="px-3 py-3 text-sm text-muted">
-              Listede yok — yazdığın hâliyle kullanabilirsin.
+              {kapaliIl ? (
+                <>
+                  <span className="font-semibold text-ink">{kapaliIl}</span> için henüz taşıma
+                  açmadık. Şu an {SERVED_CITIES_LABEL} içinde çalışıyoruz; diğer iller sırayla
+                  açılıyor.
+                </>
+              ) : (
+                <>
+                  Bulunamadı. İlçe ya da mahalle adıyla dene — şu an{' '}
+                  <span className="font-semibold text-ink">{SERVED_CITIES_LABEL}</span> içinde
+                  taşıma yapıyoruz.
+                </>
+              )}
             </li>
           )}
           {options.map((opt, i) => {

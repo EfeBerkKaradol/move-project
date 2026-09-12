@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import type { CityPlaces } from '@/data/places';
-import { cityOf, matchDistrict, mergePlaces, neighborhoodOf, normalize, parsePlace, searchPlaces } from './places';
+import { cityOf, closedCityMatch, matchDistrict, mergePlaces, neighborhoodOf, normalize, parsePlace, searchPlaces } from './places';
 
 const DATA: CityPlaces[] = [
   { city: 'İstanbul', districts: [['Kadıköy', ['Caferağa', 'Moda']], ['Beşiktaş', ['Cihannüma']]] },
@@ -108,9 +108,22 @@ describe('mergePlaces', () => {
     { id: '3', cityCode: '35', cityName: 'İzmir', name: 'Merkez', slug: 'merkez', lat: 0, lng: 0 },
   ];
 
-  it('katalogdaki iller ekleniyor', () => {
+  it('hizmet verilen iller ekleniyor', () => {
     const sonuc = mergePlaces(yerel, katalog);
     expect(sonuc.map((c) => c.city)).toContain('İzmir');
+  });
+
+  it('hizmet verilmeyen il listeye GİRMİYOR', () => {
+    /*
+     * Katalog 81 ili taşıyor ama hepsi açık değil. Seçilebilir olmak hizmet sözü
+     * vermektir: taşıyıcı ağı olmayan bir ilde ilan yayınlayan kullanıcı hiç
+     * teklif gelmeyen bir ekrana bakar.
+     */
+    const kapali = [
+      ...katalog,
+      { id: '9', cityCode: '42', cityName: 'Konya', name: 'Merkez', slug: 'merkez', lat: 0, lng: 0 },
+    ];
+    expect(mergePlaces(yerel, kapali).map((c) => c.city)).not.toContain('Konya');
   });
 
   it('yerel derinlik korunuyor', () => {
@@ -127,9 +140,18 @@ describe('mergePlaces', () => {
     expect(ist.districts.map(([ad]) => ad)).toContain('Beşiktaş');
   });
 
-  it('katalog yoksa yerel veri olduğu gibi kalıyor', () => {
+  it('katalog yoksa açık illerin yerel verisi kalıyor', () => {
     expect(mergePlaces(yerel, null)).toEqual(yerel);
     expect(mergePlaces(yerel, [])).toEqual(yerel);
+  });
+
+  it('yerel veride kapalı il varsa o da elenİyor', () => {
+    // Veri dosyası ileride bir ili taşısa bile açılması ayrı bir karar
+    const kapaliYerel = [
+      ...yerel,
+      { city: 'Konya', districts: [['Selçuklu', []]] as [string, string[]][] },
+    ];
+    expect(mergePlaces(kapaliYerel, katalog).map((c) => c.city)).not.toContain('Konya');
   });
 });
 
@@ -138,6 +160,20 @@ describe('il adıyla arama', () => {
     { city: 'İzmir', districts: [['Merkez', []]] as [string, string[]][] },
     { city: 'İstanbul', districts: [['Kadıköy', []]] as [string, string[]][] },
   ];
+
+  it('açık dört il birden aranabiliyor', () => {
+    const dort = [
+      { city: 'İstanbul', districts: [['Kadıköy', []]] as [string, string[]][] },
+      { city: 'Ankara', districts: [['Çankaya', []]] as [string, string[]][] },
+      { city: 'İzmir', districts: [['Konak', []]] as [string, string[]][] },
+      { city: 'Bursa', districts: [['Nilüfer', []]] as [string, string[]][] },
+    ];
+    for (const [sorgu, beklenen] of [
+      ['kadik', 'Kadıköy'], ['cankaya', 'Çankaya'], ['konak', 'Konak'], ['nilufer', 'Nilüfer'],
+    ]) {
+      expect(searchPlaces(dort, sorgu)[0]?.district).toBe(beklenen);
+    }
+  });
 
   it('il adı yazınca o ilin ilçeleri çıkıyor', () => {
     /*
@@ -157,5 +193,34 @@ describe('il adıyla arama', () => {
       'kadik',
     );
     expect(sonuc[0].district).toBe('Kadıköy');
+  });
+});
+
+
+describe('closedCityMatch', () => {
+  const katalog = [
+    { id: '1', cityCode: '34', cityName: 'İstanbul', name: 'Kadıköy', slug: 'kadikoy', lat: 0, lng: 0 },
+    { id: '2', cityCode: '42', cityName: 'Konya', name: 'Merkez', slug: 'merkez', lat: 0, lng: 0 },
+  ];
+
+  it('kapalı ili tanıyor', () => {
+    /*
+     * İki boş sonuç aynı şey değil: "konya" yazana o ilde hizmet verilmediğini,
+     * "moda" yazana başka bir adla denemesini söylemek gerekiyor. Tek cümle
+     * kullanılsaydı İstanbul'da yer arayan biri "İstanbul'da hizmet veriyoruz"
+     * cümlesini okurdu.
+     */
+    expect(closedCityMatch('konya', katalog)).toBe('Konya');
+    expect(closedCityMatch('kon', katalog)).toBe('Konya');
+  });
+
+  it('açık il kapalı sayılmıyor', () => {
+    expect(closedCityMatch('istanbul', katalog)).toBeNull();
+  });
+
+  it('ilçe ya da mahalle adı il sanılmıyor', () => {
+    expect(closedCityMatch('moda', katalog)).toBeNull();
+    expect(closedCityMatch('', katalog)).toBeNull();
+    expect(closedCityMatch('konya', null)).toBeNull();
   });
 });

@@ -45,8 +45,21 @@ function cleanHood(name) {
     .trim();
 }
 
+/**
+ * İl adı eşlemesi aksanlara duyarsız.
+ *
+ * <p>Kaynağın "İzmi̇r" yazımı birleşen nokta (U+0307) taşıyor ve komut satırından
+ * birebir geçirilemiyor. Ad, aksanlar ayrıştırılıp atılarak karşılaştırılıyor:
+ * "izmir" yazmak yetiyor.
+ */
+const asciiKey = (s) =>
+  s.normalize('NFD').replace(/[\u0300-\u036f]/g, '')
+    .replace(/ı/g, 'i').replace(/İ/g, 'i')
+    .toLowerCase().trim();
+
 const cities = wanted.map((city) => {
-  const key = Object.keys(raw).find((k) => repairCase(k) === city);
+  const key = Object.keys(raw).find((k) => repairCase(k) === city)
+    ?? Object.keys(raw).find((k) => asciiKey(repairCase(k)) === asciiKey(city));
   if (!key) {
     throw new Error(`${city} kaynakta yok. İller: ${Object.keys(raw).slice(0, 8).join(', ')}…`);
   }
@@ -56,7 +69,9 @@ const cities = wanted.map((city) => {
       return [repairCase(district), clean];
     })
     .sort((a, b) => collator.compare(a[0], b[0]));
-  return { city, districts };
+  // Etiket komut satırından değil KAYNAĞIN kendi yazımından: "izmir" yazıp
+  // "Izmir" etiketi üretmek, ekranda yanlış yazılmış bir il adı bırakırdı
+  return { city: repairCase(key), districts };
 });
 
 const total = cities.reduce((n, c) => n + c.districts.reduce((m, d) => m + d[1].length, 0), 0);

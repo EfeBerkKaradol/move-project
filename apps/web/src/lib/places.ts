@@ -1,5 +1,6 @@
 import type { District } from '@tasiyoruz/contracts';
 import type { CityPlaces } from '@/data/places';
+import { SERVED_CITIES } from './served-cities';
 
 export type PlaceKind = 'district' | 'neighborhood';
 
@@ -28,15 +29,23 @@ export type PlaceOption = {
  * <p>Birleştirme derinliği bozmuyor: yerel veride zaten var olan ilçe olduğu
  * gibi kalıyor (mahalleleriyle), katalogdakilerden yalnızca eksik olanlar
  * ekleniyor.
+ *
+ * <p><strong>Yalnızca hizmet verilen iller.</strong> Katalog 81 ili taşıyor ama
+ * hepsi seçime açılmıyor: taşıyıcı ağı olmayan bir ilde ilan yayınlamak,
+ * kullanıcıyı hiç teklif gelmeyecek bir beklentiye sokar. Kapalı illerin verisi
+ * duruyor, yalnızca listeye girmiyor (bkz. served-cities.ts).
  */
 export function mergePlaces(base: CityPlaces[], catalog: District[] | null | undefined): CityPlaces[] {
-  if (!catalog || catalog.length === 0) return base;
+  const acik = new Set(SERVED_CITIES.map(normalize));
+  const acikBase = base.filter((c) => acik.has(normalize(c.city)));
+  if (!catalog || catalog.length === 0) return acikBase;
 
   const byCity = new Map<string, CityPlaces>();
-  for (const c of base) byCity.set(normalize(c.city), { city: c.city, districts: [...c.districts] });
+  for (const c of acikBase) byCity.set(normalize(c.city), { city: c.city, districts: [...c.districts] });
 
   for (const d of catalog) {
     const key = normalize(d.cityName);
+    if (!acik.has(key)) continue;
     const mevcut = byCity.get(key);
     if (!mevcut) {
       byCity.set(key, { city: d.cityName, districts: [[d.name, []]] });
@@ -53,6 +62,31 @@ export function mergePlaces(base: CityPlaces[], catalog: District[] | null | und
       districts: [...c.districts].sort((a, b) => a[0].localeCompare(b[0], 'tr')),
     }))
     .sort((a, b) => a.city.localeCompare(b.city, 'tr'));
+}
+
+/**
+ * Yazılan metin KAPALI bir ilin adı mı?
+ *
+ * <p>İki boş sonuç aynı şey değil: "konya" yazan kullanıcıya o ilde henüz hizmet
+ * verilmediğini söylemek gerekiyor, "moda" yazana ise aradığını başka bir adla
+ * denemesini. İkisine de aynı cümleyi göstermek, İstanbul'da yer arayan birine
+ * "İstanbul'da hizmet veriyoruz" demek gibi oluyordu.
+ *
+ * @returns kapalı ilin katalogdaki yazımı; eşleşme yoksa null
+ */
+export function closedCityMatch(
+  query: string,
+  catalog: District[] | null | undefined,
+): string | null {
+  const q = normalize(query);
+  if (!q || !catalog) return null;
+  const acik = new Set(SERVED_CITIES.map(normalize));
+  for (const d of catalog) {
+    const il = normalize(d.cityName);
+    if (acik.has(il)) continue;
+    if (il.startsWith(q) || q.startsWith(il)) return d.cityName;
+  }
+  return null;
 }
 
 const MAX_DISTRICTS = 12;
