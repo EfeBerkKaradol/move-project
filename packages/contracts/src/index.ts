@@ -586,3 +586,43 @@ export type PublicStatsView = {
   /** Örneklem yetersizse null; arayüz tire gösterir. */
   averageMinutesToFirstOffer: number | null;
 };
+
+
+// ── Finans (docs: V25 finance core) ─────────────────────────────────────
+
+/**
+ * Yönetim finans özeti.
+ *
+ * <p>`gmv` platform üzerinden geçen toplam işlem hacmi, `platformRevenue` ise
+ * Karınca'nın geliri. Bunlar AYNI SAYI DEĞİL ve arayüzde de ayrı gösteriliyor —
+ * ciroyu gelir diye sunmak, şirketin ekonomik büyüklüğünü yanlış anlatır.
+ */
+export type FinanceSummary = {
+  gmv: Money;
+  platformRevenue: Money;
+  carrierPayable: Money;
+  refunds: Money;
+  paymentFees: Money;
+  commissionTax: Money;
+  shipmentCount: number;
+  pendingPayouts: number;
+  eligiblePayouts: number;
+  /** Mutabakatı bozuk taşıma sayısı; sıfır olmalı. */
+  unbalanced: number;
+};
+
+export type ShipmentFinanceView = {
+  listingId: string;
+  tripId: string | null;
+  shipperId: string;
+  carrierId: string;
+  grossAmount: Money;
+  commissionRate: string;
+  commissionAmount: Money;
+  commissionTax: Money;
+  paymentFee: Money;
+  refundAmount: Money;
+  cancellationFee: Money;
+  carrierPayout: Money;
+  platformRevenue: Money;
+};

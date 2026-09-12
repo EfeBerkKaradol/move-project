@@ -24,7 +24,7 @@ import org.springframework.stereotype.Service;
  * sipariş vermez.
  */
 @Service
-class DefaultPricingService implements PricingService {
+class DefaultPricingService implements PricingService, CommissionRates {
 
     /** Teklif geçerlilik süresi (FR-5.6). */
     private static final Duration QUOTE_TTL = Duration.ofMinutes(15);
@@ -58,6 +58,14 @@ class DefaultPricingService implements PricingService {
         this.routeProvider = routeProvider;
         this.signer = signer;
         this.zonePricing = zonePricing;
+    }
+
+    @Override
+    public java.math.BigDecimal commissionPercent(java.time.Instant at) {
+        // Tek kaynak: fiyat dökümündeki komisyon satırı da aynı kaydı okuyor
+        return commissions.findActive(at)
+                .map(c -> c.getPercent())
+                .orElse(java.math.BigDecimal.ZERO);
     }
 
     @Override

@@ -43,6 +43,10 @@ class SecurityConfig {
                         // içeriyor; onay kuyruğunu yürütmek bunlara erişimi gerektirmiyor
                         // (docs/14 yetkilendirme).
                         .requestMatchers("/api/v1/admin/compliance/**").hasAnyRole("COMPLIANCE", "ADMIN")
+                        // Finansal kayıtlar operasyona değil finans yetkisine açık:
+                        // ciro, hakediş ve vergi bilgisi her operasyon görevlisinin
+                        // görmesi gereken veri değil
+                        .requestMatchers("/api/v1/admin/finance/**").hasAnyRole("FINANCE_ADMIN", "ADMIN")
                         // Operasyon ekibi onay kuyruğunu yürütüyor (docs/01 FR-13.3).
                         // Yazma yalnızca ADMIN olsaydı belge onaylamak da yönetici işi
                         // olurdu ve kuyruk tıkanırdı.

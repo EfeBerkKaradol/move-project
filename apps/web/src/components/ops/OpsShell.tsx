@@ -10,6 +10,7 @@ export const OPS_NAV: { href: string; label: string; icon: React.ReactNode; badg
   { href: '/yonetim/belgeler', label: 'Belge süreleri', icon: <><path d="M14 3H6a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V9z" /><path d="M14 3v6h6M9 15h6M9 11h3" /></> },
   { href: '/yonetim/ilanlar', label: 'İlanlar', icon: <><rect x="3" y="4" width="18" height="16" rx="2" /><path d="M7 9h10M7 13h6" /></> },
   { href: '/yonetim/isler', label: 'İşler', icon: <><path d="M3 7h11v9H3zM14 10h4l3 3v3h-7z" /><circle cx="7" cy="18" r="2" /><circle cx="17" cy="18" r="2" /></> },
+  { href: '/yonetim/finans', label: 'Finans', icon: <><path d="M12 3v18" /><path d="M17 7H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6" /></> },
   { href: '/yonetim/bildirimler', label: 'Bildirimler', icon: <><path d="M4 6h16v12H4z" /><path d="m4 7 8 6 8-6" /></> },
 ];
 
