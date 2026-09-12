@@ -1,4 +1,4 @@
-import type { CarrierRatingView, ListingView, OfferView, RatingView, TripView } from '@tasiyoruz/contracts';
+import type { CarrierRatingView, ListingView, OfferView, RatingView, TripLocationView, TripView } from '@tasiyoruz/contracts';
 import { TRIP_STAGE_LABELS } from '@tasiyoruz/contracts';
 import { formatPrice } from '@tasiyoruz/shared';
 import type { Metadata } from 'next';
@@ -11,6 +11,7 @@ import { StatusPill } from '@/components/app/StatusPill';
 import { TripPhotos } from '@/components/app/TripPhotos';
 import { TripTimeline } from '@/components/app/TripTimeline';
 import { ApiError, apiFetch } from '@/lib/api-server';
+import { TripTrail } from './TripTrail';
 import { acceptOffer, cancelListing, confirmDelivery } from '../../actions';
 import { RatingForm } from './RatingForm';
 
@@ -44,6 +45,14 @@ export default async function ListingPage({ params }: { params: Promise<{ id: st
     const ratings = await apiFetch<CarrierRatingView[]>(`/carriers/ratings?ids=${ids}`).catch(() => [] as CarrierRatingView[]);
     for (const r of ratings) ratingById.set(r.carrierId, r);
   }
+  /*
+   * Konum izi yalnızca iş sürerken var: sunucu teslimden sonra yazmayı
+   * reddediyor ve iş kapanınca izi siliyor. Bitmiş işte istek atmıyoruz.
+   */
+  const trail = trip && trip.stage !== 'COMPLETED'
+    ? await apiFetch<TripLocationView[]>(`/trips/${trip.id}/locations`).catch(() => [] as TripLocationView[])
+    : [];
+
   const myRating = trip?.stage === 'COMPLETED'
     ? await apiFetch<RatingView>(`/trips/${trip.id}/rating`).catch(() => null)
     : null;
@@ -114,6 +123,7 @@ export default async function ListingPage({ params }: { params: Promise<{ id: st
                 <span className="font-bold">{trip.carrierDisplayName ?? 'Taşıyıcı'}</span> · {TRIP_STAGE_LABELS[trip.stage]}
               </p>
               <div className="mt-4"><TripTimeline trip={trip} /></div>
+              <TripTrail locations={trail} />
               {trip.photos.length > 0 && (
                 <div className="mt-5">
                   <p className="label-mono text-muted">Taşıma kareleri</p>

@@ -4,6 +4,7 @@ import type { Metadata } from 'next';
 import { notFound, redirect } from 'next/navigation';
 import { auth, canCallApi, homeFor, isDriver } from '@/auth';
 import { Shell } from '@/components/app/Shell';
+import { LocationShare } from './LocationShare';
 import { TripPhotos } from '@/components/app/TripPhotos';
 import { TripTimeline } from '@/components/app/TripTimeline';
 import { ApiError, apiFetch } from '@/lib/api-server';
@@ -70,7 +71,16 @@ export default async function DriverTripPage({ params }: { params: Promise<{ id:
               <DeliverForm tripId={trip.id} hasDeliveryPhoto={photosOf('DELIVERY').length > 0} />
             </div>
           </div>)}
-          {trip.stage === 'DELIVERED' && <p className="text-sm">Teslimi bildirdin. Müşteri onaylayınca iş tamamlanır.</p>}
+          {/* Konum yalnızca iş sürerken paylaşılıyor; sunucu da teslimden
+              sonrasını reddediyor (bkz. TripService.recordLocation). */}
+          <LocationShare tripId={trip.id} aktifMi={trip.stage !== 'DELIVERED' && trip.stage !== 'COMPLETED'} />
+
+          {trip.stage === 'DELIVERED' && (
+            <p className="text-sm">
+              Teslimi bildirdin. Müşteri onaylayınca iş tamamlanır; 24 saat içinde cevap
+              gelmezse sistem otomatik onaylıyor.
+            </p>
+          )}
           {trip.stage === 'COMPLETED' && <p className="text-sm font-semibold text-[#1f6b45]">Tamamlandı. Ödeme akışı sırada.</p>}
         </aside>
       </div>

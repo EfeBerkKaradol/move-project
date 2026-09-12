@@ -11,7 +11,7 @@ import com.tasiyoruz.api.ordering.api.MarketplaceService;
 import com.tasiyoruz.api.ordering.api.SubmitOfferRequest;
 import com.tasiyoruz.api.tracking.api.ProofOfDeliveryRequest;
 import com.tasiyoruz.api.tracking.api.TripPhotoKind;
-import com.tasiyoruz.api.tracking.api.TripService;
+import com.tasiyoruz.api.MutableClock;
 import com.tasiyoruz.api.tracking.api.TripService;
 import com.tasiyoruz.api.tracking.api.TripStage;
 import com.tasiyoruz.api.tracking.api.TripView;
@@ -29,6 +29,7 @@ class TripServiceTest extends IntegrationTestBase {
     @Autowired com.tasiyoruz.api.ListingFixture listingFixture;
     @Autowired MarketplaceService marketplace;
     @Autowired GeoService geo;
+    @Autowired MutableClock clock;
 
     static final String SHIPPER = "trip-shipper", CARRIER = "trip-carrier";
 
@@ -183,6 +184,97 @@ class TripServiceTest extends IntegrationTestBase {
         for (int i = 0; i < 5; i++) s = tripService.advance(CARRIER, s.id(), null);
         tripService.addPhoto(CARRIER, t.id(), TripPhotoKind.DELIVERY, photo());
         return tripService.deliver(CARRIER, t.id(), new ProofOfDeliveryRequest("Ayşe Y.", null));
+    }
+
+    // ── Otomatik onay ─────────────────────────────────────────────────────
+
+    /**
+     * Sessizlik itiraz değil. Teslim kanıtı alınmış bir işi süresiz açık tutmak,
+     * cevap vermeyen tek bir müşterinin taşıyıcının hakedişini askıda bırakması
+     * demekti.
+     */
+    @Test
+    void sessizKalanTeslimat_yirmiDortSaatSonraOtomatikKapanir() {
+        var t = deliveredTrip();
+        assertThat(t.stage()).isEqualTo(TripStage.DELIVERED);
+
+        // Süre dolmadan hiçbir şey olmuyor
+        clock.advance(Duration.ofHours(23));
+        assertThat(tripService.autoConfirmStaleDeliveries()).isZero();
+        assertThat(tripService.trip(SHIPPER, t.id()).orElseThrow().stage()).isEqualTo(TripStage.DELIVERED);
+
+        clock.advance(Duration.ofHours(2));
+        assertThat(tripService.autoConfirmStaleDeliveries()).isEqualTo(1);
+
+        var kapali = tripService.trip(SHIPPER, t.id()).orElseThrow();
+        assertThat(kapali.stage()).isEqualTo(TripStage.COMPLETED);
+        // Kim kapattığı kayıtta duruyor: elle onayla karışmamalı
+        assertThat(kapali.events()).anyMatch(e -> e.stage() == TripStage.COMPLETED && e.source().equals("SYSTEM"));
+    }
+
+    @Test
+    void teslimEdilmemisIs_otomatikKapanmaz() {
+        var t = freshTrip();
+        clock.advance(Duration.ofDays(30));
+        assertThat(tripService.autoConfirmStaleDeliveries()).isZero();
+        assertThat(tripService.trip(SHIPPER, t.id()).orElseThrow().stage()).isEqualTo(TripStage.DRIVER_ASSIGNED);
+    }
+
+    // ── Konum ─────────────────────────────────────────────────────────────
+
+    @Test
+    void konumYalnizcaIsinTasiyicisindanYazilir_veTaraflarcaOkunur() {
+        var t = freshTrip();
+        tripService.recordLocation(CARRIER, t.id(), 41.0082, 28.9784, 12.0);
+
+        assertThat(tripService.locations(SHIPPER, t.id())).hasSize(1)
+                .first().satisfies(l -> {
+                    assertThat(l.lat()).isEqualTo(41.0082);
+                    assertThat(l.accuracyM()).isEqualTo(12.0);
+                });
+
+        assertThatThrownBy(() -> tripService.recordLocation("baskasi", t.id(), 39.9, 32.8, null))
+                .hasMessageContaining("size ait değil");
+        assertThatThrownBy(() -> tripService.locations("baskasi", t.id()))
+                .hasMessageContaining("size ait değil");
+    }
+
+    /** Saniyede bir gönderen bir uygulama tabloyu şişirir, izi doğrulaştırmaz. */
+    @Test
+    void cokSikKonumBildirimiYokSayilir() {
+        var t = freshTrip();
+        tripService.recordLocation(CARRIER, t.id(), 41.0, 29.0, null);
+        tripService.recordLocation(CARRIER, t.id(), 41.1, 29.1, null);
+        assertThat(tripService.locations(CARRIER, t.id())).hasSize(1);
+
+        clock.advance(Duration.ofMinutes(1));
+        tripService.recordLocation(CARRIER, t.id(), 41.2, 29.2, null);
+        assertThat(tripService.locations(CARRIER, t.id())).hasSize(2);
+    }
+
+    @Test
+    void teslimSonrasiKonumYazilamaz() {
+        var t = deliveredTrip();
+        assertThatThrownBy(() -> tripService.recordLocation(CARRIER, t.id(), 41.0, 29.0, null))
+                .hasMessageContaining("Teslim edilmiş işte konum paylaşılmıyor");
+    }
+
+    /**
+     * İz, saklanmasının amacı bitince siliniyor: iş kapandıktan sonra tutulan
+     * konum geçmişi hiçbir ürün sorusuna cevap vermeyip yalnızca risk taşıyor.
+     */
+    @Test
+    void isKapaninca_konumIziSilinir() {
+        var t = freshTrip();
+        tripService.recordLocation(CARRIER, t.id(), 41.0, 29.0, null);
+        var s = tripService.advance(CARRIER, t.id(), TripStage.EN_ROUTE_TO_PICKUP);
+        for (int i = 0; i < 5; i++) s = tripService.advance(CARRIER, s.id(), null);
+        tripService.addPhoto(CARRIER, t.id(), TripPhotoKind.DELIVERY, photo());
+        tripService.deliver(CARRIER, t.id(), new ProofOfDeliveryRequest("Ayşe Y.", null));
+        assertThat(tripService.locations(SHIPPER, t.id())).isNotEmpty();
+
+        tripService.confirmDelivery(SHIPPER, t.id());
+        assertThat(tripService.locations(SHIPPER, t.id())).isEmpty();
     }
 
     @Test

@@ -47,6 +47,30 @@ public interface TripService {
     /** Müşteri teslimatı onaylar → COMPLETED. */
     TripView confirmDelivery(String shipperId, String tripId);
 
+    /**
+     * Yük sahibinden ses çıkmayan teslimatları kapatır.
+     *
+     * <p>Teslim bildirildikten sonra onay beklemek gerekiyor ama süresiz
+     * bekleyemez: cevap vermeyen tek bir müşteri, taşıyıcının hakedişini
+     * belirsiz süre askıda tutuyordu. Fotoğraflı teslim kanıtı zaten alınmış
+     * durumda; sessizlik itiraz değil.
+     *
+     * <p>İtirazı olan müşteri süre dolmadan operasyona başvuruyor — orada iş
+     * elle karara bağlanıyor.
+     *
+     * @return otomatik kapatılan iş sayısı
+     */
+    int autoConfirmStaleDeliveries();
+
+    /**
+     * Sürücünün konum bildirimi. Yalnızca işin taşıyıcısı ve yalnızca iş
+     * sürerken yazabiliyor.
+     */
+    TripView recordLocation(String carrierId, String tripId, double lat, double lng, Double accuracyM);
+
+    /** İşin son konumları, en yeniden eskiye. Yalnızca işin tarafları görebiliyor. */
+    List<TripLocationView> locations(String userId, String tripId);
+
     /** Tüm işler, en yeni önce. Yalnızca operasyon uçlarından çağrılır. */
     List<TripView> allTrips();
 }

@@ -13,10 +13,12 @@ import com.tasiyoruz.api.shared.storage.ObjectStorage;
 import com.tasiyoruz.api.shared.storage.UploadValidation;
 import java.math.BigDecimal;
 import java.time.Clock;
+import java.time.Duration;
 import java.time.Instant;
 import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
+import org.springframework.data.domain.Limit;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
@@ -35,16 +37,45 @@ class DefaultTripService implements TripService {
     /** İş başına tür başına en fazla kare. Deposu sınırsız doldurmayı engelliyor. */
     static final int MAX_PHOTOS_PER_KIND = 5;
 
+    /**
+     * Teslim bildirildikten sonra müşterinin onay için süresi.
+     *
+     * <p>Yirmi dört saat: bir iş günü içinde cevap vermeyen müşteri, cevap
+     * vermeyecek demektir. Daha kısası (birkaç saat) akşam teslim edilen bir işi
+     * müşteri sabah görmeden kapatırdı.
+     */
+    static final Duration AUTO_CONFIRM_AFTER = Duration.ofHours(24);
+
+    /**
+     * Ekrana taşınan en fazla konum noktası.
+     *
+     * <p>İz bir çizgi olarak çiziliyor; iki yüz nokta İstanbul–Ankara arasını
+     * okunur bir eğri yapmaya yetiyor. Tamamını taşımak, uzun bir işte binlerce
+     * satırı her ekran açılışında istemciye indirmek olurdu.
+     */
+    static final int MAX_LOCATION_POINTS = 200;
+
+    /**
+     * İki konum bildirimi arasındaki en kısa süre.
+     *
+     * <p>Sürücü uygulaması saniyede bir gönderirse tablo işe yaramaz biçimde
+     * şişiyor ve iz daha doğru olmuyor. Otuz saniye, şehirlerarası hızda
+     * yaklaşık bir kilometrelik çözünürlük demek.
+     */
+    static final Duration MIN_LOCATION_INTERVAL = Duration.ofSeconds(30);
+
     private final TripRepository trips;
     private final TripEventRepository events;
     private final TripPhotoRepository photos;
+    private final TripLocationRepository locations;
     private final ObjectStorage storage;
     private final ApplicationEventPublisher publisher;
     private final Clock clock;
 
     DefaultTripService(TripRepository trips, TripEventRepository events, TripPhotoRepository photos,
-                       ObjectStorage storage, ApplicationEventPublisher publisher, Clock clock) {
-        this.trips = trips; this.events = events; this.photos = photos;
+                       TripLocationRepository locations, ObjectStorage storage,
+                       ApplicationEventPublisher publisher, Clock clock) {
+        this.trips = trips; this.events = events; this.photos = photos; this.locations = locations;
         this.storage = storage; this.publisher = publisher; this.clock = clock;
     }
 
@@ -130,12 +161,72 @@ class DefaultTripService implements TripService {
         if (trip.getStage() != TripStage.DELIVERED) {
             throw conflict("Onay için taşıyıcının teslimi bildirmesi gerekiyor.");
         }
+        return complete(trip, "SHIPPER", "Teslimat onaylandı");
+    }
+
+    /**
+     * İşi kapatan tek yol.
+     *
+     * <p>Müşteri onayı ile otomatik onay aynı sonucu üretmeli: aynı olay, aynı
+     * damga, aynı temizlik. İki ayrı yerde yazıldığında birinde konum izini
+     * silmeyi unutmak an meselesiydi.
+     */
+    private TripView complete(Trip trip, String source, String note) {
         var now = Instant.now(clock);
         TripAccess.complete(trip, now);
-        events.save(TripEvent.of(trip.getId(), TripStage.COMPLETED, "SHIPPER", "Teslimat onaylandı", now));
-        publisher.publishEvent(new TripCompleted(tripId, trip.getListingId().toString(), shipperId, trip.getCarrierId(),
-                trip.getAgreedAmount()));
+        events.save(TripEvent.of(trip.getId(), TripStage.COMPLETED, source, note, now));
+        /*
+         * Konum izi burada siliniyor. Saklamanın amacı "yük sahibi aracın nerede
+         * olduğunu görsün"dü ve o amaç bitti; iş kapandıktan sonra tutulan konum
+         * geçmişi hiçbir ürün sorusuna cevap vermeyip yalnızca risk taşıyor.
+         */
+        locations.deleteByTripId(trip.getId());
+        publisher.publishEvent(new TripCompleted(trip.getId().toString(), trip.getListingId().toString(),
+                trip.getShipperId(), trip.getCarrierId(), trip.getAgreedAmount()));
         return view(trip);
+    }
+
+    @Override
+    public int autoConfirmStaleDeliveries() {
+        var esik = Instant.now(clock).minus(AUTO_CONFIRM_AFTER);
+        var bekleyen = trips.findByStageAndDeliveredAtBefore(TripStage.DELIVERED, esik);
+        for (var trip : bekleyen) {
+            complete(trip, "SYSTEM", "Yük sahibi süresi içinde itiraz etmedi, otomatik onaylandı");
+        }
+        return bekleyen.size();
+    }
+
+    @Override
+    public TripView recordLocation(String carrierId, String tripId, double lat, double lng, Double accuracyM) {
+        var trip = parse(tripId).flatMap(trips::findById).orElseThrow(() -> notFound());
+        if (!trip.getCarrierId().equals(carrierId)) throw forbidden();
+        /*
+         * Teslimden sonra konum yazılmıyor. İş bitince aracın nerede olduğu
+         * müşteriyi ilgilendirmiyor ve sürücünün günün geri kalanını izlemek
+         * toplanmasına gerek olmayan veri olurdu.
+         */
+        if (!trip.getStage().driverAdvancable()) {
+            throw conflict("Teslim edilmiş işte konum paylaşılmıyor.");
+        }
+        var now = Instant.now(clock);
+        var son = locations.findByTripIdOrderByRecordedAtDesc(trip.getId(), Limit.of(1));
+        // Çok sık bildirim sessizce yok sayılıyor: sürücü uygulamasına hata
+        // döndürmek, kötü sinyalde yeniden denemeyi zorlaştırmaktan başka işe yaramaz
+        if (son.isEmpty() || son.getFirst().getRecordedAt().plus(MIN_LOCATION_INTERVAL).isBefore(now)) {
+            locations.save(com.tasiyoruz.api.tracking.domain.TripLocation.of(
+                    trip.getId(), lat, lng, accuracyM, now));
+        }
+        return view(trip);
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public List<TripLocationView> locations(String userId, String tripId) {
+        var trip = parse(tripId).flatMap(trips::findById).orElseThrow(() -> notFound());
+        if (!canSee(trip, userId)) throw forbidden();
+        return locations.findByTripIdOrderByRecordedAtDesc(trip.getId(), Limit.of(MAX_LOCATION_POINTS)).stream()
+                .map(l -> new TripLocationView(l.getLat(), l.getLng(), l.getAccuracyM(), l.getRecordedAt()))
+                .toList();
     }
 
     @Override

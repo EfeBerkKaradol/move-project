@@ -1,5 +1,6 @@
 package com.tasiyoruz.api.tracking.internal;
 
+import com.tasiyoruz.api.tracking.api.TripLocationView;
 import com.tasiyoruz.api.tracking.api.TripPhotoKind;
 import com.tasiyoruz.api.tracking.api.TripService;
 import com.tasiyoruz.api.tracking.api.TripView;
@@ -58,5 +59,11 @@ class ShipperTripController {
     @Operation(summary = "Teslimatta onay → COMPLETED")
     TripView confirm(@AuthenticationPrincipal Jwt jwt, @PathVariable String id) {
         return trips.confirmDelivery(jwt.getSubject(), id);
+    }
+
+    @GetMapping("/{id}/locations")
+    @Operation(summary = "Aracın konum izi — iş sürerken; teslimden sonra siliniyor")
+    List<TripLocationView> locations(@AuthenticationPrincipal Jwt jwt, @PathVariable String id) {
+        return trips.locations(jwt.getSubject(), id);
     }
 }

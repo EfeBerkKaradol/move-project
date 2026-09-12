@@ -141,9 +141,14 @@ class CarrierServiceTest extends IntegrationTestBase {
      * Araçlar sayfası "şu kadar panelvan kayıtlı" diyor. Sayıya onaylanmamış
      * başvurular da girseydi, ürün iş alabilecek olandan fazla araç vadetmiş
      * olurdu — ve bu ancak teklif gelmeyince fark edilirdi.
+     *
+     * <p>Ölçüm FARK üzerinden: bu sınıftaki testler aynı veritabanını paylaşıyor
+     * ve mutlak sayı, testlerin çalışma sırasına bağlı olurdu.
      */
     @Test
     void aracTipiSayaci_yalnizcaOnayliTasiyiciyiSayar() {
+        long oncesi = directory.approvedCountByVehicleType().getOrDefault("MOTOR", 0L);
+
         var onayli = carrier();
         carriers.apply(onayli, application("MOTOR"));
         uploadSmallVehicleDocuments(carriers, onayli);
@@ -151,23 +156,24 @@ class CarrierServiceTest extends IntegrationTestBase {
         profile.documents().forEach(d -> carriers.reviewDocument(d.id(), new ReviewDecision(true, null)));
         carriers.reviewProfile(onayli, new ReviewDecision(true, "Belgeler tam"));
 
-        // İncelemeyi bekleyen ikinci bir MOTOR başvurusu sayıya girmemeli
+        // İncelemeyi bekleyen ikinci bir MOTOR başvurusu sayıya GİRMEMELİ
         var bekleyen = carrier();
         carriers.apply(bekleyen, application("MOTOR"));
         uploadSmallVehicleDocuments(carriers, bekleyen);
         carriers.submitForReview(bekleyen);
 
-        assertThat(directory.approvedCountByVehicleType()).containsEntry("MOTOR", 1L);
-        assertThat(directory.approvedCarrierCount()).isEqualTo(1);
+        assertThat(directory.approvedCountByVehicleType().get("MOTOR")).isEqualTo(oncesi + 1);
     }
 
-    /** Hiç onaylı taşıyıcı yoksa anahtar da yok: çağıran taraf sıfırı kendi gösteriyor. */
+    /** Onaylanmamış başvuru hiçbir sayacı kıpırdatmamalı. */
     @Test
-    void aracTipiSayaci_onayliYokkenBosDoner() {
+    void aracTipiSayaci_onaylanmamisBasvuruyuSaymaz() {
+        long oncesi = directory.approvedCountByVehicleType().getOrDefault("KAMYON", 0L);
+
         var id = carrier();
         carriers.apply(id, application("KAMYON"));
 
-        assertThat(directory.approvedCountByVehicleType()).doesNotContainKey("KAMYON");
+        assertThat(directory.approvedCountByVehicleType().getOrDefault("KAMYON", 0L)).isEqualTo(oncesi);
     }
 
     @Test

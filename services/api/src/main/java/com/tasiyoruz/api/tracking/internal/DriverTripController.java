@@ -40,6 +40,19 @@ class DriverTripController {
         return trips.advance(jwt.getSubject(), id, body == null ? null : body.stage());
     }
 
+    @PostMapping("/{id}/location")
+    @Operation(summary = "Konum bildirimi; teslim edilmiş işte 409 döner")
+    TripView location(@AuthenticationPrincipal Jwt jwt, @PathVariable String id,
+                      @Valid @RequestBody LocationPingRequest ping) {
+        return trips.recordLocation(jwt.getSubject(), id, ping.lat(), ping.lng(), ping.accuracyM());
+    }
+
+    @GetMapping("/{id}/locations")
+    @Operation(summary = "İşin konum izi — yalnızca işin tarafları")
+    List<TripLocationView> locations(@AuthenticationPrincipal Jwt jwt, @PathVariable String id) {
+        return trips.locations(jwt.getSubject(), id);
+    }
+
     @PostMapping("/{id}/proof-of-delivery")
     @Operation(summary = "Teslim kanıtı → DELIVERED")
     TripView deliver(@AuthenticationPrincipal Jwt jwt, @PathVariable String id, @Valid @RequestBody ProofOfDeliveryRequest pod) {

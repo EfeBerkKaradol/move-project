@@ -379,6 +379,18 @@ export type TripPhotoView = {
   uploadedAt: string;
 };
 
+/**
+ * Aracın bildirdiği konum. Yalnızca işin taraflarına gidiyor ve iş kapanınca
+ * sunucuda siliniyor; güven panosuna hiç akmıyor (ADR-0008).
+ */
+export type TripLocationView = {
+  lat: number;
+  lng: number;
+  /** Cihazın bildirdiği yatay doğruluk (metre); bilinmiyorsa null. */
+  accuracyM: number | null;
+  recordedAt: string;
+};
+
 export type TripView = {
   id: string;
   listingId: string;
