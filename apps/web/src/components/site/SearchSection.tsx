@@ -1,4 +1,4 @@
-import type { VehicleType } from '@tasiyoruz/contracts';
+import type { District, VehicleType } from '@tasiyoruz/contracts';
 import { QuoteWidget } from './QuoteWidget';
 import { Reveal } from './Reveal';
 
@@ -14,7 +14,14 @@ import { Reveal } from './Reveal';
  * anlatı boyunca ekranda kalıyor. Aynı formu iki kez göstermek kullanıcıya
  * hangisinin geçerli olduğunu sordururdu.
  */
-export function SearchSection({ vehicles }: { vehicles: VehicleType[] }) {
+export function SearchSection({
+  vehicles,
+  districts,
+}: {
+  vehicles: VehicleType[];
+  /** Hizmet katalogu; olmadan İstanbul ve Ankara dışında yer seçilemiyor. */
+  districts?: District[] | null;
+}) {
   if (vehicles.length === 0) return null;
 
   return (
@@ -32,7 +39,7 @@ export function SearchSection({ vehicles }: { vehicles: VehicleType[] }) {
         </Reveal>
 
         <Reveal delay={90}>
-          <QuoteWidget vehicles={vehicles} />
+          <QuoteWidget vehicles={vehicles} districts={districts} />
         </Reveal>
       </div>
     </section>

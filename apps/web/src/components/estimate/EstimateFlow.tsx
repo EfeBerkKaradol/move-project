@@ -222,7 +222,8 @@ export function EstimateFlow({
         <section className="rounded-card border border-line bg-surface p-5 sm:p-6">
           <div className="relative space-y-4">
             <PlaceSearch
-              name="nereden"
+              catalog={districts}
+            name="nereden"
               label="Nereden"
               value={from}
               onChange={setFrom}
@@ -235,7 +236,8 @@ export function EstimateFlow({
               }
             />
             <PlaceSearch
-              name="nereye"
+              catalog={districts}
+            name="nereye"
               label="Nereye"
               value={to}
               onChange={setTo}

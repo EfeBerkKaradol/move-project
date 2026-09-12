@@ -1,5 +1,5 @@
 import { Suspense } from 'react';
-import type { VehicleType } from '@tasiyoruz/contracts';
+import type { District, VehicleType } from '@tasiyoruz/contracts';
 import { auth, isDriver } from '@/auth';
 import { Hero } from '@/components/hero/Hero';
 import { ActiveCorridors } from '@/components/site/ActiveCorridors';
@@ -13,7 +13,7 @@ import { Faq } from '@/components/site/Faq';
 import { TrustSection } from '@/components/site/TrustSection';
 import { TwoSidedMarket } from '@/components/site/TwoSidedMarket';
 import { VehicleRange } from '@/components/site/VehicleRange';
-import { getVehicleTypes } from '@/lib/api';
+import { getDistricts, getVehicleTypes } from '@/lib/api';
 
 /**
  * Araç kataloğunu bekleyen bölümler.
@@ -23,14 +23,19 @@ import { getVehicleTypes } from '@/lib/api';
  * bile sayfanın geri kalanı HTML'e yazılmış oluyor.
  */
 type Fleet = Promise<VehicleType[]>;
+/** Hizmet katalogu; yer seçicisi olmadan İstanbul ve Ankara dışını gösteremiyor. */
+type Katalog = Promise<District[] | null>;
 
-async function HeroQuote({ fleet }: { fleet: Fleet }) {
-  const vehicles = await fleet;
-  return vehicles.length > 0 ? <QuoteWidget vehicles={vehicles} tone="scene" /> : null;
+async function HeroQuote({ fleet, katalog }: { fleet: Fleet; katalog: Katalog }) {
+  const [vehicles, districts] = await Promise.all([fleet, katalog]);
+  return vehicles.length > 0 ? (
+    <QuoteWidget vehicles={vehicles} districts={districts} tone="scene" />
+  ) : null;
 }
 
-async function SearchSlot({ fleet }: { fleet: Fleet }) {
-  return <SearchSection vehicles={await fleet} />;
+async function SearchSlot({ fleet, katalog }: { fleet: Fleet; katalog: Katalog }) {
+  const [vehicles, districts] = await Promise.all([fleet, katalog]);
+  return <SearchSection vehicles={vehicles} districts={districts} />;
 }
 
 async function VehicleSlot({ fleet }: { fleet: Fleet }) {
@@ -52,6 +57,7 @@ export default async function HomePage() {
    * kabuk ilk pakette akıyor ve hemen tıklanabilir oluyor.
    */
   const fleet = getVehicleTypes();
+  const katalog = getDistricts();
   const session = await auth();
 
   const driver = !!session && session.error !== 'RefreshFailed' && isDriver(session.roles ?? []);
@@ -73,7 +79,7 @@ export default async function HomePage() {
           carrierHref={carrierBoardHref}
           widget={
             <Suspense fallback={null}>
-              <HeroQuote fleet={fleet} />
+              <HeroQuote fleet={fleet} katalog={katalog} />
             </Suspense>
           }
         />
@@ -88,7 +94,7 @@ export default async function HomePage() {
             (3) Üç adım en sona kalıyor: hero anlatısı işleyişi zaten gösterdi,
             tekrar okumak isteyen aşağıda buluyor. */}
         <Suspense fallback={null}>
-          <SearchSlot fleet={fleet} />
+          <SearchSlot fleet={fleet} katalog={katalog} />
         </Suspense>
         {/* Koridorlar kendi sınırında: ayrı bir uç, ayrı gecikme. Eskiden katalog
             beklendikten SONRA başlıyordu ve iki zaman aşımı üst üste biniyordu. */}

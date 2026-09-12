@@ -1,6 +1,6 @@
 'use client';
 
-import type { VehicleType } from '@tasiyoruz/contracts';
+import type { District, VehicleType } from '@tasiyoruz/contracts';
 import { useRouter } from 'next/navigation';
 import { useState } from 'react';
 import { VehiclePicker } from '@/components/estimate/VehiclePicker';
@@ -26,9 +26,12 @@ const TARGET: Record<Side, string> = {
 
 export function QuoteWidget({
   vehicles,
+  districts,
   tone = 'card',
 }: {
   vehicles: VehicleType[];
+  /** Hizmet katalogu; olmadan İstanbul ve Ankara dışında yer seçilemiyor. */
+  districts?: District[] | null;
   /**
    * `card` — beyaz kart, açık zeminli bölümlerde.
    * `scene` — hero'nun içinde: saydam, koyu, haritanın çizgisel diliyle aynı.
@@ -102,6 +105,7 @@ export function QuoteWidget({
             saran bir kapsayıcıya göre konumlanıyor. */}
         <div className="relative space-y-2.5 sm:space-y-4">
           <PlaceSearch
+            catalog={districts}
             name="nereden"
             label="Nereden"
             value={from}
@@ -115,6 +119,7 @@ export function QuoteWidget({
             }
           />
           <PlaceSearch
+            catalog={districts}
             name="nereye"
             label="Nereye"
             value={to}

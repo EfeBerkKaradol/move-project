@@ -1,8 +1,9 @@
 'use client';
 
-import { Fragment, useEffect, useId, useRef, useState } from 'react';
+import { Fragment, useEffect, useId, useMemo, useRef, useState } from 'react';
+import type { District } from '@tasiyoruz/contracts';
 import type { CityPlaces } from '@/data/places';
-import { searchPlaces, type PlaceOption } from '@/lib/places';
+import { mergePlaces, searchPlaces, type PlaceOption } from '@/lib/places';
 
 /** Veri ilk odaklanmada bir kez yüklenir; ana sayfa paketine girmez. */
 let placesPromise: Promise<CityPlaces[]> | null = null;
@@ -23,6 +24,7 @@ export function PlaceSearch({
   onChange,
   placeholder,
   icon,
+  catalog,
 }: {
   name: string;
   label: string;
@@ -30,6 +32,12 @@ export function PlaceSearch({
   onChange: (v: string) => void;
   placeholder: string;
   icon: React.ReactNode;
+  /**
+   * Hizmet verilen ilçe katalogu (81 il). Yerel veri yalnızca İstanbul ve
+   * Ankara'yı mahalle derinliğinde biliyor; katalog olmadan diğer illerde
+   * seçilecek hiçbir şey çıkmıyor ve rota çözülemiyor.
+   */
+  catalog?: District[] | null;
 }) {
   const uid = useId();
   // Alan kimliği bileşenin kendisinden üretiliyor. Sabit yazıldığında aynı widget
@@ -43,7 +51,9 @@ export function PlaceSearch({
   const rootRef = useRef<HTMLDivElement>(null);
   const listRef = useRef<HTMLUListElement>(null);
 
-  const options: PlaceOption[] = data && open ? searchPlaces(data, value) : [];
+  // Birleştirme her tuşta değil, veri ya da katalog değişince
+  const kaynak = useMemo(() => (data ? mergePlaces(data, catalog) : null), [data, catalog]);
+  const options: PlaceOption[] = kaynak && open ? searchPlaces(kaynak, value) : [];
 
   useEffect(() => {
     if (!open) return;

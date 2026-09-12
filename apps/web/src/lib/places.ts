@@ -13,6 +13,48 @@ export type PlaceOption = {
   value: string;
 };
 
+/**
+ * Yerel veriyi hizmet katalogla birleştirir.
+ *
+ * <p><strong>Neden gerekiyor:</strong> {@code PLACES} yalnızca İstanbul ve
+ * Ankara'yı mahalle derinliğinde biliyor — açılış illeri. Katalog ise 81 ilin
+ * tamamını taşıyor. Yalnızca yerel veriyle çalışıldığında İzmir, Bursa, Konya
+ * gibi illerde Nereden/Nereye alanında <em>seçilecek hiçbir şey çıkmıyordu</em>:
+ * kullanıcı yazıyor, liste boş kalıyor, elle yazdığı metin katalogla
+ * eşleşmediği için rota çözülemiyor ve panel "eksik" demeye devam ediyordu.
+ * Şehirlerarası taşıma açıldıktan sonra bu, ilan vermeyi fiilen imkânsız
+ * kılıyordu.
+ *
+ * <p>Birleştirme derinliği bozmuyor: yerel veride zaten var olan ilçe olduğu
+ * gibi kalıyor (mahalleleriyle), katalogdakilerden yalnızca eksik olanlar
+ * ekleniyor.
+ */
+export function mergePlaces(base: CityPlaces[], catalog: District[] | null | undefined): CityPlaces[] {
+  if (!catalog || catalog.length === 0) return base;
+
+  const byCity = new Map<string, CityPlaces>();
+  for (const c of base) byCity.set(normalize(c.city), { city: c.city, districts: [...c.districts] });
+
+  for (const d of catalog) {
+    const key = normalize(d.cityName);
+    const mevcut = byCity.get(key);
+    if (!mevcut) {
+      byCity.set(key, { city: d.cityName, districts: [[d.name, []]] });
+      continue;
+    }
+    const varMi = mevcut.districts.some(([ad]) => normalize(ad) === normalize(d.name));
+    if (!varMi) mevcut.districts.push([d.name, []]);
+  }
+
+  // İl sırası Türkçe alfabetik: kullanıcı listeyi tarayabilsin
+  return [...byCity.values()]
+    .map((c) => ({
+      ...c,
+      districts: [...c.districts].sort((a, b) => a[0].localeCompare(b[0], 'tr')),
+    }))
+    .sort((a, b) => a.city.localeCompare(b.city, 'tr'));
+}
+
 const MAX_DISTRICTS = 12;
 const MAX_NEIGHBORHOODS = 20;
 
@@ -86,8 +128,15 @@ export function searchPlaces(
   const neighborhoods: { opt: PlaceOption; s: number }[] = [];
 
   for (const c of cities) {
+    /*
+     * İL ADI da eşleşiyor. Eşleşmediğinde "izmir" yazan kullanıcı boş liste
+     * görüyordu: İzmir'in katalogdaki tek ilçesi "Merkez" ve kimse yer ararken
+     * önce "merkez" yazmıyor. İl adıyla bulunan ilçeler ilçe adıyla bulunanların
+     * ARKASINA düşüyor — "Kadıköy" arayan biri önce Kadıköy'ü görmeli.
+     */
+    const cs = score(c.city, q);
     for (const [district, hoods] of c.districts) {
-      const ds = score(district, q);
+      const ds = Math.max(score(district, q), cs ? 1 : 0) as 0 | 1 | 2;
       if (ds) {
         districts.push({
           s: ds,

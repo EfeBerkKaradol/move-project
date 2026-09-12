@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import type { CityPlaces } from '@/data/places';
-import { cityOf, matchDistrict, neighborhoodOf, normalize, parsePlace, searchPlaces } from './places';
+import { cityOf, matchDistrict, mergePlaces, neighborhoodOf, normalize, parsePlace, searchPlaces } from './places';
 
 const DATA: CityPlaces[] = [
   { city: 'İstanbul', districts: [['Kadıköy', ['Caferağa', 'Moda']], ['Beşiktaş', ['Cihannüma']]] },
@@ -88,5 +88,74 @@ describe('neighborhoodOf', () => {
     // Sunucu 96 karakter kabul ediyor; reddi burada değil orada öğrenmeyelim
     const uzun = neighborhoodOf(`İstanbul, Beşiktaş - ${'a'.repeat(200)}`);
     expect(uzun).toHaveLength(96);
+  });
+});
+
+
+/**
+ * Yer seçicisinin kapsamı.
+ *
+ * <p>Yerel veri yalnızca İstanbul ve Ankara'yı mahalle derinliğinde biliyor —
+ * açılış illeri. Katalog ise 81 ilin tamamını taşıyor. Birleştirilmediğinde
+ * İzmir'de yazan kullanıcı boş liste görüyor, elle yazdığı metin katalogla
+ * eşleşmiyor ve rota çözülemediği için ilan yayınlanamıyordu.
+ */
+describe('mergePlaces', () => {
+  const yerel = [{ city: 'İstanbul', districts: [['Kadıköy', ['Moda', 'Caferağa']]] as [string, string[]][] }];
+  const katalog = [
+    { id: '1', cityCode: '34', cityName: 'İstanbul', name: 'Kadıköy', slug: 'kadikoy', lat: 0, lng: 0 },
+    { id: '2', cityCode: '34', cityName: 'İstanbul', name: 'Beşiktaş', slug: 'besiktas', lat: 0, lng: 0 },
+    { id: '3', cityCode: '35', cityName: 'İzmir', name: 'Merkez', slug: 'merkez', lat: 0, lng: 0 },
+  ];
+
+  it('katalogdaki iller ekleniyor', () => {
+    const sonuc = mergePlaces(yerel, katalog);
+    expect(sonuc.map((c) => c.city)).toContain('İzmir');
+  });
+
+  it('yerel derinlik korunuyor', () => {
+    // Kadıköy'ün mahalleleri katalogda yok; birleştirme onları silmemeli
+    const ist = mergePlaces(yerel, katalog).find((c) => c.city === 'İstanbul')!;
+    const kadikoy = ist.districts.find(([ad]) => ad === 'Kadıköy')!;
+    expect(kadikoy[1]).toEqual(['Moda', 'Caferağa']);
+  });
+
+  it('aynı ilçe iki kez eklenmiyor', () => {
+    const ist = mergePlaces(yerel, katalog).find((c) => c.city === 'İstanbul')!;
+    expect(ist.districts.filter(([ad]) => ad === 'Kadıköy')).toHaveLength(1);
+    // Katalogdan gelen yeni ilçe de var
+    expect(ist.districts.map(([ad]) => ad)).toContain('Beşiktaş');
+  });
+
+  it('katalog yoksa yerel veri olduğu gibi kalıyor', () => {
+    expect(mergePlaces(yerel, null)).toEqual(yerel);
+    expect(mergePlaces(yerel, [])).toEqual(yerel);
+  });
+});
+
+describe('il adıyla arama', () => {
+  const veri = [
+    { city: 'İzmir', districts: [['Merkez', []]] as [string, string[]][] },
+    { city: 'İstanbul', districts: [['Kadıköy', []]] as [string, string[]][] },
+  ];
+
+  it('il adı yazınca o ilin ilçeleri çıkıyor', () => {
+    /*
+     * Eskiden yalnızca ilçe ve mahalle adına bakılıyordu. İzmir'in katalogdaki
+     * tek ilçesi "Merkez" ve kimse yer ararken önce "merkez" yazmıyor —
+     * kullanıcı "izmir" yazıp boş liste görüyordu.
+     */
+    const sonuc = searchPlaces(veri, 'izmir');
+    expect(sonuc).not.toHaveLength(0);
+    expect(sonuc[0].city).toBe('İzmir');
+  });
+
+  it('ilçe adıyla eşleşen, il adıyla eşleşenin önünde', () => {
+    // "Kadıköy" arayan biri önce Kadıköy'ü görmeli
+    const sonuc = searchPlaces(
+      [...veri, { city: 'Kadıköy İli Yok', districts: [['Başka', []]] as [string, string[]][] }],
+      'kadik',
+    );
+    expect(sonuc[0].district).toBe('Kadıköy');
   });
 });
