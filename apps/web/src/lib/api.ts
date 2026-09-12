@@ -53,8 +53,14 @@ export const API_URL = resolveApiUrl();
  * <p>Zaman aşımı olmadan, ulaşılamayan bir API'ye açılan bağlantı asılı kalıyor ve
  * derlemeyi kilitliyordu: Vercel'de sayfa üretimi 60 saniyelik bütçeyi doldurup
  * build'i düşürdü. Hızlı başarısız olmak, yavaş başarısız olmaktan iyidir.
+ *
+ * <p>6 saniyeydi, 3'e indi. Ölçüm: API ayaktayken uçlar 0,12–0,33 sn sürüyor,
+ * yani 3 saniye sağlıklı bir isteğin on katı. Uyuyan örnek ise 35–60 saniyede
+ * uyanıyor — orada 6 saniye de yetmiyor, yalnızca kullanıcıyı iki kat uzun
+ * bekletiyordu. Kısaltmak sağlıklı isteği düşürmüyor, uyanma aralığındaki
+ * beklemeyi yarıya indiriyor.
  */
-const SERVER_FETCH_TIMEOUT_MS = 6000;
+const SERVER_FETCH_TIMEOUT_MS = 3000;
 
 /**
  * Katalog uçları kimlik gerektirmiyor — kullanıcı fiyat almadan ve kayıt olmadan
@@ -66,7 +72,31 @@ const SERVER_FETCH_TIMEOUT_MS = 6000;
  *   koridorlar değişiyor. Varsayılan bir saat, canlı uçlar kendi süresini verir —
  *   yoksa "şu an yolda" bölümü bir saat önceki tabloyu gösterirdi.
  */
-async function get<T>(path: string, revalidateSeconds = 3600): Promise<T | null> {
+/**
+ * Son başarılı katalog cevabı.
+ *
+ * <p>API ücretsiz katmanda 15 dakika istek almayınca uyuyor ve uyanması bir
+ * dakikayı bulabiliyor; o aralıkta katalog isteği zaman aşımına uğrayıp
+ * <em>hiçbir şey</em> döndürüyordu. Fiyat sayfasının ilçe listesi boşalıyor,
+ * araç seçici yedek listeye düşüyordu — oysa elimizde dakikalar önce alınmış,
+ * hâlâ geçerli bir cevap vardı.
+ *
+ * <p>Yalnızca REFERANS verisi için. Canlı veri (ilanlar, sayaçlar, koridorlar)
+ * bu yoldan geçmiyor: saatler önceki bir ilan panosunu taze gibi göstermek,
+ * boş göstermekten daha yanıltıcı.
+ *
+ * <p>Süreç belleğinde duruyor; sunucu örneği değişince kayboluyor ve o zaman
+ * davranış eskisine dönüyor. Kalıcı olması gerekmiyor: amacı uyanma aralığını
+ * köprülemek.
+ */
+const sonIyiKatalog = new Map<string, unknown>();
+
+/**
+ * @param referans Cevap katalog verisi mi? Katalog nadiren değişiyor, bu yüzden
+ *   istek başarısız olduğunda son başarılı cevap dönüyor.
+ */
+async function get<T>(path: string, revalidateSeconds = 3600, referans = false): Promise<T | null> {
+  const bayat = () => (referans ? ((sonIyiKatalog.get(path) as T | undefined) ?? null) : null);
   try {
     const res = await fetch(`${API_URL}/api/v1/public${path}`, {
       next: { revalidate: revalidateSeconds },
@@ -74,13 +104,15 @@ async function get<T>(path: string, revalidateSeconds = 3600): Promise<T | null>
     });
     if (!res.ok) {
       console.warn(`[api] ${path} → HTTP ${res.status}`);
-      return null;
+      return bayat();
     }
-    return (await res.json()) as T;
+    const data = (await res.json()) as T;
+    if (referans) sonIyiKatalog.set(path, data);
+    return data;
   } catch (error) {
     // Sessizce yutmuyoruz: dağıtım loglarında API'nin ulaşılamadığı görünmeli
     console.warn(`[api] ${path} ulaşılamadı:`, (error as Error).message);
-    return null;
+    return bayat();
   }
 }
 
@@ -89,15 +121,15 @@ async function get<T>(path: string, revalidateSeconds = 3600): Promise<T | null>
  * backend olmadan da tasarlandığı gibi görünmeli (bkz. fallback-fleet.ts).
  */
 export async function getVehicleTypes(): Promise<VehicleType[]> {
-  const fromApi = await get<VehicleType[]>('/vehicle-types');
+  const fromApi = await get<VehicleType[]>('/vehicle-types', 3600, true);
   if (fromApi && fromApi.length > 0) return fromApi;
   console.warn('[api] araç filosu yedek listeden okundu');
   return FALLBACK_FLEET;
 }
-export const getCargoCategories = () => get<CargoCategory[]>('/cargo-categories');
-export const getCargoItems = () => get<CargoItem[]>('/cargo-items');
-export const getCargoPresets = () => get<CargoPreset[]>('/cargo-presets');
-export const getDistricts = () => get<District[]>('/districts');
+export const getCargoCategories = () => get<CargoCategory[]>('/cargo-categories', 3600, true);
+export const getCargoItems = () => get<CargoItem[]>('/cargo-items', 3600, true);
+export const getCargoPresets = () => get<CargoPreset[]>('/cargo-presets', 3600, true);
+export const getDistricts = () => get<District[]>('/districts', 3600, true);
 /** Ana sayfa sayaçları; API kapalıysa null döner ve arayüz tire gösterir. */
 /**
  * Yürürlükteki hukuki belgeler. Bir saat önbellekli: sürüm ancak yeni bir
@@ -140,10 +172,10 @@ export const getPublicListing = async (id: string): Promise<PublicListingView | 
  * uç yalnızca sayıları taşıyor (bkz. PublicFleetCountView).
  */
 export const getFleetCounts = () =>
-  get<PublicFleetCountView[]>('/fleet-counts', 300).then((d) => d ?? []);
+  get<PublicFleetCountView[]>('/fleet-counts', 300, true).then((d) => d ?? []);
 
 export const getPublicStats = () => get<PublicStatsView>('/stats', 60);
-export const getExtraServices = () => get<ExtraService[]>('/extra-services');
+export const getExtraServices = () => get<ExtraService[]>('/extra-services', 3600, true);
 
 /** Araç önerisi — tarayıcıdan çağrılır, her seçim değişikliğinde yenilenir. */
 export async function fetchRecommendation(
