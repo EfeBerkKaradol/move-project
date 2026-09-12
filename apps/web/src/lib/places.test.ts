@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import type { CityPlaces } from '@/data/places';
-import { cityOf, matchDistrict, neighborhoodOf, normalize, parsePlace, sameCity, searchPlaces } from './places';
+import { cityOf, matchDistrict, neighborhoodOf, normalize, parsePlace, searchPlaces } from './places';
 
 const DATA: CityPlaces[] = [
   { city: 'İstanbul', districts: [['Kadıköy', ['Caferağa', 'Moda']], ['Beşiktaş', ['Cihannüma']]] },
@@ -14,23 +14,19 @@ describe('yer arama', () => {
     expect(searchPlaces(DATA, 'besikt').map((o) => o.district)).toContain('Beşiktaş');
   });
 
-  it('il kilidi verilince yalnızca o ilin yerlerini döner', () => {
+  it('arama ille sınırlanmıyor — şehirlerarası taşıma açık', () => {
+    /*
+     * Eskiden teslim alanı alış iline kilitliydi ve alış ili değişince teslim
+     * noktası sessizce siliniyordu. Şehirlerarası taşıma açıldı: aynı ada sahip
+     * ilçeler farklı illerden birlikte dönmeli, yoksa İzmir → Ankara yazılamaz.
+     */
     const hepsi = searchPlaces(DATA, 'kadik');
     expect(new Set(hepsi.map((o) => o.city))).toEqual(new Set(['İstanbul', 'Ankara']));
-
-    const kilitli = searchPlaces(DATA, 'kadik', 'İstanbul');
-    expect(kilitli).not.toHaveLength(0);
-    expect(new Set(kilitli.map((o) => o.city))).toEqual(new Set(['İstanbul']));
   });
 
-  it('boş sorguda da kilide uyar', () => {
-    // Alana odaklanınca tüm ilçeler listeleniyor; kilit orada da geçerli olmalı
-    const kilitli = searchPlaces(DATA, '', 'Ankara');
-    expect(kilitli.map((o) => o.district)).toEqual(['Çankaya', 'Kadıköy']);
-  });
-
-  it('kilit ili tanınmıyorsa boş liste döner', () => {
-    expect(searchPlaces(DATA, '', 'Konya')).toHaveLength(0);
+  it('boş sorguda bütün illerin ilçeleri listeleniyor', () => {
+    const bos = searchPlaces(DATA, '');
+    expect(new Set(bos.map((o) => o.city)).size).toBeGreaterThan(1);
   });
 });
 
@@ -45,13 +41,6 @@ describe('alan değeri', () => {
     expect(parsePlace('İstanbul, Beşiktaş - Cihannüma')).toEqual({
       city: 'İstanbul', district: 'Beşiktaş', neighborhood: 'Cihannüma',
     });
-  });
-
-  it('boş alanı çelişki saymaz', () => {
-    // Kullanıcı henüz teslim noktasını seçmediyse uyarı çıkmamalı
-    expect(sameCity('İstanbul, Kadıköy', '')).toBe(true);
-    expect(sameCity('İstanbul, Kadıköy', 'İstanbul, Beşiktaş')).toBe(true);
-    expect(sameCity('İstanbul, Kadıköy', 'Ankara, Çankaya')).toBe(false);
   });
 });
 

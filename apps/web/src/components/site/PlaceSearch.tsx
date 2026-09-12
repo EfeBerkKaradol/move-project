@@ -23,7 +23,6 @@ export function PlaceSearch({
   onChange,
   placeholder,
   icon,
-  onlyCity,
 }: {
   name: string;
   label: string;
@@ -32,7 +31,6 @@ export function PlaceSearch({
   placeholder: string;
   icon: React.ReactNode;
   /** Verilirse liste bu ille sınırlanır — teslim alanı alış iline kilitleniyor. */
-  onlyCity?: string | null;
 }) {
   const uid = useId();
   // Alan kimliği bileşenin kendisinden üretiliyor. Sabit yazıldığında aynı widget
@@ -46,7 +44,7 @@ export function PlaceSearch({
   const rootRef = useRef<HTMLDivElement>(null);
   const listRef = useRef<HTMLUListElement>(null);
 
-  const options: PlaceOption[] = data && open ? searchPlaces(data, value, onlyCity) : [];
+  const options: PlaceOption[] = data && open ? searchPlaces(data, value) : [];
 
   useEffect(() => {
     if (!open) return;
@@ -100,7 +98,6 @@ export function PlaceSearch({
     <div ref={rootRef} className="relative">
       <label htmlFor={inputId} className="label-mono text-muted">
         {label}
-        {onlyCity && <span className="ml-2 normal-case text-[var(--route-deep)]">{onlyCity} içinde</span>}
       </label>
       <div className="mt-1.5 flex items-center gap-2.5 rounded-field border border-line bg-surface-2 px-3.5 transition hover:border-muted focus:border-route focus:ring-2 focus:ring-route/25">
         <svg viewBox="0 0 16 16" className="size-4 shrink-0 text-muted" fill="none" stroke="currentColor"
@@ -138,9 +135,7 @@ export function PlaceSearch({
         >
           {options.length === 0 && (
             <li className="px-3 py-3 text-sm text-muted">
-              {onlyCity
-                ? `${onlyCity} içinde eşleşen yer yok.`
-                : 'Listede yok — yazdığın hâliyle kullanabilirsin.'}
+              Listede yok — yazdığın hâliyle kullanabilirsin.
             </li>
           )}
           {options.map((opt, i) => {

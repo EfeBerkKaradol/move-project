@@ -1,5 +1,4 @@
 import type { District, VehicleType } from '@tasiyoruz/contracts';
-import { formatPrice } from '@tasiyoruz/shared';
 import type { Metadata } from 'next';
 import Link from 'next/link';
 import { auth, isDriver } from '@/auth';
@@ -15,6 +14,8 @@ import { districtsOf } from '@/components/map/districts';
 import { Footer } from '@/components/site/Footer';
 import { Header } from '@/components/site/Header';
 import { Icon } from '@/components/ui/Icon';
+import { CitySelect } from './CitySelect';
+import { ListingRows } from './ListingRows';
 import { getDistricts, getPublicListings, getVehicleTypes } from '@/lib/api';
 import { normalize } from '@/lib/places';
 import { projectLonLat } from '@/components/hero/geo-data';
@@ -49,6 +50,13 @@ export default async function PublicListingsPage({ searchParams }: { searchParam
   const cityFilter = first(p.il);
   // İlçe süzgeci ilsiz anlamsız: aynı ilçe adı birden çok ilde geçiyor
   const districtFilter = cityFilter ? first(p.ilce) : '';
+  /*
+   * İki görünüm, tek sayfa ve tek süzgeç kümesi. Varsayılan LİSTE: "burada ne
+   * var?" sorusunu en hızlı o cevaplıyor. Harita, araç sahibinin "bana yakın ne
+   * var?" sorusu için ve menüde ayrı bir maddeden (Yük bul) açılıyor.
+   * Görünüm URL'de: paylaşılan bağlantı aynı ekranı açıyor.
+   */
+  const harita = first(p.gorunum) === 'harita';
   // Araç süzgeci sunucuda değil burada uygulanıyor: çiplerin yanındaki sayılar için
   // zaten o ildeki bütün ilanlar gerekiyor ve iki istek atmanın anlamı yok.
   // İki liste: haritanın sayaçları bütün illeri bilmek zorunda, liste ise
@@ -163,6 +171,9 @@ export default async function PublicListingsPage({ searchParams }: { searchParam
       })
     : [];
 
+  /** Süzgeçlerin o anki hâli; bağlantılar bunun üstüne tek alan değiştiriyor. */
+  const suzgec = { arac: vehicleFilter, il: cityFilter, ilce: districtFilter, harita };
+
   const active = (vehicles ?? []).filter((v: VehicleType) => v.active);
   // Sayı, çipe basmadan önce sonucu söylüyor. Sıfırsa çip bağlantı değil: boş sayfaya
   // götüren bir düğme, kullanıcıya ürünün çalışmadığını düşündürüyor.
@@ -188,7 +199,7 @@ export default async function PublicListingsPage({ searchParams }: { searchParam
               <span className="inline-flex min-h-11 items-center rounded-field border border-[var(--route-deep)] bg-[var(--route-soft)] px-4 text-sm font-bold">
                 {cityName} çıkışlı
               </span>
-              <Link href={vehicleFilter ? `/ilanlar?arac=${vehicleFilter}` : '/ilanlar'}
+              <Link href={ilanlarHref(suzgec, { il: '', ilce: '' })}
                 className="inline-flex min-h-11 items-center text-sm font-semibold underline underline-offset-4 transition hover:text-[var(--route-deep)]">
                 Süzgeci kaldır
               </Link>
@@ -198,7 +209,7 @@ export default async function PublicListingsPage({ searchParams }: { searchParam
           {active.length > 0 && (
             <nav aria-label="Araç tipine göre süz" className="mt-8 flex flex-wrap gap-2">
               <FilterChip
-                href={withCity('/ilanlar', cityFilter)}
+                href={ilanlarHref(suzgec, { arac: '' })}
                 label="Tümü"
                 count={(all ?? []).length}
                 selected={!vehicleFilter}
@@ -206,7 +217,7 @@ export default async function PublicListingsPage({ searchParams }: { searchParam
               {active.map((v: VehicleType) => (
                 <FilterChip
                   key={v.code}
-                  href={withCity(`/ilanlar?arac=${v.code}`, cityFilter)}
+                  href={ilanlarHref(suzgec, { arac: v.code })}
                   label={v.displayName}
                   count={countOf(v.code)}
                   selected={vehicleFilter === v.code}
@@ -215,10 +226,51 @@ export default async function PublicListingsPage({ searchParams }: { searchParam
             </nav>
           )}
 
+          {/* Görünüm anahtarı: aynı süzgeçler, iki okuma biçimi */}
+          <nav aria-label="Görünüm" className="mt-8 inline-flex rounded-field border border-line p-1">
+            {([
+              { harita: false, label: 'Liste' },
+              { harita: true, label: 'Harita' },
+            ] as const).map((g) => (
+              <Link
+                key={g.label}
+                href={ilanlarHref(suzgec, { harita: g.harita })}
+                aria-current={harita === g.harita ? 'page' : undefined}
+                className={`inline-flex min-h-11 items-center rounded-[calc(var(--radius-field)-0.25rem)] px-4 text-sm font-semibold transition ${
+                  harita === g.harita ? 'bg-route text-[var(--route-ink)]' : 'text-muted hover:text-ink'
+                }`}
+              >
+                {g.label}
+              </Link>
+            ))}
+          </nav>
+
+          {!harita && (
+            <div className="mt-4 flex flex-wrap items-center gap-2">
+              <CitySelect
+                cities={provinceStats
+                  .filter((c) => c.count > 0)
+                  .sort((a, b) => a.name.localeCompare(b.name, 'tr'))}
+                selected={cityFilter}
+                hrefFor={ilanlarHref(suzgec, { il: '__IL__', ilce: '' })}
+              />
+              {cityFilter && (
+                <DistrictList
+                  districtStats={districtStats}
+                  selectedCityCode={cityFilter}
+                  selectedDistrict={districtName}
+                  vehicleFilter={vehicleFilter}
+                  basePath="/ilanlar"
+                />
+              )}
+            </div>
+          )}
+
           {/* Harita boş durumun üstünde: seçilen ilde ilan yoksa kullanıcı
               haritadan başka bir ile geçebilmeli. Altında aynı seçimin klavye
               karşılığı duruyor — seksen bir yolu sekmeye açmak klavye
               kullanıcısını haritanın içinde kilitlerdi. */}
+          {harita && (
           <div className="mt-8">
             <ProvinceMap
               provinces={provinceStats}
@@ -246,6 +298,7 @@ export default async function PublicListingsPage({ searchParams }: { searchParam
               />
             )}
           </div>
+          )}
 
           {!listings || listings.length === 0 ? (
             <div className="mt-10 rounded-card border border-dashed border-line p-8 text-center">
@@ -264,57 +317,17 @@ export default async function PublicListingsPage({ searchParams }: { searchParam
             </div>
           ) : (
             <>
-              <ul className="mt-6 grid gap-3 md:grid-cols-2 xl:grid-cols-3">
-                {listings.map((l) => (
-                  <li
-                    key={l.id}
-                    id={`ilan-${l.id}`}
-                    // Haritadan gelen bağlantı kartı yapışkan başlığın altına sokmasın
-                    className="scroll-mt-24 flex flex-col rounded-card border border-line bg-surface p-5"
-                  >
-                    <p className="flex items-start gap-2 font-bold">
-                      <span aria-hidden className="mt-0.5 shrink-0 text-[var(--route-deep)]">
-                        <Icon name="route" size={20} />
-                      </span>
-                      <span className="min-w-0">
-                        {l.fromCity}, {l.fromDistrict}
-                        <span className="text-muted"> → </span>
-                        {l.toCity}, {l.toDistrict}
-                      </span>
-                    </p>
-
-                    <p className="label-mono mt-3 text-muted">
-                      {vehicleName(active, l.vehicleTypeCode)} · {l.distanceKm} km ·{' '}
-                      {l.pieceCount} parça
-                      {l.volumeM3 > 0 && ` · ${l.volumeM3.toLocaleString('tr-TR')} m³`}
-                    </p>
-
-                    <p className="mt-3 text-sm text-muted">
-                      tarife tahmini{' '}
-                      <span className="stat text-ink">{formatPrice(String(l.estimatedAmount))}</span>
-                    </p>
-
-                    <p className="label-mono mt-1 text-muted">
-                      {l.offerCount} teklif · {shortDateTime(l.expiresAt)} tarihine kadar açık
-                    </p>
-
-                    {/*
-                      Kart artık ilanın kendi sayfasına gidiyor, doğrudan teklif
-                      akışına değil. Bağlantı paylaşılabiliyor, geri tuşu listeye
-                      dönüyor ve "teklif verebilir miyim?" sorusu orada tek yerde
-                      cevaplanıyor — kartın üstünde iki ayrı düğme metni tutmaya
-                      gerek kalmıyor.
-                    */}
-                    <Link
-                      href={`/ilanlar/${l.id}`}
-                      className="mt-4 inline-flex min-h-11 items-center justify-center gap-1.5 rounded-field border border-line px-4 text-sm font-semibold transition hover:border-route hover:bg-surface-2"
-                    >
-                      İlanı aç
-                      <Icon name="arrowRight" size={16} />
-                    </Link>
-                  </li>
-                ))}
-              </ul>
+              {/*
+                Kartlar üç sütuna yayılıyordu ve ekrana altı ilan sığıyordu; yüz
+                yetmiş dokuz ilanı öyle taramak mümkün değil. Satır düzeni hem
+                listede hem haritada aynı: iki görünüm arasında geçen kullanıcı
+                aynı satırı arıyor.
+              */}
+              <p className="label-mono mt-6 text-muted">
+                {listings.length} ilan
+                {cityName && ` · ${cityName}${districtName ? `, ${districtName}` : ''} çıkışlı`}
+              </p>
+              <ListingRows listings={listings} vehicles={active} />
 
               {!signedInDriver && (
                 <div className="mt-10 rounded-card border border-line bg-surface p-6 md:p-8">
@@ -385,16 +398,26 @@ function FilterChip({
 }
 
 /** Araç süzgeci değişirken il süzgeci düşmesin; ikisi birlikte çalışıyor. */
-function withCity(href: string, cityCode: string): string {
-  if (!cityCode) return href;
-  return `${href}${href.includes('?') ? '&' : '?'}il=${cityCode}`;
+/**
+ * Sayfanın bütün süzgeçlerini taşıyan adres.
+ *
+ * <p>Tek tek birleştirmek (withCity gibi) her yeni süzgeçte bir çağrı yerini
+ * unutturuyordu: araç seçiliyken il değiştirince görünüm sıfırlanıyordu. Burada
+ * hepsi tek yerde ve verilmeyen alan MEVCUT değeri koruyor.
+ */
+function ilanlarHref(
+  simdi: { arac: string; il: string; ilce: string; harita: boolean },
+  degisiklik: Partial<{ arac: string; il: string; ilce: string; harita: boolean }> = {},
+): string {
+  const v = { ...simdi, ...degisiklik };
+  const q = new URLSearchParams();
+  if (v.arac) q.set('arac', v.arac);
+  if (v.il) q.set('il', v.il);
+  // İlçe ilsiz anlamsız: aynı ad birden çok ilde geçiyor
+  if (v.il && v.ilce) q.set('ilce', v.ilce);
+  if (v.harita) q.set('gorunum', 'harita');
+  const s = q.toString();
+  return s ? `/ilanlar?${s}` : '/ilanlar';
 }
 
-/** Katalogda karşılığı yoksa kodun kendisi — boş bırakmaktan iyi. */
-function vehicleName(vehicles: VehicleType[], code: string): string {
-  return vehicles.find((v) => v.code === code)?.displayName ?? code;
-}
 
-function shortDateTime(iso: string): string {
-  return new Date(iso).toLocaleString('tr-TR', { dateStyle: 'short', timeStyle: 'short' });
-}

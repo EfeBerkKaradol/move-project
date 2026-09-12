@@ -4,7 +4,6 @@ import type { VehicleType } from '@tasiyoruz/contracts';
 import { useRouter } from 'next/navigation';
 import { useState } from 'react';
 import { VehiclePicker } from '@/components/estimate/VehiclePicker';
-import { cityOf, sameCity } from '@/lib/places';
 import { PlaceSearch } from './PlaceSearch';
 
 type Side = 'SHIPPER' | 'CARRIER';
@@ -42,16 +41,11 @@ export function QuoteWidget({
   const [to, setTo] = useState('');
   const [vehicleCode, setVehicleCode] = useState<string | null>(null);
 
-  const originCity = cityOf(from);
-
-  /**
-   * Alış ili değişince, başka ilde kalan teslim noktası temizleniyor. Yerinde
-   * bırakılsaydı ekran il kilidi gösterirken alan onunla çelişen bir değer taşırdı.
+  /*
+   * Alış ili değişince teslim noktası ARTIK SİLİNMİYOR. Şehirlerarası taşıma
+   * açıldığı için başka ildeki bir teslim noktası geçerli bir seçim; silmek,
+   * kullanıcının yazdığı adresi sessizce yok ediyordu.
    */
-  const changeFrom = (v: string) => {
-    setFrom(v);
-    if (!sameCity(v, to)) setTo('');
-  };
 
   const swap = () => {
     setFrom(to);
@@ -111,7 +105,7 @@ export function QuoteWidget({
             name="nereden"
             label="Nereden"
             value={from}
-            onChange={changeFrom}
+            onChange={setFrom}
             placeholder="İstanbul, Hadımköy"
             icon={
               <>
@@ -125,8 +119,7 @@ export function QuoteWidget({
             label="Nereye"
             value={to}
             onChange={setTo}
-            onlyCity={originCity}
-            placeholder={originCity ? `${originCity} içinde bir yer` : 'Önce nereden seçin'}
+            placeholder="Ankara, Çankaya"
             icon={<path d="M2.5 8h11M9.5 4.5 13 8l-3.5 3.5" />}
           />
           <button

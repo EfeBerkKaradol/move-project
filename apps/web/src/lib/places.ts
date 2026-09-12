@@ -66,12 +66,10 @@ export function neighborhoodOf(value: string): string | null {
 export function searchPlaces(
   data: CityPlaces[],
   query: string,
-  /** Verilirse yalnızca bu ilin yerleri döner (alış ili seçilince teslim listesi). */
-  onlyCity?: string | null,
 ): PlaceOption[] {
   const q = normalize(query);
   const collator = new Intl.Collator('tr-TR');
-  const cities = onlyCity ? data.filter((c) => normalize(c.city) === normalize(onlyCity)) : data;
+  const cities = data;
 
   if (!q) {
     return cities.flatMap((c) =>
@@ -134,12 +132,6 @@ export function cityOf(value: string): string | null {
   return parsePlace(value)?.city ?? null;
 }
 
-/** İki alan aynı ilde mi? Biri boşsa çelişki yok sayılır. */
-export function sameCity(a: string, b: string): boolean {
-  const ca = cityOf(a);
-  const cb = cityOf(b);
-  return ca === null || cb === null || normalize(ca) === normalize(cb);
-}
 
 /** "İstanbul, Beşiktaş - Cihannüma" → { city, district, neighborhood }. Biçim dışıysa null. */
 export function parsePlace(value: string): { city: string; district: string; neighborhood?: string } | null {

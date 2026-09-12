@@ -15,7 +15,7 @@ import type { CargoSelection } from '@/components/booking/CargoDetail';
 import { FULL_LOAD_CATEGORY, declaredItems, encodeItems, isFullLoad } from '@/lib/cargo';
 import { PlaceSearch } from '@/components/site/PlaceSearch';
 import { fetchQuote } from '@/lib/api';
-import { cityOf, matchDistrict, neighborhoodOf, sameCity } from '@/lib/places';
+import { matchDistrict, neighborhoodOf } from '@/lib/places';
 import { type Aralik, PickupWindow } from '@/components/form/PickupWindow';
 import { BOS_SECIM, CargoAdvisor } from './CargoAdvisor';
 import { CargoPhotoPicker } from './CargoPhotoPicker';
@@ -195,13 +195,12 @@ export function EstimateFlow({
     return `/panel/ilan/yeni?${q.toString()}`;
   })();
 
-  const originCity = cityOf(from);
-
-  /** Alış ili değişince başka ildeki teslim noktası temizleniyor (bkz. QuoteWidget). */
-  const changeFrom = (v: string) => {
-    setFrom(v);
-    if (!sameCity(v, to)) setTo('');
-  };
+  /*
+   * Alış ili değişince teslim noktası ARTIK SİLİNMİYOR (bkz. QuoteWidget).
+   * Şehirlerarası taşıma açık: İzmir → Ankara geçerli bir rota ve arka uç
+   * fiyatlıyor. Eski davranış, kullanıcı "nereden"i düzeltince "nereye"yi
+   * sessizce boşaltıyordu — en çok şikâyet edilen davranış buydu.
+   */
 
   const swap = () => {
     setFrom(to);
@@ -226,7 +225,7 @@ export function EstimateFlow({
               name="nereden"
               label="Nereden"
               value={from}
-              onChange={changeFrom}
+              onChange={setFrom}
               placeholder="İstanbul, Hadımköy"
               icon={
                 <>
@@ -240,8 +239,7 @@ export function EstimateFlow({
               label="Nereye"
               value={to}
               onChange={setTo}
-              onlyCity={originCity}
-              placeholder={originCity ? `${originCity} içinde bir yer` : 'Önce nereden seçin'}
+              placeholder="Ankara, Çankaya"
               icon={<path d="M2.5 8h11M9.5 4.5 13 8l-3.5 3.5" />}
             />
             <button

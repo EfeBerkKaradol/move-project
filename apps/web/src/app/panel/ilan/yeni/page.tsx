@@ -29,7 +29,22 @@ export default async function NewListingPage({ searchParams }: { searchParams: P
     auth(), searchParams, getDistricts(), getVehicleTypes(), getExtraServices(),
     getCargoItems(), getCargoCategories(),
   ]);
-  if (!canCallApi(session)) redirect('/giris');
+  /*
+   * Girişe yollarken seçim de gidiyor. Normalde buraya hiç gelinmiyor —
+   * middleware oturumsuz isteği zaten callbackUrl ile /giris'e çeviriyor — ama
+   * bu satır onun sessiz ikizi: callbackUrl'süz bir redirect, kullanıcının fiyat
+   * adımında doldurduğu her şeyi (rota, araç, kat, beyan, alış saati) girişten
+   * sonra silerdi. Aynı bilgiyi iki kez sormamak bu iki yerin birden doğru
+   * olmasına bağlı.
+   */
+  if (!canCallApi(session)) {
+    const q = new URLSearchParams(
+      Object.entries(p).flatMap(([k, v]) =>
+        typeof v === 'string' ? [[k, v] as [string, string]] : [],
+      ),
+    ).toString();
+    redirect(`/giris?callbackUrl=${encodeURIComponent(`/panel/ilan/yeni${q ? `?${q}` : ''}`)}`);
+  }
   if (!isCustomer(session.roles)) redirect(homeFor(session.roles));
 
   const pickup = districts ? matchDistrict(districts, first(p.nereden)) : null;

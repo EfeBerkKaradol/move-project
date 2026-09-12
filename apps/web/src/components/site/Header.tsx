@@ -16,9 +16,19 @@ export async function Header({ overlay = false }: { overlay?: boolean } = {}) {
   // belge yüklemesini istemek oluyordu; ilanları görüp sonra karar versin.
   const carrierHref = signedIn && isDriver(roles) ? '/nakliyeci' : '/ilanlar';
 
+  /*
+   * "İlanlar" ile "Yük bul" aynı veriyi gösteriyor ama aynı soruyu sormuyor,
+   * o yüzden ikisi de duruyor ve AYRI adreslere gidiyor:
+   *   İlanlar  — herkes için, düz liste ve süzgeç: "ne var burada?"
+   *   Yük bul  — araç sahibi için: onaylıysa kendi paneli, değilse harita
+   *              görünümü, yani "bana yakın ne var?"
+   * İkisi de süzgeçsiz /ilanlar'a gitseydi menüde aynı yere çıkan iki madde
+   * olurdu.
+   */
   const nav = [
     { href: '/fiyat-hesapla', label: 'Yük ver' },
-    { href: carrierHref, label: 'Yük bul' },
+    { href: '/ilanlar', label: 'İlanlar' },
+    { href: carrierHref === '/ilanlar' ? '/ilanlar?gorunum=harita' : carrierHref, label: 'Yük bul' },
     { href: '/#nasil-calisir', label: 'Nasıl çalışır' },
     { href: '/#araclar', label: 'Araçlar' },
   ];
